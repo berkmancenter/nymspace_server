@@ -1,15 +1,13 @@
-const httpStatus = require('http-status');
 const { Message } = require('../models');
-const ApiError = require('../utils/ApiError');
 
 /**
  * Create a message
  * @param {Object} messageBody
- * @returns {Promise<User>}
+ * @returns {Promise<Message>}
  */
 const createMessage = async (messageBody) => {
-  const user = await Message.create(messageBody);
-  return user;
+  const message = await Message.create(messageBody);
+  return message;
 };
 
 module.exports = {
