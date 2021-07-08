@@ -1,9 +1,15 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 const { toJSON, paginate } = require('./plugins');
 
 const topicSchema = mongoose.Schema(
   {
     name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    slug: {
       type: String,
       required: true,
       trim: true,
@@ -24,6 +30,12 @@ const topicSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 topicSchema.plugin(toJSON);
 topicSchema.plugin(paginate);
+
+topicSchema.pre('validate', function (next) {
+  const topic = this;
+  topic.slug = slugify(topic.name);
+  next();
+});
 
 /**
  * @typedef User

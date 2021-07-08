@@ -6,6 +6,8 @@ const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
 const httpStatus = require('http-status');
+require('./websockets');
+const cookieParser = require('cookie-parser');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
@@ -36,6 +38,8 @@ app.use(mongoSanitize());
 
 // gzip compression
 app.use(compression());
+
+app.use(cookieParser());
 
 // enable cors
 app.use(cors());

@@ -7,6 +7,12 @@ const createTopic = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(topic);
 });
 
+const userTopics = catchAsync(async (req, res) => {
+  const topics = await topicService.userTopics(req.cookies.user_token);
+  res.status(httpStatus.OK).send(topics);
+});
+
 module.exports = {
   createTopic,
+  userTopics,
 };
