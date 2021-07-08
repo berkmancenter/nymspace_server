@@ -15,11 +15,10 @@ const topicSchema = mongoose.Schema(
       trim: true,
     },
     owner: {
-      type: String,
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User',
       required: true,
-      unique: false,
-      trim: true,
-      lowercase: true,
+      private: true,
     },
   },
   {

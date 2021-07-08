@@ -4,7 +4,7 @@ const auth = require('../../middlewares/auth');
 
 const router = express.Router();
 
-router.route('/').post(topicController.createTopic);
+router.route('/').post(auth('createTopic'), topicController.createTopic);
 router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
 
 module.exports = router;

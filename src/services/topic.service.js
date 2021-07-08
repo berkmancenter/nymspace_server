@@ -5,13 +5,16 @@ const { Topic } = require('../models');
  * @param {Object} topicBody
  * @returns {Promise<Topic>}
  */
-const createTopic = async (topicBody) => {
-  const topic = await Topic.create(topicBody);
+const createTopic = async (topicBody, user) => {
+  const topic = await Topic.create({
+    name: topicBody.name,
+    owner: user,
+  });
   return topic;
 };
 
-const userTopics = async (userToken) => {
-  const topics = await Topic.find({ owner: userToken }).select('name slug').exec();
+const userTopics = async (user) => {
+  const topics = await Topic.find({ owner: user }).select('name slug').exec();
   return topics;
 };
 
