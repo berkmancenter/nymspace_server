@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.route('/').post(auth('createTopic'), topicController.createTopic);
 router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
+router.route('/:topicId').get(topicController.getTopic);
 
 module.exports = router;

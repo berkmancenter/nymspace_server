@@ -12,7 +12,13 @@ const userTopics = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(topics);
 });
 
+const getTopic = catchAsync(async (req, res) => {
+  const topic = await topicService.findById(req.params.topicId);
+  res.status(httpStatus.OK).send(topic);
+});
+
 module.exports = {
   createTopic,
   userTopics,
+  getTopic,
 };

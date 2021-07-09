@@ -18,7 +18,13 @@ const userTopics = async (user) => {
   return topics;
 };
 
+const findById = async (id) => {
+  const topic = await Topic.findOne({ _id: id }).select('name slug').exec();
+  return topic;
+};
+
 module.exports = {
   createTopic,
   userTopics,
+  findById,
 };
