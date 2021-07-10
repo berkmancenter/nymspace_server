@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const { toJSON, paginate } = require('./plugins');
 
-const topicSchema = mongoose.Schema(
+const threadSchema = mongoose.Schema(
   {
     name: {
       type: String,
@@ -20,6 +20,11 @@ const topicSchema = mongoose.Schema(
       required: true,
       private: true,
     },
+    topic: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Topic',
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -27,18 +32,18 @@ const topicSchema = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-topicSchema.plugin(toJSON);
-topicSchema.plugin(paginate);
+threadSchema.plugin(toJSON);
+threadSchema.plugin(paginate);
 
-topicSchema.pre('validate', function (next) {
-  const topic = this;
-  topic.slug = slugify(topic.name);
+threadSchema.pre('validate', function (next) {
+  const thread = this;
+  thread.slug = slugify(thread.name);
   next();
 });
 
 /**
- * @typedef Topic
+ * @typedef Thread
  */
-const Topic = mongoose.model('Topic', topicSchema);
+const Thread = mongoose.model('Thread', threadSchema);
 
-module.exports = Topic;
+module.exports = Thread;

@@ -4,6 +4,7 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const messagesRoute = require('./messages.route');
 const topicsRoute = require('./topics.route');
+const threadsRoute = require('./threads.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -24,6 +25,10 @@ const defaultRoutes = [
   {
     path: '/topics',
     route: topicsRoute,
+  },
+  {
+    path: '/threads',
+    route: threadsRoute,
   },
 ];
 
