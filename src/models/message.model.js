@@ -8,12 +8,17 @@ const messageSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
-    user_token: {
+    owner: {
       type: String,
       required: true,
       unique: false,
       trim: true,
       lowercase: true,
+    },
+    thread: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Thread',
+      required: true,
     },
   },
   {

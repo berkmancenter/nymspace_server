@@ -1,15 +1,31 @@
+const mongoose = require('mongoose');
 const { Message } = require('../models');
+const { Thread } = require('../models');
 
 /**
  * Create a message
  * @param {Object} messageBody
  * @returns {Promise<Message>}
  */
-const createMessage = async (messageBody) => {
-  const message = await Message.create(messageBody);
+const createMessage = async (messageBody, user) => {
+  const threadId = mongoose.Types.ObjectId(messageBody.thread);
+  const thread = await Thread.findById(threadId);
+
+  const message = await Message.create({
+    body: messageBody.body,
+    thread,
+    owner: user,
+  });
+
   return message;
+};
+
+const threadMessages = async (id) => {
+  const messages = await Message.find({ thread: id }).select('body owner').exec();
+  return messages;
 };
 
 module.exports = {
   createMessage,
+  threadMessages,
 };
