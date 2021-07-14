@@ -21,7 +21,7 @@ const createMessage = async (messageBody, user) => {
 };
 
 const threadMessages = async (id) => {
-  const messages = await Message.find({ thread: id }).select('body owner').exec();
+  const messages = await Message.find({ thread: id }).select('body owner createdAt').sort({ createdAt: 1 }).exec();
   return messages;
 };
 

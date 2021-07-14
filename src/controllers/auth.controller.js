@@ -25,9 +25,14 @@ const refreshTokens = catchAsync(async (req, res) => {
   res.send({ ...tokens });
 });
 
+const ping = catchAsync(async (req, res) => {
+  res.send('pong');
+});
+
 module.exports = {
   register,
   login,
   logout,
   refreshTokens,
+  ping,
 };

@@ -9,11 +9,9 @@ const messageSchema = mongoose.Schema(
       trim: true,
     },
     owner: {
-      type: String,
-      required: true,
-      unique: false,
-      trim: true,
-      lowercase: true,
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User',
+      required: false,
     },
     thread: {
       type: mongoose.SchemaTypes.ObjectId,
