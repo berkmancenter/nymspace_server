@@ -13,7 +13,7 @@ const userThreads = catchAsync(async (req, res) => {
 });
 
 const getThread = catchAsync(async (req, res) => {
-  const thread = await threadService.findById(req.params.threadId);
+  const thread = await threadService.findByIdFull(req.params.threadId, req.user);
   res.status(httpStatus.OK).send(thread);
 });
 
@@ -22,9 +22,15 @@ const getTopicThreads = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(threads);
 });
 
+const follow = catchAsync(async (req, res) => {
+  await threadService.follow(req.body.status, req.body.threadId, req.user);
+  res.status(httpStatus.OK).send('ok');
+});
+
 module.exports = {
   createThread,
   userThreads,
   getThread,
   getTopicThreads,
+  follow,
 };

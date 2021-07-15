@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-const { Thread } = require('../models');
-const { Topic } = require('../models');
+const { Thread, Topic, Follower } = require('../models');
 
 /**
  * Create a thread
@@ -21,7 +20,10 @@ const createThread = async (threadBody, user) => {
 };
 
 const userThreads = async (user) => {
-  const threads = await Thread.find({ owner: user }).select('name slug').exec();
+  const followedThreads = await Follower.find({ user }).select('thread').exec();
+  const threads = await Thread.find({ $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] })
+    .select('name slug')
+    .exec();
   return threads;
 };
 
@@ -30,9 +32,29 @@ const findById = async (id) => {
   return thread;
 };
 
+const findByIdFull = async (id, user) => {
+  const thread = await Thread.findOne({ _id: id }).select('name slug').lean().exec();
+  thread.followed = await Follower.findOne({ thread, user }).select('_id').exec();
+  return thread;
+};
+
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId }).select('name slug').exec();
   return threads;
+};
+
+const follow = async (status, threadId, user) => {
+  const thread = await findById(threadId);
+  const params = {
+    user,
+    thread,
+  };
+
+  if (status === true) {
+    await Follower.create(params);
+  } else {
+    await Follower.deleteMany(params);
+  }
 };
 
 module.exports = {
@@ -40,4 +62,6 @@ module.exports = {
   userThreads,
   findById,
   topicThreads,
+  follow,
+  findByIdFull,
 };
