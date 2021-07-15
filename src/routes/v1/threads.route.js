@@ -7,5 +7,6 @@ const router = express.Router();
 router.route('/').post(auth('createThread'), threadsController.createThread);
 router.route('/userThreads').get(auth('userThreads'), threadsController.userThreads);
 router.route('/:threadId').get(threadsController.getThread);
+router.route('/topic/:topicId').get(threadsController.getTopicThreads);
 
 module.exports = router;

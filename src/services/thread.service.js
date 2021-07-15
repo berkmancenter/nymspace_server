@@ -30,8 +30,14 @@ const findById = async (id) => {
   return thread;
 };
 
+const topicThreads = async (topicId) => {
+  const threads = await Thread.find({ topic: topicId }).select('name slug').exec();
+  return threads;
+};
+
 module.exports = {
   createThread,
   userThreads,
   findById,
+  topicThreads,
 };

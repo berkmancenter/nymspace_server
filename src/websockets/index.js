@@ -1,5 +1,9 @@
 const httpServer = require('http').createServer();
-const io = require('socket.io')(httpServer, {});
+const io = require('socket.io')(httpServer, {
+  cors: {
+    origin: '*',
+  },
+});
 const registerMessageHandlers = require('./messageHandlers');
 
 const onConnection = (socket) => {

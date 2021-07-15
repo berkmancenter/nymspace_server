@@ -17,8 +17,14 @@ const getThread = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(thread);
 });
 
+const getTopicThreads = catchAsync(async (req, res) => {
+  const threads = await threadService.topicThreads(req.params.topicId);
+  res.status(httpStatus.OK).send(threads);
+});
+
 module.exports = {
   createThread,
   userThreads,
   getThread,
+  getTopicThreads,
 };
