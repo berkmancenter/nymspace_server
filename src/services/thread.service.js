@@ -57,6 +57,11 @@ const follow = async (status, threadId, user) => {
   }
 };
 
+const allPublic = async () => {
+  const threads = await Thread.find().select('name slug').exec();
+  return threads;
+};
+
 module.exports = {
   createThread,
   userThreads,
@@ -64,4 +69,5 @@ module.exports = {
   topicThreads,
   follow,
   findByIdFull,
+  allPublic,
 };

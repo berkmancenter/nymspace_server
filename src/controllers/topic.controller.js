@@ -17,8 +17,14 @@ const getTopic = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(topic);
 });
 
+const allPublic = catchAsync(async (req, res) => {
+  const topics = await topicService.allPublic();
+  res.status(httpStatus.OK).send(topics);
+});
+
 module.exports = {
   createTopic,
   userTopics,
   getTopic,
+  allPublic,
 };

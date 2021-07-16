@@ -5,6 +5,7 @@ const auth = require('../../middlewares/auth');
 const router = express.Router();
 
 router.route('/').post(auth('createThread'), threadsController.createThread);
+router.route('/').get(auth('publicThreads'), threadsController.allPublic);
 router.route('/userThreads').get(auth('userThreads'), threadsController.userThreads);
 router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
 router.route('/topic/:topicId').get(threadsController.getTopicThreads);

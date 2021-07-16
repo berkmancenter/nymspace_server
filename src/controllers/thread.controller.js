@@ -27,10 +27,16 @@ const follow = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send('ok');
 });
 
+const allPublic = catchAsync(async (req, res) => {
+  const threads = await threadService.allPublic();
+  res.status(httpStatus.OK).send(threads);
+});
+
 module.exports = {
   createThread,
   userThreads,
   getThread,
   getTopicThreads,
   follow,
+  allPublic,
 };

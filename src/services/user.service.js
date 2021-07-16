@@ -36,6 +36,17 @@ const getUserById = async (id) => {
 };
 
 /**
+ * Get user by password
+ * @param {String} password
+ * @returns {Promise<User>}
+ */
+const getUserByPassword = async (password) => {
+  return User.findOne({
+    password,
+  });
+};
+
+/**
  * Update user by id
  * @param {ObjectId} userId
  * @param {Object} updateBody
@@ -71,4 +82,5 @@ module.exports = {
   getUserById,
   updateUserById,
   deleteUserById,
+  getUserByPassword,
 };

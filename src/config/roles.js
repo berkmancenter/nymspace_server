@@ -1,5 +1,16 @@
 const allRoles = {
-  user: ['createMessage', 'userTopics', 'createTopic', 'createThread', 'userThreads', 'ping', 'followThread', 'getThread'],
+  user: [
+    'createMessage',
+    'userTopics',
+    'createTopic',
+    'createThread',
+    'userThreads',
+    'ping',
+    'followThread',
+    'getThread',
+    'publicTopics',
+    'publicThreads',
+  ],
   admin: ['getUsers', 'manageUsers'],
 };
 

@@ -23,8 +23,14 @@ const findById = async (id) => {
   return topic;
 };
 
+const allPublic = async () => {
+  const topics = await Topic.find().select('name slug').exec();
+  return topics;
+};
+
 module.exports = {
   createTopic,
   userTopics,
   findById,
+  allPublic,
 };
