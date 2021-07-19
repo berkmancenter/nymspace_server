@@ -10,5 +10,6 @@ router.route('/userThreads').get(auth('userThreads'), threadsController.userThre
 router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
 router.route('/topic/:topicId').get(threadsController.getTopicThreads);
 router.route('/follow').post(auth('followThread'), threadsController.follow);
+router.route('/deleteThread/:threadId').delete(auth('deleteThread'), threadsController.deleteThread);
 
 module.exports = router;

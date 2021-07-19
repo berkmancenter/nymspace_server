@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { Thread, Topic, Follower } = require('../models');
+const { Thread, Topic, Follower, Message } = require('../models');
+const httpStatus = require('http-status');
 
 /**
  * Create a thread
@@ -62,6 +63,23 @@ const allPublic = async () => {
   return threads;
 };
 
+const deleteThread = async (id, user) => {
+  const thread = await Thread.findOne({ _id: id }).select('name slug owner').exec();
+
+  if (user._id.toString() !== thread.owner.toString()) {
+    return {
+      errorCode: httpStatus.UNAUTHORIZED,
+      message: "You're not the owner of this thread",
+    };
+  }
+
+  await Thread.deleteOne({ _id: id });
+  await Follower.deleteMany({ thread });
+  await Message.deleteMany({ thread });
+
+  return thread;
+};
+
 module.exports = {
   createThread,
   userThreads,
@@ -70,4 +88,5 @@ module.exports = {
   follow,
   findByIdFull,
   allPublic,
+  deleteThread,
 };

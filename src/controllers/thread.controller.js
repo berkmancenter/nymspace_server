@@ -32,6 +32,16 @@ const allPublic = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(threads);
 });
 
+const deleteThread = catchAsync(async (req, res) => {
+  const thread = await threadService.deleteThread(req.params.threadId, req.user, res);
+
+  if (thread.errorCode) {
+    return res.status(thread.errorCode).send(thread.message);
+  }
+
+  res.status(httpStatus.OK).send(thread);
+});
+
 module.exports = {
   createThread,
   userThreads,
@@ -39,4 +49,5 @@ module.exports = {
   getTopicThreads,
   follow,
   allPublic,
+  deleteThread,
 };

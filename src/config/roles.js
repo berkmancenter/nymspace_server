@@ -10,6 +10,7 @@ const allRoles = {
     'getThread',
     'publicTopics',
     'publicThreads',
+    'deleteThread',
   ],
   admin: ['getUsers', 'manageUsers'],
 };
