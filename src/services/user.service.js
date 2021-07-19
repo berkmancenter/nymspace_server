@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const crypto = require('crypto');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -76,6 +77,16 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+const isPasswordGeneratedByThreads = (password) => {
+  const algorithm = 'aes256';
+  const key = 'password';
+  const decipher = crypto.createDecipher(algorithm, key);
+  const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
+  const decryptedParsed = JSON.parse(decrypted);
+
+  return typeof decryptedParsed.token !== 'undefined';
+};
+
 module.exports = {
   createUser,
   queryUsers,
@@ -83,4 +94,5 @@ module.exports = {
   updateUserById,
   deleteUserById,
   getUserByPassword,
+  isPasswordGeneratedByThreads,
 };

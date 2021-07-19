@@ -21,10 +21,21 @@ const newToken = catchAsync(async (req, res) => {
   const currentDate = new Date().valueOf().toString();
   const random = Math.random().toString();
   const result = crypto
-    .createHash('sha1')
+    .createHash('sha256')
     .update(currentDate + random)
     .digest('hex');
-  res.send(result);
+
+  const data = JSON.stringify({
+    token: result,
+  });
+
+  const algorithm = 'aes256';
+  const key = 'password';
+
+  const cipher = crypto.createCipher(algorithm, key);
+  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
+
+  res.send(encrypted);
 });
 
 module.exports = {
