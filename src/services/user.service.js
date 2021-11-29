@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const crypto = require('crypto');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
 
 /**
  * Create a user
@@ -77,6 +78,33 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+const newToken = () => {
+  const currentDate = new Date().valueOf().toString();
+  const random = Math.random().toString();
+  const result = crypto
+    .createHash('sha256')
+    .update(currentDate + random)
+    .digest('hex');
+
+  const data = JSON.stringify({
+    token: result,
+  });
+
+  const algorithm = 'aes256';
+  const key = 'password';
+
+  const cipher = crypto.createCipher(algorithm, key);
+  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
+  return encrypted;
+}
+
+const newPseudonym = () => {
+  const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] });
+  return pseudo.split('_').map((word) => {
+    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
+  }).join(' ');;
+}
+
 const isPasswordGeneratedByThreads = (password) => {
   const algorithm = 'aes256';
   const key = 'password';
@@ -95,4 +123,6 @@ module.exports = {
   deleteUserById,
   getUserByPassword,
   isPasswordGeneratedByThreads,
+  newToken,
+  newPseudonym
 };

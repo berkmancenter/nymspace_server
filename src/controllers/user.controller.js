@@ -1,5 +1,4 @@
 const httpStatus = require('http-status');
-const crypto = require('crypto');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
@@ -17,29 +16,15 @@ const getUser = catchAsync(async (req, res) => {
   res.send(user);
 });
 
-const newToken = catchAsync(async (req, res) => {
-  const currentDate = new Date().valueOf().toString();
-  const random = Math.random().toString();
-  const result = crypto
-    .createHash('sha256')
-    .update(currentDate + random)
-    .digest('hex');
-
-  const data = JSON.stringify({
-    token: result,
-  });
-
-  const algorithm = 'aes256';
-  const key = 'password';
-
-  const cipher = crypto.createCipher(algorithm, key);
-  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
-
-  res.send(encrypted);
+const newPseudonym = catchAsync(async (req, res) => {
+  const token = userService.newToken();
+  const pseudonym = userService.newPseudonym();
+  res.send({ token: token, pseudonym: pseudonym});
 });
 
 module.exports = {
   createUser,
   getUser,
   newToken,
+  newPseudonym
 };

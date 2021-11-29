@@ -73,6 +73,7 @@
     "socket.io": "^4.1.2",
     "swagger-jsdoc": "^6.0.8",
     "swagger-ui-express": "^4.1.6",
+    "unique-names-generator": "^4.6.0",
     "validator": "^13.0.0",
     "winston": "^3.2.1",
     "xss-clean": "^0.1.1"
