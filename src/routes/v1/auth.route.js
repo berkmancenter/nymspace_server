@@ -60,7 +60,7 @@ router.route('/newPseudonym').get(authController.newPseudonym);
  *               pseudonym:
  *                 type: string
  *     responses:
- *       200:
+ *       201:
  *         description: User object
  *         content:
  *           application/json:
