@@ -48,12 +48,14 @@ const getUserById = async (id) => {
 };
 
 /**
- * Get user by password
+ * Get user by username and password
+ * @param {String} username
  * @param {String} password
  * @returns {Promise<User>}
  */
-const getUserByPassword = async (password) => {
+const getUserByUsernamePassword = async (username, password) => {
   return User.findOne({
+    username,
     password,
   });
 };
@@ -131,7 +133,7 @@ module.exports = {
   getUserById,
   updateUserById,
   deleteUserById,
-  getUserByPassword,
+  getUserByUsernamePassword,
   isTokenGeneratedByThreads,
   newToken,
   newPseudonym
