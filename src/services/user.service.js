@@ -10,7 +10,12 @@ const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-na
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  const user = await User.create(userBody);
+  let user = {
+    username: userBody.username,
+    password: userBody.password,
+    pseudonyms: [ { token: userBody.token, pseudonym: userBody.pseudonym } ]
+  };
+  user = await User.create(user);
   return user;
 };
 
@@ -105,7 +110,7 @@ const newPseudonym = () => {
   }).join(' ');;
 }
 
-const isPasswordGeneratedByThreads = (password) => {
+const isTokenGeneratedByThreads = (password) => {
   const algorithm = 'aes256';
   const key = 'password';
   const decipher = crypto.createDecipher(algorithm, key);
@@ -122,7 +127,7 @@ module.exports = {
   updateUserById,
   deleteUserById,
   getUserByPassword,
-  isPasswordGeneratedByThreads,
+  isTokenGeneratedByThreads,
   newToken,
   newPseudonym
 };
