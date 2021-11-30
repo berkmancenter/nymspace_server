@@ -13,7 +13,12 @@ const createUser = async (userBody) => {
   let user = {
     username: userBody.username,
     password: userBody.password,
-    pseudonyms: [ { token: userBody.token, pseudonym: userBody.pseudonym } ]
+    pseudonyms: [{ 
+      token: userBody.token, 
+      pseudonym: userBody.pseudonym,
+      // Mark pseudonym as active
+      active: true
+    }]
   };
   user = await User.create(user);
   return user;

@@ -11,6 +11,9 @@ const pseudonymSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  active: { 
+    type: Boolean,
+  },
 });
 
 const userSchema = mongoose.Schema(
