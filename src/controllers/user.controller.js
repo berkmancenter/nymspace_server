@@ -16,15 +16,7 @@ const getUser = catchAsync(async (req, res) => {
   res.send(user);
 });
 
-const newPseudonym = catchAsync(async (req, res) => {
-  const token = userService.newToken();
-  const pseudonym = userService.newPseudonym();
-  res.send({ token: token, pseudonym: pseudonym});
-});
-
 module.exports = {
   createUser,
   getUser,
-  newToken,
-  newPseudonym
 };

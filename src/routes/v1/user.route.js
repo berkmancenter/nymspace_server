@@ -6,6 +6,5 @@ const validate = require('../../middlewares/validate');
 const router = express.Router();
 
 router.post('/', validate(userValidation.createUser), userController.createUser);
-router.route('/newPseudonym').get(userController.newPseudonym);
 
 module.exports = router;

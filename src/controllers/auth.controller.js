@@ -33,10 +33,17 @@ const ping = catchAsync(async (req, res) => {
   res.send('pong');
 });
 
+const newPseudonym = catchAsync(async (req, res) => {
+  const token = userService.newToken();
+  const pseudonym = userService.newPseudonym();
+  res.send({ token: token, pseudonym: pseudonym});
+});
+
 module.exports = {
   register,
   login,
   logout,
   refreshTokens,
   ping,
+  newPseudonym,
 };
