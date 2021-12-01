@@ -111,7 +111,7 @@ const newToken = () => {
 }
 
 const newPseudonym = () => {
-  const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] });
+  const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
   return pseudo.split('_').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
   }).join(' ');;
