@@ -17,6 +17,9 @@ const createThread = async (threadBody, user) => {
     topic,
   });
 
+  topic.threads.push(thread);
+  topic.save();
+
   return thread;
 };
 
@@ -29,7 +32,7 @@ const userThreads = async (user) => {
 };
 
 const findById = async (id) => {
-  const thread = await Thread.findOne({ _id: id }).select('name slug').exec();
+  const thread = await Thread.findOne({ _id: id }).populate('followers').select('name slug').exec();
   return thread;
 };
 
@@ -52,7 +55,10 @@ const follow = async (status, threadId, user) => {
   };
 
   if (status === true) {
-    await Follower.create(params);
+    const follower = await Follower.create(params);
+
+    thread.followers.push(follower);
+    thread.save();
   } else {
     await Follower.deleteMany(params);
   }
