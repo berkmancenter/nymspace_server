@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const crypto = require('crypto');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
 
 /**
  * Create a user
@@ -9,7 +10,17 @@ const ApiError = require('../utils/ApiError');
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  const user = await User.create(userBody);
+  let user = {
+    username: userBody.username,
+    password: userBody.password,
+    pseudonyms: [{ 
+      token: userBody.token, 
+      pseudonym: userBody.pseudonym,
+      // Mark pseudonym as active
+      active: true
+    }]
+  };
+  user = await User.create(user);
   return user;
 };
 
@@ -37,12 +48,14 @@ const getUserById = async (id) => {
 };
 
 /**
- * Get user by password
+ * Get user by username and password
+ * @param {String} username
  * @param {String} password
  * @returns {Promise<User>}
  */
-const getUserByPassword = async (password) => {
+const getUserByUsernamePassword = async (username, password) => {
   return User.findOne({
+    username,
     password,
   });
 };
@@ -77,7 +90,34 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
-const isPasswordGeneratedByThreads = (password) => {
+const newToken = () => {
+  const currentDate = new Date().valueOf().toString();
+  const random = Math.random().toString();
+  const result = crypto
+    .createHash('sha256')
+    .update(currentDate + random)
+    .digest('hex');
+
+  const data = JSON.stringify({
+    token: result,
+  });
+
+  const algorithm = 'aes256';
+  const key = 'password';
+
+  const cipher = crypto.createCipher(algorithm, key);
+  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
+  return encrypted;
+}
+
+const newPseudonym = () => {
+  const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
+  return pseudo.split('_').map((word) => {
+    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
+  }).join(' ');;
+}
+
+const isTokenGeneratedByThreads = (password) => {
   const algorithm = 'aes256';
   const key = 'password';
   const decipher = crypto.createDecipher(algorithm, key);
@@ -93,6 +133,8 @@ module.exports = {
   getUserById,
   updateUserById,
   deleteUserById,
-  getUserByPassword,
-  isPasswordGeneratedByThreads,
+  getUserByUsernamePassword,
+  isTokenGeneratedByThreads,
+  newToken,
+  newPseudonym
 };

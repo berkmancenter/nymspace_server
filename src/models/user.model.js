@@ -2,11 +2,28 @@ const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
 
+const pseudonymSchema = new mongoose.Schema({ 
+  token: { 
+    type: String,
+    required: true,
+  },
+  pseudonym: { 
+    type: String,
+    required: true,
+  },
+  active: { 
+    type: Boolean,
+  },
+});
+
 const userSchema = mongoose.Schema(
   {
+    username: {
+      type: String,
+      trim: true,
+    },
     password: {
       type: String,
-      required: true,
       trim: true,
       minlength: 8,
       validate(value) {
@@ -15,6 +32,10 @@ const userSchema = mongoose.Schema(
         }
       },
       private: true, // used by the toJSON plugin
+    },
+    pseudonyms: {
+      type: [pseudonymSchema],
+      required: true,
     },
     role: {
       type: String,

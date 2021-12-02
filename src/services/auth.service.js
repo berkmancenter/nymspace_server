@@ -11,10 +11,10 @@ const { tokenTypes } = require('../config/tokens');
  * @param {string} password
  * @returns {Promise<User>}
  */
-const loginUserWithPassword = async (password) => {
-  const user = await userService.getUserByPassword(password);
+const loginUser = async (loginBody) => {
+  const user = await userService.getUserByUsernamePassword(loginBody.username, loginBody.password);
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect password');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect credentials');
   }
   return user;
 };
@@ -52,7 +52,7 @@ const refreshAuth = async (refreshToken) => {
 };
 
 module.exports = {
-  loginUserWithPassword,
+  loginUser,
   logout,
   refreshAuth,
 };

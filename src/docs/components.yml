@@ -1,23 +1,42 @@
 components:
   schemas:
+    Pseudonym:
+      type: object 
+      properties:
+        _id:
+          type: string
+        token:
+          type: string
+        pseudonym:
+          type: string
+        active:
+          type: boolean
+
     User:
       type: object
       properties:
         id:
           type: string
-        email:
-          type: string
-          format: email
-        name:
+        username:
           type: string
         role:
           type: string
           enum: [user, admin]
+        createdAt:
+          type: date
+        pseudonyms:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Pseudonym'
       example:
         id: 5ebac534954b54139806c112
-        email: fake@example.com
+        username: fake@example.com
         name: fake name
         role: user
+        createdAt: 2021-11-30T01:51:01.639Z
+        pseudonyms:  
+          - token: b019d20aa74a16c8c68701cc2937c8a76bc6cdc6247d51cf80bb3d1f27f6ac3f9dec9c0dbe80543f8d2c40428c84576cc3a644668be5b3156be070f57be0521a13c3f6f42a8d2c8ef13f92e092236f4e
+            pseudonym: Profound Red Rattlesnake
 
     Token:
       type: object
