@@ -29,13 +29,15 @@ const allPublic = async () => {
 };
 
 const topicsWithSortData = async(topicQuery) => {
-  const dbtopics = await Topic.find(topicQuery)
+  const dbtopics = await Topic.find(topicQuery) 
   // Populate threads and messages for calculation of sorting properties
   .populate({
     path: 'threads',
     select: 'id',
-    populate: { path: 'messages', select: ['id','createdAt'] },
-    populate: { path: 'followers', select: 'id' }
+    populate: [
+      { path: 'messages', select: ['id','createdAt'] },
+      { path: 'followers', select: 'id' }
+    ]
   })
   .select('name slug')
   .exec();
@@ -49,7 +51,6 @@ const topicsWithSortData = async(topicQuery) => {
     let msgCount = 0;
     let followerCount = 0;
     t.threads.forEach((thread) => { 
-      console.log(thread);
       if (thread.messages && thread.messages.length > 0) {
         // Get the createdAt datetime for the final message,
         // which will always be the most recent as it is pushed
@@ -58,6 +59,7 @@ const topicsWithSortData = async(topicQuery) => {
         // Sum up the messages and followers for all threads
         msgCount += thread.messages.length;
       }
+      // Sum up followers for all threads
       if (thread.followers && thread.followers.length > 0)
         followerCount += thread.followers.length;
     })
@@ -76,6 +78,8 @@ const topicsWithSortData = async(topicQuery) => {
     topic.defaultSortAverage = 0;
     if (topic.latestMessageCreatedAt && topic.messageCount) {
       const msSinceEpoch = new Date(topic.latestMessageCreatedAt).getTime();
+      console.log('msSinceEpoch', msSinceEpoch);
+      console.log('topic.messageCount', topic.messageCount);
       topic.defaultSortAverage = msSinceEpoch * topic.messageCount;
     }
     
