@@ -14,7 +14,7 @@ const createTopic = async (topicBody, user) => {
 };
 
 const userTopics = async (user) => {
-  const topics = await Topic.find({ owner: user }).select('name slug').exec();
+  const topics = await topicsWithSortData({ owner: user });
   return topics;
 };
 
@@ -24,7 +24,68 @@ const findById = async (id) => {
 };
 
 const allPublic = async () => {
-  const topics = await Topic.find().select('name slug').exec();
+  const topics = await topicsWithSortData();
+  return topics;
+};
+
+const topicsWithSortData = async(topicQuery) => {
+  const dbtopics = await Topic.find(topicQuery) 
+  // Populate threads and messages for calculation of sorting properties
+  .populate({
+    path: 'threads',
+    select: 'id',
+    populate: [
+      { path: 'messages', select: ['id','createdAt'] },
+      { path: 'followers', select: 'id' }
+    ]
+  })
+  .select('name slug')
+  .exec();
+
+  const topics = [];
+  dbtopics.forEach((t) => {
+    // Create a new POJO for return, since mongoose
+    // does not allow for random properties to be set.
+    const topic = {};
+    const threadMsgTimes = [];
+    let msgCount = 0;
+    let followerCount = 0;
+    t.threads.forEach((thread) => { 
+      if (thread.messages && thread.messages.length > 0) {
+        // Get the createdAt datetime for the final message,
+        // which will always be the most recent as it is pushed
+        // to Thread.messages upon message creation.
+        threadMsgTimes.push(thread.messages.slice(-1)[0].createdAt);
+        // Sum up the messages and followers for all threads
+        msgCount += thread.messages.length;
+      }
+      // Sum up followers for all threads
+      if (thread.followers && thread.followers.length > 0)
+        followerCount += thread.followers.length;
+    })
+    topic.name = t.name;
+    topic.slug = t.slug;
+    topic.id = t.id;
+    // Sort the most recent messages for all threads, to determine the
+    // most recent message for the topic/channel.
+    threadMsgTimes.sort(function(a, b) {
+      return (a < b) ? 1 : ((a > b) ? -1 : 0);
+    });
+    topic.latestMessageCreatedAt = threadMsgTimes.length > 0 ? threadMsgTimes[0] : null;
+    topic.messageCount = msgCount;
+    topic.follows = followerCount;
+    // Calculate default sort avg as (message activity x recency)
+    topic.defaultSortAverage = 0;
+    if (topic.latestMessageCreatedAt && topic.messageCount) {
+      const msSinceEpoch = new Date(topic.latestMessageCreatedAt).getTime();
+      console.log('msSinceEpoch', msSinceEpoch);
+      console.log('topic.messageCount', topic.messageCount);
+      topic.defaultSortAverage = msSinceEpoch * topic.messageCount;
+    }
+    
+    topics.push(topic);
+  })
+
   return topics;
 };
 

@@ -17,6 +17,9 @@ const createMessage = async (messageBody, user) => {
     owner: user,
   });
 
+  thread.messages.push(message);
+  thread.save();
+
   return message;
 };
 
