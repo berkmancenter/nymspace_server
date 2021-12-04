@@ -28,7 +28,25 @@ const threadMessages = async (id) => {
   return messages;
 };
 
+/**
+ * Upvote or downvote a message
+ * @param {Object} messageId
+ * @param {Object} direction
+ * @returns {Promise<void>}
+ */
+const vote = async (messageId, direction) => {
+  const message = await Message.findById(messageId);
+  if (direction === 'up') {
+    message.upVotes++;
+  } else {
+    message.downVotes++;
+  }
+
+  await message.save();
+};
+
 module.exports = {
   createMessage,
   threadMessages,
+  vote
 };
