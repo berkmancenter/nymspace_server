@@ -42,6 +42,9 @@ const userSchema = mongoose.Schema(
       enum: roles,
       default: 'user',
     },
+    goodReputation: {
+      type: Boolean
+    }
   },
   {
     timestamps: true,

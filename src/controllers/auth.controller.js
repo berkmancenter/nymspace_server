@@ -7,12 +7,14 @@ const register = catchAsync(async (req, res) => {
     throw new Error('Invalid login token');
   }
   const user = await userService.createUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
   const tokens = await tokenService.generateAuthTokens(user);
   res.status(httpStatus.CREATED).send({ user, tokens });
 });
 
 const login = catchAsync(async (req, res) => {
   const user = await authService.loginUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
   const tokens = await tokenService.generateAuthTokens(user);
   res.send({ user, tokens });
 });
