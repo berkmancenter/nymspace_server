@@ -10,14 +10,13 @@ const { Thread } = require('../models');
 const createMessage = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread);
   const thread = await Thread.findById(threadId);
-
   const message = await Message.create({
     body: messageBody.body,
     thread,
     owner: user,
   });
 
-  thread.messages.push(message);
+  thread.messages.push(message.toObject());
   thread.save();
 
   return message;

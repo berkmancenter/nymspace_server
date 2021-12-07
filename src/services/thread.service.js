@@ -17,7 +17,7 @@ const createThread = async (threadBody, user) => {
     topic,
   });
 
-  topic.threads.push(thread);
+  topic.threads.push(thread.toObject());
   topic.save();
 
   return thread;
@@ -57,7 +57,7 @@ const follow = async (status, threadId, user) => {
   if (status === true) {
     const follower = await Follower.create(params);
 
-    thread.followers.push(follower);
+    thread.followers.push(follower.toObject());
     thread.save();
   } else {
     await Follower.deleteMany(params);
