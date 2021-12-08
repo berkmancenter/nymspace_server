@@ -11,6 +11,8 @@ const allRoles = {
     'publicTopics',
     'publicThreads',
     'deleteThread',
+    'upVote',
+    'downVote'
   ],
   admin: ['getUsers', 'manageUsers'],
 };

@@ -5,11 +5,13 @@ const { userService } = require('../services');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
   res.status(httpStatus.CREATED).send(user);
 });
 
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId);
+  user.goodReputation = await userService.goodReputation(user);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }

@@ -10,14 +10,13 @@ const { Thread } = require('../models');
 const createMessage = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread);
   const thread = await Thread.findById(threadId);
-
   const message = await Message.create({
     body: messageBody.body,
     thread,
     owner: user,
   });
 
-  thread.messages.push(message);
+  thread.messages.push(message.toObject());
   thread.save();
 
   return message;
@@ -28,7 +27,25 @@ const threadMessages = async (id) => {
   return messages;
 };
 
+/**
+ * Upvote or downvote a message
+ * @param {Object} messageId
+ * @param {Object} direction
+ * @returns {Promise<void>}
+ */
+const vote = async (messageId, direction) => {
+  const message = await Message.findById(messageId);
+  if (direction === 'up') {
+    message.upVotes++;
+  } else {
+    message.downVotes++;
+  }
+
+  await message.save();
+};
+
 module.exports = {
   createMessage,
   threadMessages,
+  vote
 };

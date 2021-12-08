@@ -12,7 +12,19 @@ const threadMessages = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(messages);
 });
 
+const upVote = catchAsync(async (req, res) => {
+  await messageService.vote(req.params.messageId, 'up');
+  res.status(httpStatus.OK).send();
+});
+
+const downVote = catchAsync(async (req, res) => {
+  await messageService.vote(req.params.messageId, 'down');
+  res.status(httpStatus.OK).send();
+});
+
 module.exports = {
   createMessage,
   threadMessages,
+  upVote,
+  downVote
 };

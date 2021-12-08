@@ -18,6 +18,14 @@ const messageSchema = mongoose.Schema(
       ref: 'Thread',
       required: true,
     },
+    upVotes: {
+      type: Number,
+      default: 0
+    },
+    downVotes: {
+      type: Number,
+      default: 0
+    }
   },
   {
     timestamps: true,

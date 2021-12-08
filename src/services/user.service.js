@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const crypto = require('crypto');
 const { User } = require('../models');
+const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
 
@@ -117,14 +118,14 @@ const newToken = () => {
   const cipher = crypto.createCipher(algorithm, key);
   const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
   return encrypted;
-}
+};
 
 const newPseudonym = () => {
   const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
   return pseudo.split('_').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
   }).join(' ');;
-}
+};
 
 const isTokenGeneratedByThreads = (password) => {
   const algorithm = 'aes256';
@@ -134,6 +135,30 @@ const isTokenGeneratedByThreads = (password) => {
   const decryptedParsed = JSON.parse(decrypted);
 
   return typeof decryptedParsed.token !== 'undefined';
+};
+
+/**
+ * Check if a user has good "reputation"
+ * @param {User} user
+ * @returns {Promise<boolean>}
+ */
+const goodReputation = async (user) => {
+  // Calculate total downvotes for all user's messages
+  const messages = await Message.find({ owner: user.id});
+  let totalDownVotes = 0;
+  if (messages.length > 0) {
+    totalDownVotes = messages.map((m) => {
+      const downVotes = m.downVotes ? m.downVotes : 0;
+      return downVotes;
+    }).reduce((x, y) => x + y);
+  }
+  // Calculate weeks since account creation
+  const today = new Date();
+  const createdDate = new Date(user.createdAt);
+  const weeks = Math.round((today - createdDate) / 604800000);
+  // Good reputation is a user with less than 5 total downvotes,
+  // and an account more than 1 week old.
+  return ((totalDownVotes <= 5) && (weeks > 0));
 };
 
 module.exports = {
@@ -146,5 +171,6 @@ module.exports = {
   getUserByUsername,
   isTokenGeneratedByThreads,
   newToken,
-  newPseudonym
+  newPseudonym,
+  goodReputation
 };
