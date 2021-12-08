@@ -7,9 +7,11 @@ const register = catchAsync(async (req, res) => {
   if (userService.isTokenGeneratedByThreads(req.body.token) === false) {
     throw new Error('Invalid login token');
   }
-  const existingUser = await userService.getUserByUsername(req.body.username);
-  if (existingUser) {
-    throw new ApiError(httpStatus.CONFLICT, 'Username is already registered');
+  if (req.body.username) {
+    const existingUser = await userService.getUserByUsername(req.body.username);
+    if (existingUser) {
+      throw new ApiError(httpStatus.CONFLICT, 'Username is already registered');
+    }
   }
   const user = await userService.createUser(req.body);
   const tokens = await tokenService.generateAuthTokens(user);
