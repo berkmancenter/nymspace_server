@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
+const bcrypt = require('bcrypt');
 
 /**
  * Create a user
@@ -10,9 +11,10 @@ const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-na
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
+  const hash = await hashpassword(userBody.password);
   let user = {
     username: userBody.username,
-    password: userBody.password,
+    password: hash,
     pseudonyms: [{ 
       token: userBody.token, 
       pseudonym: userBody.pseudonym,
@@ -20,6 +22,7 @@ const createUser = async (userBody) => {
       active: true
     }]
   };
+  console.log(user);
   user = await User.create(user);
   return user;
 };
@@ -54,10 +57,13 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByUsernamePassword = async (username, password) => {
-  return User.findOne({
-    username,
-    password,
-  });
+  const user = await getUserByUsername(username);
+  if (user) {
+    const match = await bcrypt.compare(password, user.password);
+    if (match)
+      return user;
+  }
+  return null;
 };
 
 /**
@@ -134,6 +140,12 @@ const isTokenGeneratedByThreads = (password) => {
   const decryptedParsed = JSON.parse(decrypted);
 
   return typeof decryptedParsed.token !== 'undefined';
+};
+
+const hashpassword = (password) => {
+  const saltRounds = 10;
+  const hash = bcrypt.hash(password, saltRounds);
+  return hash;
 };
 
 module.exports = {
