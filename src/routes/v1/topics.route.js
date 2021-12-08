@@ -28,6 +28,8 @@ router.route('/').post(auth('createTopic'), topicController.createTopic);
  *         type: string
  *       messageCount:
  *         type: number
+ *       threadCount:
+ *         type: number
  *       follows:
  *         type: number
  *       defaultSortAverage:

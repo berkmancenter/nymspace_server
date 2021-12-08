@@ -73,13 +73,12 @@ const topicsWithSortData = async(topicQuery) => {
     });
     topic.latestMessageCreatedAt = threadMsgTimes.length > 0 ? threadMsgTimes[0] : null;
     topic.messageCount = msgCount;
+    topic.threadCount = t.threads.length;
     topic.follows = followerCount;
     // Calculate default sort avg as (message activity x recency)
     topic.defaultSortAverage = 0;
     if (topic.latestMessageCreatedAt && topic.messageCount) {
       const msSinceEpoch = new Date(topic.latestMessageCreatedAt).getTime();
-      console.log('msSinceEpoch', msSinceEpoch);
-      console.log('topic.messageCount', topic.messageCount);
       topic.defaultSortAverage = msSinceEpoch * topic.messageCount;
     }
     
