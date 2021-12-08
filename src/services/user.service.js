@@ -11,7 +11,9 @@ const bcrypt = require('bcrypt');
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  const hash = await hashpassword(userBody.password);
+  let hash = undefined;
+  if (userBody.password)
+    hash = await hashpassword(userBody.password);
   let user = {
     username: userBody.username,
     password: hash,
