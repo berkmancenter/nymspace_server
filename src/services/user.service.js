@@ -61,6 +61,15 @@ const getUserByUsernamePassword = async (username, password) => {
 };
 
 /**
+ * Get user by username
+ * @param {String} username
+ * @returns {Promise<User>}
+ */
+ const getUserByUsername = async (username) => {
+  return User.findOne({ username: username });
+};
+
+/**
  * Update user by id
  * @param {ObjectId} userId
  * @param {Object} updateBody
@@ -134,6 +143,7 @@ module.exports = {
   updateUserById,
   deleteUserById,
   getUserByUsernamePassword,
+  getUserByUsername,
   isTokenGeneratedByThreads,
   newToken,
   newPseudonym
