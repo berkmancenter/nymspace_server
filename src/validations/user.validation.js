@@ -10,6 +10,13 @@ const createUser = {
   }),
 };
 
+const addPseudonym = {
+  body: Joi.object().keys({
+    pseudonym: Joi.string().required(),
+    token: Joi.string().required(),
+  }),
+};
+
 const getUsers = {
   query: Joi.object().keys({
     name: Joi.string(),
@@ -51,4 +58,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  addPseudonym,
 };
