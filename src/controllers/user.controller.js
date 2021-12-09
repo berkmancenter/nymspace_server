@@ -18,7 +18,19 @@ const getUser = catchAsync(async (req, res) => {
   res.send(user);
 });
 
+const addPseudonym = catchAsync(async (req, res) => {
+  const user = await userService.addPseudonym(req.body, req.user);
+  res.status(httpStatus.CREATED).send(user.pseudonyms);
+});
+
+const activatePseudonym = catchAsync(async (req, res) => {
+  const user = await userService.activatePseudonym(req.body, req.user);
+  res.status(httpStatus.OK).send(user.pseudonyms);
+});
+
 module.exports = {
   createUser,
   getUser,
+  addPseudonym,
+  activatePseudonym,
 };

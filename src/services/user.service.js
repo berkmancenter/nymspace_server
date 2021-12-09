@@ -26,6 +26,44 @@ const createUser = async (userBody) => {
 };
 
 /**
+ * Add a pseudonym to an existing a user
+ * @param {Object} requestBody
+ * @param {Object} user
+ * @returns {Promise<void>}
+ */
+ const addPseudonym = async (requestBody, requestUser) => {
+  requestBody.active = true;
+  const user = await User.findById(requestUser.id);
+  user.pseudonyms.forEach((p) => p.active = false);
+  user.pseudonyms.push(requestBody);
+  await user.save()
+  return user;
+};
+
+/**
+ * Update a pseudonym
+ * @param {Object} requestBody
+ * @param {Object} user
+ * @returns {Promise<void>}
+ */
+ const activatePseudonym = async (requestBody, requestUser) => {
+  const user = await User.findById(requestUser.id);
+  let match = false;
+  user.pseudonyms.forEach((p) => {
+    p.active = false;
+    if (p.token === requestBody.token) {
+      p.active = true;
+      match = true;
+    }
+  });
+  if (!match) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Pseudonym not found');
+  }
+  await user.save()
+  return user;
+};
+
+/**
  * Query for users
  * @param {Object} filter - Mongo filter
  * @param {Object} options - Query options
@@ -172,5 +210,7 @@ module.exports = {
   isTokenGeneratedByThreads,
   newToken,
   newPseudonym,
-  goodReputation
+  goodReputation,
+  addPseudonym,
+  activatePseudonym,
 };

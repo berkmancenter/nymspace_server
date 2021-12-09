@@ -12,7 +12,8 @@ const allRoles = {
     'publicThreads',
     'deleteThread',
     'upVote',
-    'downVote'
+    'downVote',
+    'managePseudonym',
   ],
   admin: ['getUsers', 'manageUsers'],
 };
