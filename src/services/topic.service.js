@@ -18,14 +18,14 @@ const userTopics = async (user) => {
   return topics;
 };
 
+const allTopics = async () => {
+  const topics = await topicsWithSortData();
+  return topics;
+};
+
 const findById = async (id) => {
   const topic = await Topic.findOne({ _id: id }).select('name slug').exec();
   return topic;
-};
-
-const allPublic = async () => {
-  const topics = await topicsWithSortData();
-  return topics;
 };
 
 const topicsWithSortData = async(topicQuery) => {
@@ -68,7 +68,7 @@ const topicsWithSortData = async(topicQuery) => {
     topic.id = t.id;
     // Sort the most recent messages for all threads, to determine the
     // most recent message for the topic/channel.
-    threadMsgTimes.sort(function(a, b) {
+    threadMsgTimes.sort((a, b) => {
       return (a < b) ? 1 : ((a > b) ? -1 : 0);
     });
     topic.latestMessageCreatedAt = threadMsgTimes.length > 0 ? threadMsgTimes[0] : null;
@@ -85,12 +85,12 @@ const topicsWithSortData = async(topicQuery) => {
     topics.push(topic);
   })
 
-  return topics;
+  return topics.sort((a,b) => { return b.defaultSortAverage-a.defaultSortAverage; });
 };
 
 module.exports = {
   createTopic,
   userTopics,
   findById,
-  allPublic,
+  allTopics,
 };
