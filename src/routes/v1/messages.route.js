@@ -14,6 +14,40 @@ const router = express.Router();
  */
 
 router.post('/', auth('createMessage'), validate(messageValidation.createMessage), messageController.createMessage);
+
+/**
+ * @swagger
+ * /messages:
+ *   get:
+ *     description: Returns all thread messages
+ *     tags: [Message]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: message array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   upVotes:
+ *                     type: number
+ *                   downVotes:
+ *                     type: number
+ *                   body:
+ *                     type: string
+ *                   owner:
+ *                     type: string
+ *                   pseudonym:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ */
 router.route('/:threadId').get(messageController.threadMessages);
 
 /**

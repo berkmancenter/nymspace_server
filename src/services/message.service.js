@@ -10,10 +10,13 @@ const { Thread } = require('../models');
 const createMessage = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread);
   const thread = await Thread.findById(threadId);
+  const activePseudo = user.pseudonyms.find(x => x.active);
   const message = await Message.create({
     body: messageBody.body,
     thread,
     owner: user,
+    pseudonym: activePseudo.pseudonym,
+    pseudonymId: activePseudo._id
   });
 
   thread.messages.push(message.toObject());
@@ -23,7 +26,10 @@ const createMessage = async (messageBody, user) => {
 };
 
 const threadMessages = async (id) => {
-  const messages = await Message.find({ thread: id }).select('body owner createdAt').sort({ createdAt: 1 }).exec();
+  const messages = await Message.find({ thread: id })
+    .select('body owner upVotes downVotes pseudonym createdAt')
+    .sort({ createdAt: 1 })
+    .exec();
   return messages;
 };
 
