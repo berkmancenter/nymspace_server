@@ -166,11 +166,17 @@ const newPseudonym = () => {
 };
 
 const isTokenGeneratedByThreads = (password) => {
-  const algorithm = 'aes256';
-  const key = 'password';
-  const decipher = crypto.createDecipher(algorithm, key);
-  const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
-  const decryptedParsed = JSON.parse(decrypted);
+  let decryptedParsed = {};
+  try {
+    const algorithm = 'aes256';
+    const key = 'password';
+    const decipher = crypto.createDecipher(algorithm, key);
+    const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
+    decryptedParsed = JSON.parse(decrypted);
+  } catch (err) {
+    // Todo: log error?
+    throw new Error('Invalid token');
+  }
 
   return typeof decryptedParsed.token !== 'undefined';
 };

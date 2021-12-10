@@ -62,7 +62,7 @@ router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
  * @swagger
  * /topics:
  *   get:
- *     description: Returns all public topics
+ *     description: Returns top 10 topics (without authentication)
  *     tags: [Topic]
  *     produces:
  *      - application/json
@@ -78,7 +78,29 @@ router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
  *                 $ref: '#/definitions/Topic'
  *                      
  */
-router.route('/').get(auth('publicTopics'), topicController.allPublic);
+router.route('/public/:token').get(topicController.publicTopics);
+
+/**
+ * @swagger
+ * /topics:
+ *   get:
+ *     description: Returns all topics
+ *     tags: [Topic]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: topic array
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/definitions/Topic'
+ *                      
+ */
+router.route('/').get(auth('allTopics'), topicController.allTopics);
 router.route('/:topicId').get(topicController.getTopic);
 
 module.exports = router;

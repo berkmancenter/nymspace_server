@@ -8,7 +8,7 @@ const allRoles = {
     'ping',
     'followThread',
     'getThread',
-    'publicTopics',
+    'allTopics',
     'publicThreads',
     'deleteThread',
     'upVote',
