@@ -60,5 +60,19 @@ describe('Message routes', () => {
             const msgs = await Message.find({ id: res.id });
             expect(msgs.length).toBe(1);
         });
+
+        test('should create message, and message should have current active pseudonym', async () => {
+            const userRet = await insertUsers([registeredUser]);
+            await insertTopics([topicOne]);
+            await insertThreads([threadOne]);
+            const res =  await request(app)
+                .post(`/v1/messages/`)
+                .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+                .send(messageTwo)
+                .expect(httpStatus.CREATED);
+
+            const msgs = await Message.find({ id: res.id });
+            expect(msgs[0].pseudonymId).toEqual(userRet[0].pseudonyms[0]._id);
+        });
     });
 });
