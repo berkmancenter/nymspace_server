@@ -25,6 +25,21 @@ const userTwo = {
   isEmailVerified: false,
 };
 
+const registeredUser = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.name.findName(),
+  email: faker.internet.email().toLowerCase(),
+  password,
+  role: 'user',
+  isEmailVerified: false,
+  pseudonyms: [
+    {
+      token: '31c5d2b7d2b0f86b2b4b204ed4bf17938e4108a573b25db493a55c4639cc6cd3518a4c88787fe29cf9f273d61e3c5fd4eabb528e3e9b7398c1ed0944581ce51e53f6eae13328c4be05e7e14365063409',
+      pseudonym: 'Boring Badger'
+    }
+  ]
+};
+
 const admin = {
   _id: mongoose.Types.ObjectId(),
   name: faker.name.findName(),
@@ -41,6 +56,7 @@ const insertUsers = async (users) => {
 module.exports = {
   userOne,
   userTwo,
+  registeredUser,
   admin,
   insertUsers,
 };
