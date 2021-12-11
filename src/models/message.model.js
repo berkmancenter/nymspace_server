@@ -20,12 +20,20 @@ const messageSchema = mongoose.Schema(
     },
     upVotes: {
       type: Number,
-      default: 0
+      default: 0,
     },
     downVotes: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
+    pseudonym: {
+      type: String,
+      required: true,
+    },
+    pseudonymId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      required: true,
+    },
   },
   {
     timestamps: true,
