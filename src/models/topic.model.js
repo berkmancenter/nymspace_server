@@ -14,6 +14,21 @@ const topicSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    voting: {
+      type: Boolean,
+      required: true,
+    },
+    private: {
+      type: Boolean,
+      required: true,
+    },
+    archive: {
+      type: Boolean,
+      required: true,
+    },
+    passcode: {
+      type: Number,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',

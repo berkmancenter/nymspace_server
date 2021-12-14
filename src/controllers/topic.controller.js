@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { topicService, userService } = require('../services');
+const ApiError = require('../utils/ApiError');
 
 const createTopic = catchAsync(async (req, res) => {
   const topic = await topicService.createTopic(req.body, req.user);
@@ -31,10 +32,19 @@ const publicTopics = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(topics.slice(0,10));
 });
 
+const authenticate = catchAsync(async (req, res) => {
+  const result = await topicService.verifyPasscode(req.body.topicId, req.body.passcode);
+  if (!result) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid passcode');
+  }
+  res.status(httpStatus.OK).send();
+});
+
 module.exports = {
   createTopic,
   userTopics,
   getTopic,
   allTopics,
   publicTopics,
+  authenticate,
 };

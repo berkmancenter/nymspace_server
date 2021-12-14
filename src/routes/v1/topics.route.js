@@ -1,10 +1,12 @@
 const express = require('express');
 const topicController = require('../../controllers/topic.controller');
 const auth = require('../../middlewares/auth');
+const validate = require('../../middlewares/validate');
+const topicValidation = require('../../validations/topic.validation');
 
 const router = express.Router();
 
-router.route('/').post(auth('createTopic'), topicController.createTopic);
+router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic);
 
 /**
  * @swagger
@@ -102,5 +104,7 @@ router.route('/public/:token').get(topicController.publicTopics);
  */
 router.route('/').get(auth('allTopics'), topicController.allTopics);
 router.route('/:topicId').get(topicController.getTopic);
+
+router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate);
 
 module.exports = router;
