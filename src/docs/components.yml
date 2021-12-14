@@ -69,6 +69,42 @@ components:
         message:
           type: string
 
+    Topic:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          required: true
+        slug:
+          type: string
+        votingAllowed:
+          type: boolean
+        private:
+          type: boolean
+          required: true
+        archivable:
+          type: boolean
+          required: true
+        archived:
+          type: boolean
+        owner:
+          type
+        createdAt:
+          type: date
+        updatedAt:
+          type: date
+      example:
+        id: 61b7ea6aa771004e80ed4409
+        name: favorite dogs
+        slug: favorite-dogs
+        votingAllowed: true
+        private: false
+        archivable: true
+        createdAt: 2021-11-30T01:51:01.639Z
+        updatedAt: 2021-11-30T01:51:01.639Z
+
   responses:
     DuplicateEmail:
       description: Email already taken

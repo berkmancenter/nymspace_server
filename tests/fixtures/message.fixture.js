@@ -11,7 +11,7 @@ const messageOne = {
     owner: registeredUser._id,
 };
 
-const messageTwo = {
+const messagePost = {
     body: faker.lorem.words(10),
     thread: threadOne._id,
 };
@@ -22,6 +22,6 @@ const insertMessages = async (msgs) => {
 
 module.exports = {
   messageOne,
-  messageTwo,
+  messagePost,
   insertMessages,
 };

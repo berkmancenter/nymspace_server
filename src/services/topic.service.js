@@ -1,4 +1,5 @@
 const { Topic } = require('../models');
+const crypto = require('crypto');
 
 /**
  * Create a topic
@@ -6,8 +7,26 @@ const { Topic } = require('../models');
  * @returns {Promise<Topic>}
  */
 const createTopic = async (topicBody, user) => {
+  const randomPasscode = async (min, max) => {
+    return new Promise((resolve, reject) => {
+      crypto.randomInt(min,max, (err, res) => {
+        if (err)
+          reject(err);
+        resolve(res);
+      });
+    });
+  };
+  
+  let passcode = null;
+  if (topicBody.private) {
+    passcode = await randomPasscode(1000000,9999999);
+  }
   const topic = await Topic.create({
     name: topicBody.name,
+    votingAllowed: topicBody.votingAllowed,
+    private: topicBody.private,
+    archivable: topicBody.archivable,
+    passcode,
     owner: user,
   });
   return topic;
@@ -26,6 +45,11 @@ const allTopics = async () => {
 const findById = async (id) => {
   const topic = await Topic.findOne({ _id: id }).select('name slug').exec();
   return topic;
+};
+
+const verifyPasscode = async (topicId, passcode) => {
+  const topic = await Topic.findById(topicId);
+  return passcode === topic.passcode;
 };
 
 const topicsWithSortData = async(topicQuery) => {
@@ -93,4 +117,5 @@ module.exports = {
   userTopics,
   findById,
   allTopics,
+  verifyPasscode,
 };
