@@ -1,12 +1,12 @@
 const setupTestDB = require('../utils/setupTestDB');
-const { messageOne, insertMessages, messageTwo } = require('../fixtures/message.fixture');
+const { messageOne, insertMessages, messagePost } = require('../fixtures/message.fixture');
 const app = require('../../src/app');
 const request = require('supertest');
 const { insertUsers, registeredUser } = require('../fixtures/user.fixture');
 const { registeredUserAccessToken } = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
 const Message = require('../../src/models/message.model');
-const { insertTopics, topicOne } = require('../fixtures/topic.fixture');
+const { insertTopics, publicTopic } = require('../fixtures/topic.fixture');
 const { threadOne, insertThreads } = require('../fixtures/thread.fixture');
 
 setupTestDB();
@@ -49,12 +49,12 @@ describe('Message routes', () => {
     describe('POST /v1/messages', () => {
         test('should return 201 and create message', async () => {
             await insertUsers([registeredUser]);
-            await insertTopics([topicOne]);
+            await insertTopics([publicTopic]);
             await insertThreads([threadOne]);
             const res =  await request(app)
                 .post(`/v1/messages/`)
                 .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-                .send(messageTwo)
+                .send(messagePost)
                 .expect(httpStatus.CREATED);
 
             const msgs = await Message.find({ id: res.id });
@@ -63,12 +63,12 @@ describe('Message routes', () => {
 
         test('should create message, and message should have current active pseudonym', async () => {
             const userRet = await insertUsers([registeredUser]);
-            await insertTopics([topicOne]);
+            await insertTopics([publicTopic]);
             await insertThreads([threadOne]);
             const res =  await request(app)
                 .post(`/v1/messages/`)
                 .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-                .send(messageTwo)
+                .send(messagePost)
                 .expect(httpStatus.CREATED);
 
             const msgs = await Message.find({ id: res.id });

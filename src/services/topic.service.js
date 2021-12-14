@@ -49,8 +49,6 @@ const findById = async (id) => {
 
 const verifyPasscode = async (topicId, passcode) => {
   const topic = await Topic.findById(topicId);
-  console.log('passcode', passcode);
-  console.log('topic.passcode', topic.passcode);
   return passcode === topic.passcode;
 };
 
