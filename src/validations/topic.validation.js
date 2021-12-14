@@ -3,9 +3,9 @@ const Joi = require('joi');
 const createTopic = {
   body: Joi.object().keys({
     name: Joi.string().required(),
-    voting: Joi.boolean().required(),
+    votingAllowed: Joi.boolean().required(),
     private: Joi.boolean().required(),
-    archive: Joi.boolean().required(),
+    archivable: Joi.boolean().required(),
   }),
 };
 

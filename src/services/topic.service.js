@@ -23,9 +23,9 @@ const createTopic = async (topicBody, user) => {
   }
   const topic = await Topic.create({
     name: topicBody.name,
-    voting: topicBody.voting,
+    votingAllowed: topicBody.votingAllowed,
     private: topicBody.private,
-    archive: topicBody.archive,
+    archivable: topicBody.archivable,
     passcode,
     owner: user,
   });

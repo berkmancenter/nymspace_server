@@ -14,7 +14,7 @@ const topicSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
-    voting: {
+    votingAllowed: {
       type: Boolean,
       required: true,
     },
@@ -22,12 +22,15 @@ const topicSchema = mongoose.Schema(
       type: Boolean,
       required: true,
     },
-    archive: {
+    passcode: {
+      type: Number,
+    },
+    archivable: {
       type: Boolean,
       required: true,
     },
-    passcode: {
-      type: Number,
+    archived: {
+      type: Boolean,
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
