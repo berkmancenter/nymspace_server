@@ -24,6 +24,7 @@ const topicSchema = mongoose.Schema(
     },
     passcode: {
       type: Number,
+      private: true,
     },
     archivable: {
       type: Boolean,

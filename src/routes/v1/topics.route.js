@@ -6,14 +6,47 @@ const topicValidation = require('../../validations/topic.validation');
 
 const router = express.Router();
 
-router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic);
-
 /**
  * @swagger
  * tags:
  *   name: Topic
  *   description: Manage application Topics
  */
+
+/**
+ * @swagger
+ * /topics:
+ *   post:
+ *     description: Create a topic
+ *     tags: [Topic]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content: 
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               votingAllowed:
+ *                 type: boolean
+ *               private:
+ *                 type: boolean
+ *               archivable:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: ok
+*         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Topic'
+ *                      
+ */
+router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic);
 
 /**
  * @swagger
@@ -105,6 +138,30 @@ router.route('/public/:token').get(topicController.publicTopics);
 router.route('/').get(auth('allTopics'), topicController.allTopics);
 router.route('/:topicId').get(topicController.getTopic);
 
+/**
+ * @swagger
+ * /topics/auth:
+ *   post:
+ *     description: Verify a private topic passcode
+ *     tags: [Topic]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content: 
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               topicId:
+ *                 type: string
+ *               passcode:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: ok
+ *                      
+ */
 router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate);
 
 module.exports = router;
