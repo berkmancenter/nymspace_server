@@ -13,7 +13,43 @@ const router = express.Router();
  *   description: User management
  */
 
-router.post('/', validate(userValidation.createUser), userController.createUser);
+// Removing this route, since user creation is handled by the auth register route
+// router.post('/', validate(userValidation.createUser), userController.createUser);
+
+/**
+ * @swagger
+ * /users:
+ *   put:
+ *     description: Update a user
+ *     tags: [User]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content: 
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 required: true
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/User'
+ */
+router.put('/', auth('manageAccount'), validate(userValidation.updateUser), userController.updateUser);
 
 /**
  * @swagger

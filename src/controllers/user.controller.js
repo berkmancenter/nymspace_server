@@ -9,6 +9,12 @@ const createUser = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(user);
 });
 
+const updateUser = catchAsync(async (req, res) => {
+  const user = await userService.updateUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
+  res.status(httpStatus.OK).send(user);
+});
+
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId);
   user.goodReputation = await userService.goodReputation(user);
@@ -30,6 +36,7 @@ const activatePseudonym = catchAsync(async (req, res) => {
 
 module.exports = {
   createUser,
+  updateUser,
   getUser,
   addPseudonym,
   activatePseudonym,

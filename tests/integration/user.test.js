@@ -4,9 +4,11 @@ const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
-const { userOne, userTwo, admin, insertUsers, registeredUser } = require('../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken, registeredUserAccessToken } = require('../fixtures/token.fixture');
+const { insertUsers, registeredUser } = require('../fixtures/user.fixture');
+const { registeredUserAccessToken } = require('../fixtures/token.fixture');
 const userService = require('../../src/services/user.service');
+const mongoose = require('mongoose');
+
 
 setupTestDB();
 
@@ -53,7 +55,64 @@ describe('User routes', () => {
         expect(activePseudo.token).toBe(registeredUser.pseudonyms[0].token);
       });
   });
+
+  describe('PUT v1/users/', () => {
+    let email;
+    let username;
+    let password;
+    beforeEach( async () => {
+      email = faker.internet.email().toLowerCase();
+      username = faker.internet.userName();
+      password = faker.internet.password();
+      await insertUsers([registeredUser]);
+    });
+
+    test('should return 200 and successfully update the user', async () => {
+      await request(app)
+          .put('/v1/users')
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send({
+            userId: registeredUser._id,
+            email,
+            username,
+            password
+          })
+          .expect(httpStatus.OK);
+
+      const user = await User.findById(registeredUser._id);
+      expect(user.email).toEqual(email);
+      expect(user.username).toEqual(username);
+      expect(user.password).toEqual(password);
+    });
+
+    test('should return 400 if userId is not sent in request body', async () => {
+      await request(app)
+          .put('/v1/users')
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send({
+            email,
+            username,
+            password
+          })
+          .expect(httpStatus.BAD_REQUEST);
+    });
+
+    test('should return 404 if userId is not found in db', async () => {
+      await request(app)
+          .put('/v1/users')
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send({
+            userId: mongoose.Types.ObjectId(),
+            email,
+            username,
+            password
+          })
+          .expect(httpStatus.NOT_FOUND);
+    });
+  });
 });
+
+// Todo: fix/refactor these tests from previous version
 
 // describe('User routes', () => {
 //   describe('POST /v1/users', () => {
