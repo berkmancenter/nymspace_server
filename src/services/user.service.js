@@ -26,6 +26,22 @@ const createUser = async (userBody) => {
 };
 
 /**
+ * Update a user
+ * @param {Object} userBody
+ * @returns {Promise<User>}
+ */
+ const updateUser = async (userBody) => {
+  const user = await User.findById(userBody.userId);
+  if (!user)
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  user.username = userBody.username ? userBody.username: user.username;
+  user.password = userBody.password ? userBody.password: user.password;
+  user.email = userBody.email ? userBody.email: user.email;
+  await user.save();
+  return user;
+};
+
+/**
  * Add a pseudonym to an existing a user
  * @param {Object} requestBody
  * @param {Object} user
@@ -207,6 +223,7 @@ const goodReputation = async (user) => {
 
 module.exports = {
   createUser,
+  updateUser,
   queryUsers,
   getUserById,
   updateUserById,

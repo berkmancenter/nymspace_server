@@ -1,3 +1,5 @@
+const config = require('../config/config')
+
 const httpServer = require('http').createServer();
 const io = require('socket.io')(httpServer, {
   cors: {
@@ -12,4 +14,5 @@ const onConnection = (socket) => {
 
 io.on('connection', onConnection);
 
-httpServer.listen(5555);
+if (config.env !== 'test')
+  httpServer.listen(5555);

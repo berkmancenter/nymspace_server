@@ -44,6 +44,9 @@ const userSchema = mongoose.Schema(
     },
     goodReputation: {
       type: Boolean
+    },
+    email: {
+      type: String,
     }
   },
   {

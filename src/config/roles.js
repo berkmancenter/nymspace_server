@@ -14,6 +14,7 @@ const allRoles = {
     'upVote',
     'downVote',
     'managePseudonym',
+    'manageAccount',
   ],
   admin: ['getUsers', 'manageUsers'],
 };
