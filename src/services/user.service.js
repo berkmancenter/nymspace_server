@@ -83,6 +83,35 @@ const createUser = async (userBody) => {
 };
 
 /**
+ * Delete a pseudonym
+ * @param {Object} requestBody
+ * @param {Object} user
+ * @returns {Promise<void>}
+ */
+ const deletePseudonym = async (pseudonymId, requestUser) => {
+  // Check if pseudonym is used on any messages. If it is, then
+  // soft delete it. If not, hard delete, since if can be used again.
+  const user = await User.findById(requestUser.id);
+  const messages = await Message.find({ pseudonymId });
+  let hardDelete = false;
+  let indexToDelete;
+  user.pseudonyms.forEach((p, i) => {
+    if (p._id.toString() === pseudonymId) {
+      if (messages.length > 0) {
+        p.isDeleted = true;
+      } else {
+        hardDelete = true;
+        indexToDelete = i;
+      }
+    }
+  });
+  if (hardDelete) {
+    user.pseudonyms.splice(indexToDelete, 1);
+  }
+  user.save();
+};
+
+/**
  * Query for users
  * @param {Object} filter - Mongo filter
  * @param {Object} options - Query options
@@ -177,11 +206,20 @@ const newToken = () => {
   return encrypted;
 };
 
-const newPseudonym = () => {
+const newPseudonym = async () => {
   const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
-  return pseudo.split('_').map((word) => {
+  // Format pseudonym as spaced with capitalization
+  const formattedPseudo = pseudo.split('_').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
-  }).join(' ');;
+  }).join(' ');
+  // Check if this pseudonym has been used on messages already. If yes,
+  // generate a new one to ensure uniqueness.
+  const messages = await Message.find({ pseudonym: formattedPseudo });
+  if (messages.length > 0) {
+    return await newPseudonym();
+  } else {
+    return formattedPseudo;
+  }
 };
 
 const isTokenGeneratedByThreads = (password) => {
@@ -239,4 +277,5 @@ module.exports = {
   goodReputation,
   addPseudonym,
   activatePseudonym,
+  deletePseudonym,
 };

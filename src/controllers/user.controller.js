@@ -24,9 +24,22 @@ const getUser = catchAsync(async (req, res) => {
   res.send(user);
 });
 
+const getPseudonyms = catchAsync(async (req, res) => {
+  const user = await userService.getUserById(req.user);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  res.send(user.pseudonyms);
+});
+
 const addPseudonym = catchAsync(async (req, res) => {
   const user = await userService.addPseudonym(req.body, req.user);
   res.status(httpStatus.CREATED).send(user.pseudonyms);
+});
+
+const deletePseudonym = catchAsync(async (req, res) => {
+  await userService.deletePseudonym(req.params.pseudonymId, req.user);
+  res.status(httpStatus.OK).send();
 });
 
 const activatePseudonym = catchAsync(async (req, res) => {
@@ -40,4 +53,6 @@ module.exports = {
   getUser,
   addPseudonym,
   activatePseudonym,
+  getPseudonyms,
+  deletePseudonym,
 };

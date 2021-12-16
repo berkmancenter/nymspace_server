@@ -53,6 +53,28 @@ router.put('/', auth('manageAccount'), validate(userValidation.updateUser), user
 
 /**
  * @swagger
+ * /pseudonyms:
+ *   get:
+ *     description: Returns a user's pseudonyms
+ *     tags: [User]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: Pseudonym array
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/components/schemas/User'
+ *                      
+ */
+router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseudonyms);
+
+/**
+ * @swagger
  * /users/pseudonyms:
  *   post:
  *     description: Add a pseudonym for user and set to active
@@ -112,5 +134,27 @@ router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseu
  *                 $ref: '#/components/schemas/Pseudonym'
 */
 router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController.activatePseudonym);
+
+/**
+ * @swagger
+ * /pseudonyms:
+ *   get:
+ *     description: Returns a user's pseudonyms
+ *     tags: [User]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: Pseudonym array
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/components/schemas/User'
+ *                      
+ */
+ router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym);
 
 module.exports = router;

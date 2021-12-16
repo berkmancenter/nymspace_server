@@ -14,6 +14,10 @@ const pseudonymSchema = new mongoose.Schema({
   active: { 
     type: Boolean,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const userSchema = mongoose.Schema(

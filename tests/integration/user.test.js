@@ -4,11 +4,20 @@ const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
-const { insertUsers, registeredUser } = require('../fixtures/user.fixture');
-const { registeredUserAccessToken } = require('../fixtures/token.fixture');
+const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixture');
+const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
+const { insertMessages, messageOne } = require('../fixtures/message.fixture');
 const userService = require('../../src/services/user.service');
 const mongoose = require('mongoose');
 
+const createPseudo = () => {
+  return {
+    _id: mongoose.Types.ObjectId(),
+    token: faker.datatype.uuid(),
+    pseudonym: faker.name.findName(),
+    active: 'false',
+  };
+}
 
 setupTestDB();
 
@@ -16,10 +25,10 @@ describe('User routes', () => {
 
   describe('POST v1/users/pseudonyms', () => {
     let newPseudo;
-    beforeEach(() => {
+    beforeEach( async () => {
       newPseudo = {
         token: userService.newToken(),
-        pseudonym: userService.newPseudonym()
+        pseudonym: await userService.newPseudonym()
       };
     });
 
@@ -56,25 +65,61 @@ describe('User routes', () => {
       });
 
       test('should return 500 if user already has 5 pseudonyms', async () => {
-        const createPseudo = () => {
-          return {
-            _id: mongoose.Types.ObjectId(),
-            token: faker.datatype.uuid(),
-            pseudonym: faker.name.findName(),
-            active: 'false',
-          };
-        }
-        for (let x=0; x<4; x++) {
-          registeredUser.pseudonyms.push(createPseudo());
+        userOne.pseudonyms = [];
+        for (let x=0; x<5; x++) {
+          userOne.pseudonyms.push(createPseudo());
         }
 
-        await insertUsers([registeredUser]);
+        await insertUsers([userOne]);
         await request(app)
         .post('/v1/users/pseudonyms')
-        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send(newPseudo)
         .expect(httpStatus.INTERNAL_SERVER_ERROR);
       });
+  });
+
+  describe('GET v1/users/pseudonyms', () => {
+    test('should return 200 and with pseudonyms as body', async () => {
+      await insertUsers([registeredUser]);
+      const ret = await request(app)
+          .get('/v1/users/pseudonyms')
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send()
+          .expect(httpStatus.OK);
+
+      expect(ret.body).toHaveLength(1);
+    });
+  });
+
+  describe('DELETE v1/users/pseudonyms/:pseudonymId', () => {
+    test('should return 200 and hard delete Pseudonym without messages', async () => {
+      await insertUsers([registeredUser]);
+      const pseudoId = registeredUser.pseudonyms[0]._id;
+      await request(app)
+          .delete(`/v1/users/pseudonyms/${pseudoId}`)
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send()
+          .expect(httpStatus.OK);
+
+      const user = await User.findById(registeredUser._id);
+      expect(user.pseudonyms).toHaveLength(0);
+    });
+
+    test('should return 200 and soft delete Pseudonym with messages', async () => {
+      await insertUsers([registeredUser]);
+      const pseudoId = registeredUser.pseudonyms[0]._id;
+      await insertMessages([messageOne]);
+      await request(app)
+          .delete(`/v1/users/pseudonyms/${pseudoId}`)
+          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+          .send()
+          .expect(httpStatus.OK);
+
+      const user = await User.findById(registeredUser._id);
+      expect(user.pseudonyms).toHaveLength(1);
+      expect(user.pseudonyms[0].isDeleted).toBe(true);
+    });
   });
 
   describe('PUT v1/users/', () => {
