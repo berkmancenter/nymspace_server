@@ -13,7 +13,7 @@
   "scripts": {
     "start": "pm2 start ecosystem.config.json --no-daemon",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
-    "test": "jest -i --colors --verbose --forceExit tests/integration/user.test.js tests/integration/topic.test.js tests/integration/thread.test.js tests/integration/message.test.js",
+    "test": "jest -i --colors --verbose tests/integration/user.test.js tests/integration/topic.test.js tests/integration/thread.test.js tests/integration/message.test.js",
     "test:watch": "jest -i --watchAll",
     "coverage": "jest -i --coverage",
     "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
