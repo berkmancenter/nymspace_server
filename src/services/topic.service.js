@@ -43,7 +43,7 @@ const allTopics = async () => {
 };
 
 const findById = async (id) => {
-  const topic = await Topic.findOne({ _id: id }).select('name slug').exec();
+  const topic = await Topic.findOne({ _id: id }).select('name slug private votingAllowed').exec();
   return topic;
 };
 
@@ -63,7 +63,7 @@ const topicsWithSortData = async(topicQuery) => {
       { path: 'followers', select: 'id' }
     ]
   })
-  .select('name slug')
+  .select('name slug private votingAllowed')
   .exec();
 
   const topics = [];
@@ -90,6 +90,8 @@ const topicsWithSortData = async(topicQuery) => {
     topic.name = t.name;
     topic.slug = t.slug;
     topic.id = t.id;
+    topic.private = t.private;
+    topic.votingAllowed = t.votingAllowed;
     // Sort the most recent messages for all threads, to determine the
     // most recent message for the topic/channel.
     threadMsgTimes.sort((a, b) => {

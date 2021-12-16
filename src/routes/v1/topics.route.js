@@ -69,6 +69,10 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
  *         type: number
  *       defaultSortAverage:
  *         type: number
+ *       private:
+ *         type: boolean
+ *       votingAllowed:
+ *         type: boolean
  */
 
 /**
