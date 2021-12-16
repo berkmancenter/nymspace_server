@@ -105,6 +105,23 @@ components:
         createdAt: 2021-11-30T01:51:01.639Z
         updatedAt: 2021-11-30T01:51:01.639Z
 
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        messageCount:
+          type: number
+      example:
+        id: 61b0ffca7d4eb20ee9dcfe8c
+        name: my favorite dog is Rottweiler
+        slug: my-favorite-dog-is-Rottweiler
+        messageCount: 5
+
   responses:
     DuplicateEmail:
       description: Email already taken

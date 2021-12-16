@@ -10,6 +10,7 @@ const allRoles = {
     'getThread',
     'allTopics',
     'publicThreads',
+    'topicThreads',
     'deleteThread',
     'upVote',
     'downVote',

@@ -2,13 +2,33 @@ const mongoose = require('mongoose');
 const faker = require('faker');
 const Message = require('../../src/models/message.model');
 const { registeredUser } = require('./user.fixture');
-const { threadOne } = require('./thread.fixture');
+const { threadOne, threadTwo } = require('./thread.fixture');
 
 const messageOne = {
     _id: mongoose.Types.ObjectId(),
     body: faker.lorem.words(10),
-    thread: mongoose.Types.ObjectId(),
+    thread: threadOne._id,
     owner: registeredUser._id,
+    pseudonymId: registeredUser.pseudonyms[0]._id,
+    pseudonym: registeredUser.pseudonyms[0].pseudonym,
+};
+
+const messageTwo = {
+  _id: mongoose.Types.ObjectId(),
+  body: faker.lorem.words(10),
+  thread: threadTwo._id,
+  owner: registeredUser._id,
+  pseudonymId: registeredUser.pseudonyms[0]._id,
+  pseudonym: registeredUser.pseudonyms[0].pseudonym,
+};
+
+const messageThree = {
+  _id: mongoose.Types.ObjectId(),
+  body: faker.lorem.words(10),
+  thread: threadTwo._id,
+  owner: registeredUser._id,
+  pseudonymId: registeredUser.pseudonyms[0]._id,
+  pseudonym: registeredUser.pseudonyms[0].pseudonym,
 };
 
 const messagePost = {
@@ -22,6 +42,8 @@ const insertMessages = async (msgs) => {
 
 module.exports = {
   messageOne,
+  messageTwo,
+  messageThree,
   messagePost,
   insertMessages,
 };

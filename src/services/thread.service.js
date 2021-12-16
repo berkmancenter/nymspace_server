@@ -26,9 +26,10 @@ const createThread = async (threadBody, user) => {
 const userThreads = async (user) => {
   const followedThreads = await Follower.find({ user }).select('thread').exec();
   const threads = await Thread.find({ $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] })
+    .populate({ path: 'messages', select: 'id'})
     .select('name slug')
     .exec();
-  return threads;
+  return addMessageCount(threads);
 };
 
 const findById = async (id) => {
@@ -43,8 +44,11 @@ const findByIdFull = async (id, user) => {
 };
 
 const topicThreads = async (topicId) => {
-  const threads = await Thread.find({ topic: topicId }).select('name slug').exec();
-  return threads;
+  const threads = await Thread.find({ topic: topicId })
+    .populate({ path: 'messages', select: 'id'})
+    .select('name slug')
+    .exec();
+  return addMessageCount(threads);
 };
 
 const follow = async (status, threadId, user) => {
@@ -65,8 +69,11 @@ const follow = async (status, threadId, user) => {
 };
 
 const allPublic = async () => {
-  const threads = await Thread.find().select('name slug').exec();
-  return threads;
+  const threads = await Thread.find()
+    .select('name slug')
+    .populate({ path: 'messages', select: 'id'})
+    .exec();
+  return addMessageCount(threads);
 };
 
 const deleteThread = async (id, user) => {
@@ -85,6 +92,18 @@ const deleteThread = async (id, user) => {
 
   return thread;
 };
+
+const addMessageCount = (threads) => {
+  return threads.map(t => {
+    t = t.toObject();
+    t.messageCount = t.messages ? t.messages.length : 0;
+    delete t.messages;
+    // Replace _id with id since toJSON plugin will not be applied
+    t.id = t._id.toString();
+    delete t._id;
+    return t;
+  });
+}
 
 module.exports = {
   createThread,
