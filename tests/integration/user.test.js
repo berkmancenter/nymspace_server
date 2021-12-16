@@ -54,6 +54,27 @@ describe('User routes', () => {
         const activePseudo = ret.body.find(x => x.active);
         expect(activePseudo.token).toBe(registeredUser.pseudonyms[0].token);
       });
+
+      test('should return 500 if user already has 5 pseudonyms', async () => {
+        const createPseudo = () => {
+          return {
+            _id: mongoose.Types.ObjectId(),
+            token: faker.datatype.uuid(),
+            pseudonym: faker.name.findName(),
+            active: 'false',
+          };
+        }
+        for (let x=0; x<4; x++) {
+          registeredUser.pseudonyms.push(createPseudo());
+        }
+
+        await insertUsers([registeredUser]);
+        await request(app)
+        .post('/v1/users/pseudonyms')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(newPseudo)
+        .expect(httpStatus.INTERNAL_SERVER_ERROR);
+      });
   });
 
   describe('PUT v1/users/', () => {
