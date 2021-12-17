@@ -45,12 +45,13 @@ const createUser = async (userBody) => {
  * Add a pseudonym to an existing a user
  * @param {Object} requestBody
  * @param {Object} user
- * @returns {Promise<void>}
+ * @returns {Promise<User>}
  */
  const addPseudonym = async (requestBody, requestUser) => {
   requestBody.active = true;
   const user = await User.findById(requestUser.id);
-  if (user.pseudonyms.length >= 5) {
+  const psuedos = user.pseudonyms.filter(p => p.isDeleted = false);
+  if (psuedos.length >= 5) {
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms');
   }
   user.pseudonyms.forEach((p) => p.active = false);
@@ -63,7 +64,7 @@ const createUser = async (userBody) => {
  * Update a pseudonym
  * @param {Object} requestBody
  * @param {Object} user
- * @returns {Promise<void>}
+ * @returns {Promise<User>}
  */
  const activatePseudonym = async (requestBody, requestUser) => {
   const user = await User.findById(requestUser.id);
@@ -93,22 +94,16 @@ const createUser = async (userBody) => {
   // soft delete it. If not, hard delete, since if can be used again.
   const user = await User.findById(requestUser.id);
   const messages = await Message.find({ pseudonymId });
-  let hardDelete = false;
-  let indexToDelete;
-  user.pseudonyms.forEach((p, i) => {
-    if (p._id.toString() === pseudonymId) {
-      if (messages.length > 0) {
-        p.isDeleted = true;
-      } else {
-        hardDelete = true;
-        indexToDelete = i;
-      }
-    }
-  });
-  if (hardDelete) {
-    user.pseudonyms.splice(indexToDelete, 1);
+  const pseudo = user.pseudonyms.id(pseudonymId);
+  console.log(messages);
+  if (messages.length > 0) {
+    console.log('soft deleting pseudo...');
+    pseudo.isDeleted = true;
+  } else {
+    console.log('hard deleting pseudo...');
+    user.pseudonyms.id(pseudonymId).remove();
   }
-  user.save();
+  await user.save();
 };
 
 /**

@@ -68,7 +68,7 @@ router.put('/', auth('manageAccount'), validate(userValidation.updateUser), user
  *               type: array
  *               items:
  *                 type: object
- *                 $ref: '#/components/schemas/User'
+ *                 $ref: '#/components/schemas/Pseudonym'
  *                      
  */
 router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseudonyms);
