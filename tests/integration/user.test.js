@@ -15,7 +15,8 @@ const createPseudo = () => {
     _id: mongoose.Types.ObjectId(),
     token: faker.datatype.uuid(),
     pseudonym: faker.name.findName(),
-    active: 'false',
+    active: false,
+    isDeleted: false,
   };
 }
 
