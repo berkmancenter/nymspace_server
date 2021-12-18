@@ -236,22 +236,25 @@ const isTokenGeneratedByThreads = (password) => {
  * @returns {Promise<boolean>}
  */
 const goodReputation = async (user) => {
-  // Calculate total downvotes for all user's messages
+  // Calculate total upvotes and downvotes for all user's messages
   const messages = await Message.find({ owner: user.id});
   let totalDownVotes = 0;
+  let totalUpVotes = 0;
   if (messages.length > 0) {
-    totalDownVotes = messages.map((m) => {
-      const downVotes = m.downVotes ? m.downVotes : 0;
-      return downVotes;
-    }).reduce((x, y) => x + y);
+    totalDownVotes = messages.map((m) => { return m.downVotes.length; }).reduce((x, y) => x + y);
+    totalUpVotes = messages.map((m) => { return m.upVotes.length; }).reduce((x, y) => x + y);
   }
+  // Subtract downvotes from upvotes for "reputation score"
+  const reputationScore = totalUpVotes - totalDownVotes;
   // Calculate weeks since account creation
   const today = new Date();
   const createdDate = new Date(user.createdAt);
   const weeks = Math.round((today - createdDate) / 604800000);
-  // Good reputation is a user with less than 5 total downvotes,
+  // Good reputation is a combined total of message votes exceeding -5,
   // and an account more than 1 week old.
-  return ((totalDownVotes <= 5) && (weeks > 0));
+  console.log(reputationScore);
+  console.log(weeks);
+  return ((reputationScore > -5) && (weeks > 0));
 };
 
 module.exports = {
