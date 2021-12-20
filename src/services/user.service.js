@@ -252,8 +252,6 @@ const goodReputation = async (user) => {
   const weeks = Math.round((today - createdDate) / 604800000);
   // Good reputation is a combined total of message votes exceeding -5,
   // and an account more than 1 week old.
-  console.log(reputationScore);
-  console.log(weeks);
   return ((reputationScore > -5) && (weeks > 0));
 };
 
