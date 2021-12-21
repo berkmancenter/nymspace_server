@@ -50,7 +50,7 @@ const createUser = async (userBody) => {
  const addPseudonym = async (requestBody, requestUser) => {
   requestBody.active = true;
   const user = await User.findById(requestUser.id);
-  const psuedos = user.pseudonyms.filter(p => p.isDeleted = false);
+  const psuedos = user.pseudonyms.filter(p => !p.isDeleted);
   if (psuedos.length >= 5) {
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms');
   }
