@@ -95,12 +95,9 @@ const createUser = async (userBody) => {
   const user = await User.findById(requestUser.id);
   const messages = await Message.find({ pseudonymId });
   const pseudo = user.pseudonyms.id(pseudonymId);
-  console.log(messages);
   if (messages.length > 0) {
-    console.log('soft deleting pseudo...');
     pseudo.isDeleted = true;
   } else {
-    console.log('hard deleting pseudo...');
     user.pseudonyms.id(pseudonymId).remove();
   }
   await user.save();

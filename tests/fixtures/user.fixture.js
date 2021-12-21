@@ -52,7 +52,9 @@ const admin = {
 };
 
 const insertUsers = async (users) => {
-  const ret = await User.insertMany(users.map((user) => ({ ...user, password: hashedPassword })));
+  const ret = await User.insertMany(users);
+  // Todo: add this when password hashing branch is merged in
+  //const ret = await User.insertMany(users.map((user) => ({ ...user, password: hashedPassword })));
   return ret;
 };
 
