@@ -1,4 +1,4 @@
-const { Topic } = require('../models');
+const { Topic, Thread, Message, Follower } = require('../models');
 const crypto = require('crypto');
 
 /**
@@ -114,10 +114,33 @@ const topicsWithSortData = async(topicQuery) => {
   return topics.sort((a,b) => { return b.defaultSortAverage-a.defaultSortAverage; });
 };
 
+const deleteOldTopics = async() => {
+  var date = new Date();
+  date.setDate(date.getDate() - 97);
+  // Get all deletable topics
+  const topics = await Topic.find({ archived: false, createdAt: { $gte: date } });
+  topics.forEach((topic) => {
+    // Get all threads for topic
+    const threads = await Thread.find({ topic: topic });
+    threads.forEach((thread) => {
+      // Delete all messages
+      await Message.deleteMany({ thread: thread });
+    })
+    // Delete all followers
+    await Follower.deleteMany( { topic: topic });
+    // Delete all threads
+    await Thread.deleteMany( { topic: topic });
+  });
+  // Finally, delete all topics
+  const result = await Topic.deleteMany({ archived: false, createdAt: { $gte: date } });
+  return result;
+};
+
 module.exports = {
   createTopic,
   userTopics,
   findById,
   allTopics,
   verifyPasscode,
+  deleteOldTopics,
 };

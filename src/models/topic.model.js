@@ -32,6 +32,7 @@ const topicSchema = mongoose.Schema(
     },
     archived: {
       type: Boolean,
+      default: false,
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
