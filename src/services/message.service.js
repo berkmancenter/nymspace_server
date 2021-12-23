@@ -48,9 +48,12 @@ const vote = async (messageId, direction, requestUser) => {
   if (message.owner.toString() == user._id.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Users cannot vote for their own messages.');
   }
-  const existingVote = message.upVotes.concat(message.downVotes).find(x => x.owner.toString() === user._id.toString());
-  if (existingVote) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+  const votes = message.upVotes.concat(message.downVotes);
+  if (votes && votes.length > 0) {
+    const existingVote = votes.find(x => x.owner.toString() === user._id.toString());
+    if (existingVote) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+    }
   }
   if (direction === 'up') {
     message.upVotes.push({ owner: user });
