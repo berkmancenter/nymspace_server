@@ -25,28 +25,14 @@ router.post('/', auth('createMessage'), validate(messageValidation.createMessage
  *      - application/json
  *     responses:
  *       200:
- *         description: message array
- *         content:
+ *         description: Message array
+ *         content: 
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   upVotes:
- *                     type: number
- *                   downVotes:
- *                     type: number
- *                   body:
- *                     type: string
- *                   owner:
- *                     type: string
- *                   pseudonym:
- *                     type: string
- *                   createdAt:
- *                     type: string
+ *                 $ref: '#/components/schemas/Message'
  */
 router.route('/:threadId').get(messageController.threadMessages);
 
@@ -65,7 +51,12 @@ router.route('/:threadId').get(messageController.threadMessages);
  *           type: string
  *     responses:
  *       200:
- *         description: ok
+ *         description: Message object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Message'
  *                      
  */
 router.route('/:messageId/upVote').post(auth('upVote'), messageController.upVote);
@@ -85,7 +76,12 @@ router.route('/:messageId/upVote').post(auth('upVote'), messageController.upVote
  *     tags: [Message]
  *     responses:
  *       200:
- *         description: ok
+ *         description: Message object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Message'
  *                      
  */
 router.route('/:messageId/downVote').post(auth('downVote'), messageController.downVote);

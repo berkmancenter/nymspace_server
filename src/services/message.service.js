@@ -40,7 +40,7 @@ const threadMessages = async (id) => {
  * Upvote or downvote a message
  * @param {Object} messageId
  * @param {Object} direction
- * @returns {Promise<void>}
+ * @returns {Promise<Message>}
  */
 const vote = async (messageId, direction, requestUser) => {
   const user = await User.findById(requestUser.id);
@@ -59,6 +59,7 @@ const vote = async (messageId, direction, requestUser) => {
   }
 
   await message.save();
+  return message;
 };
 
 module.exports = {

@@ -16,11 +16,14 @@ describe('Message routes', () => {
         test('should return 200 and increment upVote count for message', async () => {
             await insertUsers([registeredUser, userOne]);
             await insertMessages([messageOne]);
-            await request(app)
+            const ret = await request(app)
                 .post(`/v1/messages/${messageOne._id}/upVote`)
                 .set('Authorization', `Bearer ${userOneAccessToken}`)
                 .send()
                 .expect(httpStatus.OK);
+
+            expect(ret.body.upVotes).toHaveLength(1);
+            expect(ret.body.downVotes).toBeDefined();
 
             const msg = await Message.findById(messageOne._id);
             expect(msg.upVotes).toHaveLength(1);
@@ -59,11 +62,14 @@ describe('Message routes', () => {
         test('should return 200 and increment downVote count for message', async () => {
             await insertUsers([registeredUser, userOne]);
             await insertMessages([messageOne]);
-            await request(app)
+            const ret = await request(app)
                 .post(`/v1/messages/${messageOne._id}/downVote`)
                 .set('Authorization', `Bearer ${userOneAccessToken}`)
                 .send()
                 .expect(httpStatus.OK);
+
+            expect(ret.body.downVotes).toHaveLength(1);
+            expect(ret.body.upVotes).toBeDefined();
 
             const msg = await Message.findById(messageOne._id);
             expect(msg.downVotes).toHaveLength(1);
