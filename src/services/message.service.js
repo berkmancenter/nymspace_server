@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { Message } = require('../models');
 const { Thread } = require('../models');
+const { User } = require('../models');
+const ApiError = require('../utils/ApiError');
+const httpStatus = require('http-status');
 
 /**
  * Create a message
@@ -39,12 +42,20 @@ const threadMessages = async (id) => {
  * @param {Object} direction
  * @returns {Promise<void>}
  */
-const vote = async (messageId, direction) => {
+const vote = async (messageId, direction, requestUser) => {
+  const user = await User.findById(requestUser.id);
   const message = await Message.findById(messageId);
+  if (message.owner.toString() == user._id.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Users cannot vote for their own messages.');
+  }
+  const existingVote = message.upVotes.concat(message.downVotes).find(x => x.owner.toString() === user._id.toString());
+  if (existingVote) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+  }
   if (direction === 'up') {
-    message.upVotes++;
+    message.upVotes.push({ owner: user });
   } else {
-    message.downVotes++;
+    message.downVotes.push({ owner: user });
   }
 
   await message.save();

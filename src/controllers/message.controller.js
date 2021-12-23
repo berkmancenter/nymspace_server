@@ -13,12 +13,12 @@ const threadMessages = catchAsync(async (req, res) => {
 });
 
 const upVote = catchAsync(async (req, res) => {
-  await messageService.vote(req.params.messageId, 'up');
+  await messageService.vote(req.params.messageId, 'up', req.user);
   res.status(httpStatus.OK).send();
 });
 
 const downVote = catchAsync(async (req, res) => {
-  await messageService.vote(req.params.messageId, 'down');
+  await messageService.vote(req.params.messageId, 'down', req.user);
   res.status(httpStatus.OK).send();
 });
 
