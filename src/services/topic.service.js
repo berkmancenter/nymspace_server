@@ -132,7 +132,7 @@ const emailUsersToArchive = async() => {
   date.setDate(date.getDate() - 90);
   // Get all archivable topics
   const topics = await Topic.find({ isDeleted: false, archived: false, archivable: true, createdAt: { $gte: date } }).populate('owner');
-  topics.forEach((topic) => {
+  topics.forEach( async(topic) => {
     if (topic.owner.email) {
       const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
       await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
