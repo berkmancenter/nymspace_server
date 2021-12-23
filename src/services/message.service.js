@@ -56,9 +56,9 @@ const vote = async (messageId, direction, requestUser) => {
     }
   }
   if (direction === 'up') {
-    message.upVotes.push({ owner: user });
+    message.upVotes.push({ owner: user._id });
   } else {
-    message.downVotes.push({ owner: user });
+    message.downVotes.push({ owner: user._id });
   }
 
   await message.save();
