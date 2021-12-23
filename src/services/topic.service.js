@@ -1,5 +1,6 @@
 const { Topic, Thread, Message, Follower } = require('../models');
 const crypto = require('crypto');
+const { emailService, tokenService } = require('../services');
 
 /**
  * Create a topic
@@ -118,22 +119,34 @@ const deleteOldTopics = async() => {
   var date = new Date();
   date.setDate(date.getDate() - 97);
   // Get all deletable topics
-  const topics = await Topic.find({ archived: false, createdAt: { $gte: date } });
+  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $gte: date } });
   topics.forEach((topic) => {
-    // Get all threads for topic
-    const threads = await Thread.find({ topic: topic });
-    threads.forEach((thread) => {
-      // Delete all messages
-      await Message.deleteMany({ thread: thread });
-    })
-    // Delete all followers
-    await Follower.deleteMany( { topic: topic });
-    // Delete all threads
-    await Thread.deleteMany( { topic: topic });
+    // Save topic as deleted
+    topic.isDeleted = true;
+    topic.Save();
   });
-  // Finally, delete all topics
-  const result = await Topic.deleteMany({ archived: false, createdAt: { $gte: date } });
-  return result;
+};
+
+const emailUsersToArchive = async() => {
+  var date = new Date();
+  date.setDate(date.getDate() - 90);
+  // Get all archivable topics
+  const topics = await Topic.find({ isDeleted: false, archived: false, archivable: true, createdAt: { $gte: date } }).populate('owner');
+  topics.forEach((topic) => {
+    if (topic.owner.email) {
+      const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
+      await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
+    }
+  });
+};
+
+const archiveTopic = async(topicId) => {
+  const topic = Topic.findById(topicId);
+  if (!topic) {
+    throw new Error('Topic not found');
+  }
+  topic.archived = true;
+  topic.save();
 };
 
 module.exports = {
@@ -143,4 +156,6 @@ module.exports = {
   allTopics,
   verifyPasscode,
   deleteOldTopics,
+  emailUsersToArchive,
+  archiveTopic,
 };

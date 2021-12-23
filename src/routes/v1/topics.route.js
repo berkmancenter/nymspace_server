@@ -168,4 +168,30 @@ router.route('/:topicId').get(topicController.getTopic);
  */
 router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate);
 
+/**
+ * @swagger
+ * /topics/archive:
+ *   post:
+ *     description: Archive a topic, preventing it from being soft deleted
+ *     tags: [Topic]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content: 
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               topicId:
+ *                 type: string
+ *               token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: ok
+ *                      
+ */
+router.route('/archive').post(validate(topicValidation.archiveTopic), topicController.archiveTopic);
+
 module.exports = router;

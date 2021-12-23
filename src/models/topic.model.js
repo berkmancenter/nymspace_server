@@ -34,6 +34,10 @@ const topicSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
