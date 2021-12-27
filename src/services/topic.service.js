@@ -34,12 +34,12 @@ const createTopic = async (topicBody, user) => {
 };
 
 const userTopics = async (user) => {
-  const topics = await topicsWithSortData({ owner: user });
+  const topics = await topicsWithSortData({ owner: user, isDeleted: false });
   return topics;
 };
 
 const allTopics = async () => {
-  const topics = await topicsWithSortData();
+  const topics = await topicsWithSortData({ isDeleted: false });
   return topics;
 };
 
@@ -119,25 +119,27 @@ const deleteOldTopics = async() => {
   var date = new Date();
   date.setDate(date.getDate() - 97);
   // Get all deletable topics
-  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $gte: date } });
+  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: date } });
   topics.forEach((topic) => {
     // Save topic as deleted
     topic.isDeleted = true;
     topic.Save();
   });
+  return topics;
 };
 
 const emailUsersToArchive = async() => {
   var date = new Date();
   date.setDate(date.getDate() - 90);
   // Get all archivable topics
-  const topics = await Topic.find({ isDeleted: false, archived: false, archivable: true, createdAt: { $gte: date } }).populate('owner');
+  let topics = await Topic.find({ isDeleted: false, archived: false, archivable: true, createdAt: { $lte: date } }).populate('owner');
+  topics = topics.filter(t => t.owner.email);
   topics.forEach( async(topic) => {
-    if (topic.owner.email) {
-      const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
-      await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
-    }
+    // Email users prompting them to archive
+    const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
+    await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
   });
+  return topics;
 };
 
 const archiveTopic = async(topicId) => {
