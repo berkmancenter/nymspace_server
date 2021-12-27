@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
+const voteSchema = mongoose.Schema(
+  {
+    owner: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User',
+      required: false,
+    },
+  }
+);
+
 const messageSchema = mongoose.Schema(
   {
     body: {
@@ -19,12 +29,10 @@ const messageSchema = mongoose.Schema(
       required: true,
     },
     upVotes: {
-      type: Number,
-      default: 0,
+      type: [voteSchema],
     },
     downVotes: {
-      type: Number,
-      default: 0,
+      type: [voteSchema],
     },
     pseudonym: {
       type: String,

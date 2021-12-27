@@ -1,5 +1,38 @@
 components:
   schemas:
+
+    Vote:
+      type: object 
+      properties:
+        _id:
+          type: string
+        owner:
+          type: string
+
+    Message:
+      type: object 
+      properties:
+        id:
+          type: string
+        body:
+          type: string
+        owner:
+          type: string
+        thread:
+          type: string
+        upVotes:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Vote'
+        downVotes:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Vote'
+        pseuodonym:
+          type: string
+        pseuodonymId:
+          type: string
+
     Pseudonym:
       type: object 
       properties:
