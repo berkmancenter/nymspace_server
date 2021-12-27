@@ -38,6 +38,10 @@ const topicSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isArchiveNotified: {
+      type: Boolean,
+      default: false,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',

@@ -123,7 +123,7 @@ const deleteOldTopics = async() => {
   topics.forEach((topic) => {
     // Save topic as deleted
     topic.isDeleted = true;
-    topic.Save();
+    await topic.save();
   });
   return topics;
 };
@@ -132,23 +132,30 @@ const emailUsersToArchive = async() => {
   var date = new Date();
   date.setDate(date.getDate() - 90);
   // Get all archivable topics
-  let topics = await Topic.find({ isDeleted: false, archived: false, archivable: true, createdAt: { $lte: date } }).populate('owner');
+  let topics = await Topic.find({
+    isArchiveNotified: false, 
+    isDeleted: false, 
+    archived: false, 
+    archivable: true, 
+    createdAt: { $lte: date } }).populate('owner');
   topics = topics.filter(t => t.owner.email);
   topics.forEach( async(topic) => {
     // Email users prompting them to archive
     const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
     await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
+    topic.isArchiveNotified = true;
+    await topic.save();
   });
   return topics;
 };
 
 const archiveTopic = async(topicId) => {
-  const topic = Topic.findById(topicId);
+  const topic = await Topic.findById(topicId);
   if (!topic) {
     throw new Error('Topic not found');
   }
   topic.archived = true;
-  topic.save();
+  await topic.save();
 };
 
 module.exports = {
