@@ -6,10 +6,11 @@ const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixtu
 const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
 const Message = require('../../src/models/message.model');
-const { insertTopics, publicTopic } = require('../fixtures/topic.fixture');
+const { insertTopics, newPublicTopic, newPrivateTopic } = require('../fixtures/topic.fixture');
 const { threadOne, insertThreads } = require('../fixtures/thread.fixture');
 
 setupTestDB();
+const publicTopic = newPublicTopic();
 
 describe('Message routes', () => {
     describe('POST /v1/messages/:threadId/upVote', () => {

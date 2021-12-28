@@ -17,7 +17,8 @@ const topicPost = {
   archivable: true,
 };
 
-const publicTopic = {
+const newPublicTopic = () => { 
+  return {
     _id: mongoose.Types.ObjectId(),
     name: nameSlug,
     slug: nameSlug,
@@ -26,9 +27,13 @@ const publicTopic = {
     archivable: true,
     archived: false,
     owner: userOne._id,
+    isDeleted: false,
+    isArchiveNotified: false,
+  }
 };
 
-const privateTopic = {
+const newPrivateTopic = () => { 
+  return {
   _id: mongoose.Types.ObjectId(),
   name: nameSlug,
   slug: nameSlug,
@@ -38,6 +43,9 @@ const privateTopic = {
   archivable: true,
   archived: false,
   owner: userOne._id,
+  isDeleted: false,
+  isArchiveNotified: false,
+  }
 };
 
 const insertTopics = async (topics) => {
@@ -45,8 +53,8 @@ const insertTopics = async (topics) => {
 };
 
 module.exports = {
-  publicTopic,
-  privateTopic,
+  newPublicTopic,
+  newPrivateTopic,
   topicPost,
   insertTopics,
   getRandomInt,

@@ -16,7 +16,15 @@ const authenticate = {
   }),
 };
 
+const archiveTopic = {
+  body: Joi.object().keys({
+    topicId: Joi.string().required(),
+    token: Joi.string().required(),
+  }),
+};
+
 module.exports = {
   authenticate,
   createTopic,
+  archiveTopic,
 };

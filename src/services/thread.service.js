@@ -24,9 +24,21 @@ const createThread = async (threadBody, user) => {
 };
 
 const userThreads = async (user) => {
+  const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const followedThreads = await Follower.find({ user }).select('thread').exec();
-  const threads = await Thread.find({ $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] })
-    .populate({ path: 'messages', select: 'id'})
+  const threads = await Thread.find({
+    $and: [
+      { $or: 
+        [
+          { owner: user }, 
+          { _id: { $in: followedThreads.map((el) => el.thread) }}
+        ] 
+      },
+      {
+        topic: { $nin: deletedTopics }
+      }
+    ]
+    }).populate({ path: 'messages', select: 'id'})
     .select('name slug')
     .exec();
   return addMessageCount(threads);
@@ -69,7 +81,8 @@ const follow = async (status, threadId, user) => {
 };
 
 const allPublic = async () => {
-  const threads = await Thread.find()
+  const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
+  const threads = await Thread.find({ topic: { $nin: deletedTopics } })
     .select('name slug')
     .populate({ path: 'messages', select: 'id'})
     .exec();

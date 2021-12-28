@@ -55,9 +55,27 @@ If you did not create an account, then ignore this email.`;
   await sendEmail(to, subject, text);
 };
 
+/**
+ * Send email to user for channel archiving
+ * @param {string} to
+ * @param {Topic} topic
+ * @param {string} token
+ * @returns {Promise}
+ */
+ const sendArchiveTopicEmail = async (to, topic, token) => {
+  const subject = 'Archiving Your Threads Channel';
+  // replace this url with the link to the archive topic page of your front-end app
+  const archivalUrl = `http://localhost:3000/archive-topic?topicId=${topic._id}&token=${token}`;
+  const text = `Dear user,
+Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.
+To prevent archival and keep your channel on Threads, please click on this link: ${archivalUrl}`;
+  await sendEmail(to, subject, text);
+};
+
 module.exports = {
   transport,
   sendEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,
+  sendArchiveTopicEmail,
 };

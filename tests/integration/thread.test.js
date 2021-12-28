@@ -4,8 +4,8 @@ const request = require('supertest');
 const { insertUsers, userOne } = require('../fixtures/user.fixture');
 const { userOneAccessToken } = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
-const { topicPost, publicTopic, privateTopic, insertTopics, getRandomInt } = require('../fixtures/topic.fixture');
-const { threadOne, threadTwo, insertThreads } = require('../fixtures/thread.fixture');
+const { insertTopics } = require('../fixtures/topic.fixture');
+const { threadOne, threadTwo, insertThreads, publicTopic, privateTopic } = require('../fixtures/thread.fixture');
 const { messageOne, messageTwo, messageThree, insertMessages } = require('../fixtures/message.fixture');
 const faker = require('faker');
 

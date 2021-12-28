@@ -1,5 +1,6 @@
-const { Topic } = require('../models');
+const { Topic, Thread, Message, Follower } = require('../models');
 const crypto = require('crypto');
+const { emailService, tokenService } = require('../services');
 
 /**
  * Create a topic
@@ -33,12 +34,12 @@ const createTopic = async (topicBody, user) => {
 };
 
 const userTopics = async (user) => {
-  const topics = await topicsWithSortData({ owner: user });
+  const topics = await topicsWithSortData({ owner: user, isDeleted: false });
   return topics;
 };
 
 const allTopics = async () => {
-  const topics = await topicsWithSortData();
+  const topics = await topicsWithSortData({ isDeleted: false });
   return topics;
 };
 
@@ -114,10 +115,57 @@ const topicsWithSortData = async(topicQuery) => {
   return topics.sort((a,b) => { return b.defaultSortAverage-a.defaultSortAverage; });
 };
 
+const deleteOldTopics = async() => {
+  var date = new Date();
+  date.setDate(date.getDate() - 97);
+  // Get all deletable topics
+  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: date } });
+  for (let x=0; x<topics.length; x++) {
+    // Save topic as deleted
+    topics[x].isDeleted = true;
+    await topics[x].save();
+  }
+  return topics;
+};
+
+const emailUsersToArchive = async() => {
+  var date = new Date();
+  date.setDate(date.getDate() - 90);
+  // Get all archivable topics
+  let topics = await Topic.find({
+    isArchiveNotified: false, 
+    isDeleted: false, 
+    archived: false, 
+    archivable: true, 
+    createdAt: { $lte: date } }).populate('owner');
+  topics = topics.filter(t => t.owner.email);
+  for (let x=0; x<topics.length; x++) {
+    // Email users prompting them to archive
+    let topic = topics[x];
+    const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
+    await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
+    topic.isArchiveNotified = true;
+    await topic.save();
+  };
+  return topics;
+};
+
+const archiveTopic = async(topicId) => {
+  const topic = await Topic.findById(topicId);
+  if (!topic) {
+    throw new Error('Topic not found');
+  }
+  topic.archived = true;
+  await topic.save();
+};
+
 module.exports = {
   createTopic,
   userTopics,
   findById,
   allTopics,
   verifyPasscode,
+  deleteOldTopics,
+  emailUsersToArchive,
+  archiveTopic,
 };
