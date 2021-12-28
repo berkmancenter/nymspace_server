@@ -29,9 +29,24 @@ const refreshTokens = {
   }),
 };
 
+const sendPasswordReset = {
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+  }),
+};
+
+const resetPassword = {
+  body: Joi.object().keys({
+    token: Joi.string().required(),
+    password: Joi.string().custom(password),
+  }),
+};
+
 module.exports = {
   register,
   login,
   logout,
   refreshTokens,
+  sendPasswordReset,
+  resetPassword,
 };
