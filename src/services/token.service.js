@@ -101,7 +101,7 @@ const generateVerifyEmailToken = async (user) => {
  */
  const generateArchiveTopicToken = async (user) => {
   const expires = moment().add(7, 'days');
-  const archiveTopicToken = await generateToken(user.id, expires, tokenTypes.VERIFY_EMAIL);
+  const archiveTopicToken = await generateToken(user.id, expires, tokenTypes.ARCHIVE_TOPIC);
   await saveToken(archiveTopicToken, user.id, expires, tokenTypes.ARCHIVE_TOPIC);
   return archiveTopicToken;
 };

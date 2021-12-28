@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { topicService, userService, tokenService } = require('../services');
 const ApiError = require('../utils/ApiError');
+const { tokenTypes } = require('../config/tokens');
 
 const createTopic = catchAsync(async (req, res) => {
   const topic = await topicService.createTopic(req.body, req.user);
@@ -41,7 +42,7 @@ const authenticate = catchAsync(async (req, res) => {
 });
 
 const archiveTopic = catchAsync(async (req, res) => {
-  await tokenService.verifyToken(req.body.token);
+  await tokenService.verifyToken(req.body.token, tokenTypes.ARCHIVE_TOPIC);
   await topicService.archiveTopic(req.body.topicId);
   res.status(httpStatus.OK).send();
 });

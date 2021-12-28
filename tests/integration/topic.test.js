@@ -1,13 +1,18 @@
 const setupTestDB = require('../utils/setupTestDB');
 const app = require('../../src/app');
 const request = require('supertest');
-const { insertUsers, registeredUser } = require('../fixtures/user.fixture');
-const { registeredUserAccessToken } = require('../fixtures/token.fixture');
+const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixture');
+const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
-const { topicPost, privateTopic, insertTopics, getRandomInt } = require('../fixtures/topic.fixture');
+const { topicPost, newPublicTopic, newPrivateTopic, insertTopics, getRandomInt } = require('../fixtures/topic.fixture');
 const faker = require('faker');
+const { tokenService } = require('../../src/services');
+const Topic = require('../../src/models/topic.model');
 
 setupTestDB();
+
+const publicTopic = newPublicTopic();
+const privateTopic = newPrivateTopic();
 
 describe('Topic routes', () => {
     describe('POST /v1/topics/', () => {
@@ -59,6 +64,52 @@ describe('Topic routes', () => {
                     passcode: badPasscode
                 })
                 .expect(httpStatus.UNAUTHORIZED);
+        });
+    });
+
+    describe('POST /v1/topics/archive', () => {
+        let archiveToken;
+        beforeEach(async() => {
+            await insertUsers([userOne]);
+            await insertTopics([publicTopic]);
+            userOne.id = userOne._id;
+            archiveToken = await tokenService.generateArchiveTopicToken(userOne);
+        });
+
+        test('should return 200 and archive topic', async () => {
+            await request(app)
+                .post(`/v1/topics/archive`)
+                .set('Authorization', `Bearer ${userOneAccessToken}`)
+                .send({
+                    topicId: publicTopic._id,
+                    token: archiveToken
+                })
+                .expect(httpStatus.OK);
+
+            const dbTopic = await Topic.findById(publicTopic._id);
+            expect(dbTopic.archived).toBe(true);
+        });
+
+        test('should return 400 if missing a required field', async () => {
+            await request(app)
+                .post(`/v1/topics/archive`)
+                .set('Authorization', `Bearer ${userOneAccessToken}`)
+                .send({
+                    topicId: null,
+                    token: archiveToken
+                })
+                .expect(httpStatus.BAD_REQUEST);
+        });
+
+        test('should return 500 if token is invalid', async () => {
+            await request(app)
+                .post(`/v1/topics/archive`)
+                .set('Authorization', `Bearer ${userOneAccessToken}`)
+                .send({
+                    topicId: publicTopic._id,
+                    token: faker.datatype.uuid()
+                })
+                .expect(httpStatus.INTERNAL_SERVER_ERROR);
         });
     });
 });

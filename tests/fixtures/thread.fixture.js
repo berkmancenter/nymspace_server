@@ -2,8 +2,10 @@ const mongoose = require('mongoose');
 const faker = require('faker');
 const Thread = require('../../src/models/thread.model');
 const { userOne } = require('./user.fixture');
-const { publicTopic, privateTopic } = require('./topic.fixture');
+const { newPublicTopic, newPrivateTopic } = require('./topic.fixture');
 
+const publicTopic = newPublicTopic();
+const privateTopic = newPrivateTopic();
 
 const nameSlug1 = faker.lorem.word().toLowerCase();
 const nameSlug2 = faker.lorem.word().toLowerCase();
@@ -32,4 +34,6 @@ module.exports = {
   threadOne,
   threadTwo,
   insertThreads,
+  publicTopic,
+  privateTopic,
 };

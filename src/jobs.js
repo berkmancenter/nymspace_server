@@ -4,7 +4,7 @@ const logger = require('./config/logger');
 
 const startJobs = () => {
     logger.info('Started nodecron jobs that run once per day at 1am UTC');
-    cron.schedule('* * * * *', async () => {
+    cron.schedule('0 1 * * *', async () => {
         try {
             // Delete old topics job
             logger.info(`Started delete old topics job.`);
