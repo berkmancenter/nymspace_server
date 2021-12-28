@@ -60,7 +60,7 @@ const refreshAuth = async (refreshToken) => {
  */
  const sendPasswordReset = async (email) => {
   const user = await User.findOne({ email });
-  if (!user) {
+  if (!user || !user.email) {
     return;
   }
   const resetToken = await tokenService.generatePasswordResetToken(user);

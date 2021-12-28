@@ -33,7 +33,6 @@ describe('Message routes', () => {
         test('should return 400 because user cannot vote for their own message', async () => {
             await insertUsers([registeredUser]);
             await insertMessages([messageOne]);
-            console.log(messageOne._id);
             await request(app)
                 .post(`/v1/messages/${messageOne._id}/upVote`)
                 .set('Authorization', `Bearer ${registeredUserAccessToken}`)
@@ -79,7 +78,6 @@ describe('Message routes', () => {
         test('should return 400 because user cannot vote for their own message', async () => {
             await insertUsers([registeredUser]);
             await insertMessages([messageOne]);
-            console.log(messageOne._id);
             await request(app)
                 .post(`/v1/messages/${messageOne._id}/downVote`)
                 .set('Authorization', `Bearer ${registeredUserAccessToken}`)
