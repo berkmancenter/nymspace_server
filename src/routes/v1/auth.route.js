@@ -121,8 +121,8 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *               email:
  *                 type: string
  *     responses:
- *       200:
- *         description: ok
+ *       204:
+ *         description: no content
  */
  router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authController.sendPasswordReset);
 
@@ -146,8 +146,8 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *               password:
  *                 type: string
  *     responses:
- *       200:
- *         description: ok
+ *       204:
+ *         description: no content
  */
   router.post('/resetPassword', validate(authValidation.resetPassword), authController.resetPassword);
 
