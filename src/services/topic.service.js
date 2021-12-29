@@ -1,6 +1,7 @@
 const { Topic, Thread, Message, Follower } = require('../models');
 const crypto = require('crypto');
 const { emailService, tokenService } = require('../services');
+const Token = require('../models/token.model');
 
 /**
  * Create a topic
@@ -150,13 +151,14 @@ const emailUsersToArchive = async() => {
   return topics;
 };
 
-const archiveTopic = async(topicId) => {
+const archiveTopic = async(token, topicId) => {
   const topic = await Topic.findById(topicId);
   if (!topic) {
     throw new Error('Topic not found');
   }
   topic.archived = true;
   await topic.save();
+  await Token.deleteOne({ token });
 };
 
 module.exports = {

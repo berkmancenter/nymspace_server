@@ -8,6 +8,9 @@ const { topicPost, newPublicTopic, newPrivateTopic, insertTopics, getRandomInt }
 const faker = require('faker');
 const { tokenService } = require('../../src/services');
 const Topic = require('../../src/models/topic.model');
+const { tokenTypes } = require('../../src/config/tokens');
+const Token = require('../../src/models/token.model');
+
 
 setupTestDB();
 
@@ -88,6 +91,9 @@ describe('Topic routes', () => {
 
             const dbTopic = await Topic.findById(publicTopic._id);
             expect(dbTopic.archived).toBe(true);
+
+            const dbTokenCount = await Token.countDocuments({ user: userOne._id, type: tokenTypes.ARCHIVE_TOPIC });
+            expect(dbTokenCount).toBe(0);
         });
 
         test('should return 400 if missing a required field', async () => {

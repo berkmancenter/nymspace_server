@@ -43,7 +43,7 @@ const authenticate = catchAsync(async (req, res) => {
 
 const archiveTopic = catchAsync(async (req, res) => {
   await tokenService.verifyToken(req.body.token, tokenTypes.ARCHIVE_TOPIC);
-  await topicService.archiveTopic(req.body.topicId);
+  await topicService.archiveTopic(req.body.token, req.body.topicId);
   res.status(httpStatus.OK).send();
 });
 
