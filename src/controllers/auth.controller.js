@@ -43,7 +43,7 @@ const ping = catchAsync(async (req, res) => {
 const newPseudonym = catchAsync(async (req, res) => {
   const token = userService.newToken();
   const pseudonym = await userService.newPseudonym();
-  res.send({ token: token, pseudonym: pseudonym});
+  res.send({ token, pseudonym });
 });
 
 const sendPasswordReset = catchAsync(async (req, res) => {

@@ -26,5 +26,5 @@ module.exports = {
   createMessage,
   threadMessages,
   upVote,
-  downVote
+  downVote,
 };

@@ -10,8 +10,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
-  if (config.env !== 'test')
-    startJobs();
+  if (config.env !== 'test') startJobs();
 });
 
 const exitHandler = () => {

@@ -26,7 +26,7 @@ const router = express.Router();
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -62,14 +62,14 @@ router.put('/', auth('manageAccount'), validate(userValidation.updateUser), user
  *     responses:
  *       200:
  *         description: Pseudonym array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
  *                 $ref: '#/components/schemas/Pseudonym'
- *                      
+ *
  */
 router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseudonyms);
 
@@ -83,7 +83,7 @@ router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseud
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -115,7 +115,7 @@ router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseu
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -132,7 +132,7 @@ router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseu
  *               items:
  *                 type: object
  *                 $ref: '#/components/schemas/Pseudonym'
-*/
+ */
 router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController.activatePseudonym);
 
 /**
@@ -146,15 +146,15 @@ router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController
  *     responses:
  *       200:
  *         description: Pseudonym array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
  *                 $ref: '#/components/schemas/User'
- *                      
+ *
  */
- router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym);
+router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym);
 
 module.exports = router;

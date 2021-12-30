@@ -58,7 +58,7 @@ const refreshAuth = async (refreshToken) => {
  * @param {string} email
  * @returns {Promise}
  */
- const sendPasswordReset = async (email) => {
+const sendPasswordReset = async (email) => {
   const user = await User.findOne({ email });
   if (!user || !user.email) {
     return;
@@ -72,7 +72,7 @@ const refreshAuth = async (refreshToken) => {
  * @param {string} email
  * @returns {Promise}
  */
- const resetPassword = async (token, password) => {
+const resetPassword = async (token, password) => {
   const tokenDoc = await tokenService.verifyToken(token, tokenTypes.RESET_PASSWORD);
   const user = await User.findById(tokenDoc.user);
   if (!user) {

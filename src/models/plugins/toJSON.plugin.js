@@ -36,11 +36,11 @@ const toJSON = (schema) => {
       // REMOVE SOFT-DELETES IN SUBDOCUMENTS
       // For any property that is an array, remove all items
       // with isDeleted = true
-      for (const prop in ret) {
+      Object.keys(ret).forEach((prop) => {
         if (Array.isArray(ret[prop])) {
-          ret[prop] = ret[prop].filter(x => !x.isDeleted);
+          ret[prop] = ret[prop].filter((x) => !x.isDeleted);
         }
-      }
+      });
 
       if (transform) {
         return transform(doc, ret, options);

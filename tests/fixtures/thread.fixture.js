@@ -11,11 +11,11 @@ const nameSlug1 = faker.lorem.word().toLowerCase();
 const nameSlug2 = faker.lorem.word().toLowerCase();
 
 const threadOne = {
-    _id: mongoose.Types.ObjectId(),
-    name: nameSlug1,
-    slug: nameSlug1,
-    owner: userOne._id,
-    topic: publicTopic._id,
+  _id: mongoose.Types.ObjectId(),
+  name: nameSlug1,
+  slug: nameSlug1,
+  owner: userOne._id,
+  topic: publicTopic._id,
 };
 
 const threadTwo = {

@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
+const httpStatus = require('http-status');
 const { Message } = require('../models');
 const { Thread } = require('../models');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const httpStatus = require('http-status');
 
 /**
  * Create a message
@@ -13,13 +13,13 @@ const httpStatus = require('http-status');
 const createMessage = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread);
   const thread = await Thread.findById(threadId);
-  const activePseudo = user.pseudonyms.find(x => x.active);
+  const activePseudo = user.pseudonyms.find((x) => x.active);
   const message = await Message.create({
     body: messageBody.body,
     thread,
     owner: user,
     pseudonym: activePseudo.pseudonym,
-    pseudonymId: activePseudo._id
+    pseudonymId: activePseudo._id,
   });
 
   thread.messages.push(message.toObject());
@@ -45,12 +45,12 @@ const threadMessages = async (id) => {
 const vote = async (messageId, direction, requestUser) => {
   const user = await User.findById(requestUser.id);
   const message = await Message.findById(messageId);
-  if (message.owner.toString() == user._id.toString()) {
+  if (message.owner.toString() === user._id.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Users cannot vote for their own messages.');
   }
   const votes = message.upVotes.concat(message.downVotes);
   if (votes && votes.length > 0) {
-    const existingVote = votes.find(x => x.owner.toString() === user._id.toString());
+    const existingVote = votes.find((x) => x.owner.toString() === user._id.toString());
     if (existingVote) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
     }
@@ -68,5 +68,5 @@ const vote = async (messageId, direction, requestUser) => {
 module.exports = {
   createMessage,
   threadMessages,
-  vote
+  vote,
 };

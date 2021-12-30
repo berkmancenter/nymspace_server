@@ -1,15 +1,13 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
-const voteSchema = mongoose.Schema(
-  {
-    owner: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
-      required: false,
-    },
-  }
-);
+const voteSchema = mongoose.Schema({
+  owner: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: 'User',
+    required: false,
+  },
+});
 
 const messageSchema = mongoose.Schema(
   {

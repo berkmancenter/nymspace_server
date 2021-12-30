@@ -261,11 +261,14 @@ describe('Auth routes', () => {
         .expect(httpStatus.NO_CONTENT);
 
       const dbUser = await User.findById(registeredUser._id);
-      //const isPasswordMatch = await bcrypt.compare('testing123', dbUser.password);
-      //expect(isPasswordMatch).toBe(true);
+      // const isPasswordMatch = await bcrypt.compare('testing123', dbUser.password);
+      // expect(isPasswordMatch).toBe(true);
       expect(dbUser.password).toEqual('testing123');
 
-      const dbResetPasswordTokenCount = await Token.countDocuments({ user: registeredUser._id, type: tokenTypes.RESET_PASSWORD });
+      const dbResetPasswordTokenCount = await Token.countDocuments({
+        user: registeredUser._id,
+        type: tokenTypes.RESET_PASSWORD,
+      });
       expect(dbResetPasswordTokenCount).toBe(0);
     });
 
@@ -316,7 +319,7 @@ describe('Auth routes', () => {
       const resetPasswordToken = tokenService.generateToken(userOne._id, expires, tokenTypes.RESET_PASSWORD);
       await tokenService.saveToken(resetPasswordToken, userOne._id, expires, tokenTypes.RESET_PASSWORD);
 
-      await request(app).post('/v1/auth/resetPassword').send({password: 'password2'}).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/resetPassword').send({ password: 'password2' }).expect(httpStatus.BAD_REQUEST);
 
       await request(app)
         .post('/v1/auth/resetPassword')

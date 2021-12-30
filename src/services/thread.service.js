@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
-const { Thread, Topic, Follower, Message } = require('../models');
 const httpStatus = require('http-status');
+const { Thread, Topic, Follower, Message } = require('../models');
+
+/**
+ * Removed messages array property and replaces with messageCount
+ * @param {Array} threads
+ * @returns {Array}
+ */
+const addMessageCount = (threads) => {
+  return threads.map((t) => {
+    t = t.toObject();
+    t.messageCount = t.messages ? t.messages.length : 0;
+    delete t.messages;
+    // Replace _id with id since toJSON plugin will not be applied
+    t.id = t._id.toString();
+    delete t._id;
+    return t;
+  });
+};
 
 /**
  * Create a thread
@@ -28,17 +45,13 @@ const userThreads = async (user) => {
   const followedThreads = await Follower.find({ user }).select('thread').exec();
   const threads = await Thread.find({
     $and: [
-      { $or: 
-        [
-          { owner: user }, 
-          { _id: { $in: followedThreads.map((el) => el.thread) }}
-        ] 
-      },
+      { $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] },
       {
-        topic: { $nin: deletedTopics }
-      }
-    ]
-    }).populate({ path: 'messages', select: 'id'})
+        topic: { $nin: deletedTopics },
+      },
+    ],
+  })
+    .populate({ path: 'messages', select: 'id' })
     .select('name slug')
     .exec();
   return addMessageCount(threads);
@@ -57,7 +70,7 @@ const findByIdFull = async (id, user) => {
 
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId })
-    .populate({ path: 'messages', select: 'id'})
+    .populate({ path: 'messages', select: 'id' })
     .select('name slug')
     .exec();
   return addMessageCount(threads);
@@ -84,7 +97,7 @@ const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
     .select('name slug')
-    .populate({ path: 'messages', select: 'id'})
+    .populate({ path: 'messages', select: 'id' })
     .exec();
   return addMessageCount(threads);
 };
@@ -105,18 +118,6 @@ const deleteThread = async (id, user) => {
 
   return thread;
 };
-
-const addMessageCount = (threads) => {
-  return threads.map(t => {
-    t = t.toObject();
-    t.messageCount = t.messages ? t.messages.length : 0;
-    delete t.messages;
-    // Replace _id with id since toJSON plugin will not be applied
-    t.id = t._id.toString();
-    delete t._id;
-    return t;
-  });
-}
 
 module.exports = {
   createThread,

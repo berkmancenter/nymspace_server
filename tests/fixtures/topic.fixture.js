@@ -8,7 +8,7 @@ const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min);
-}
+};
 
 const topicPost = {
   name: nameSlug,
@@ -17,7 +17,7 @@ const topicPost = {
   archivable: true,
 };
 
-const newPublicTopic = () => { 
+const newPublicTopic = () => {
   return {
     _id: mongoose.Types.ObjectId(),
     name: nameSlug,
@@ -29,23 +29,23 @@ const newPublicTopic = () => {
     owner: userOne._id,
     isDeleted: false,
     isArchiveNotified: false,
-  }
+  };
 };
 
-const newPrivateTopic = () => { 
+const newPrivateTopic = () => {
   return {
-  _id: mongoose.Types.ObjectId(),
-  name: nameSlug,
-  slug: nameSlug,
-  votingAllowed: false,
-  private: true,
-  passcode: getRandomInt(1000000, 9999999),
-  archivable: true,
-  archived: false,
-  owner: userOne._id,
-  isDeleted: false,
-  isArchiveNotified: false,
-  }
+    _id: mongoose.Types.ObjectId(),
+    name: nameSlug,
+    slug: nameSlug,
+    votingAllowed: false,
+    private: true,
+    passcode: getRandomInt(1000000, 9999999),
+    archivable: true,
+    archived: false,
+    owner: userOne._id,
+    isDeleted: false,
+    isArchiveNotified: false,
+  };
 };
 
 const insertTopics = async (topics) => {

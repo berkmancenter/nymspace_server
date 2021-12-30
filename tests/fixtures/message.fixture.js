@@ -5,12 +5,12 @@ const { registeredUser } = require('./user.fixture');
 const { threadOne, threadTwo } = require('./thread.fixture');
 
 const messageOne = {
-    _id: mongoose.Types.ObjectId(),
-    body: faker.lorem.words(10),
-    thread: threadOne._id,
-    owner: registeredUser._id,
-    pseudonymId: registeredUser.pseudonyms[0]._id,
-    pseudonym: registeredUser.pseudonyms[0].pseudonym,
+  _id: mongoose.Types.ObjectId(),
+  body: faker.lorem.words(10),
+  thread: threadOne._id,
+  owner: registeredUser._id,
+  pseudonymId: registeredUser.pseudonyms[0]._id,
+  pseudonym: registeredUser.pseudonyms[0].pseudonym,
 };
 
 const messageTwo = {
@@ -32,8 +32,8 @@ const messageThree = {
 };
 
 const messagePost = {
-    body: faker.lorem.words(10),
-    thread: threadOne._id,
+  body: faker.lorem.words(10),
+  thread: threadOne._id,
 };
 
 const insertMessages = async (msgs) => {

@@ -23,7 +23,7 @@ const router = express.Router();
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -39,12 +39,12 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: ok
-*         content:
+ *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               $ref: '#/components/schemas/Topic'
- *                      
+ *
  */
 router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic);
 
@@ -86,14 +86,14 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
  *     responses:
  *       200:
  *         description: topic array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
  *                 $ref: '#/definitions/Topic'
- *                      
+ *
  */
 router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
 
@@ -108,14 +108,14 @@ router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
  *     responses:
  *       200:
  *         description: topic array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
  *                 $ref: '#/definitions/Topic'
- *                      
+ *
  */
 router.route('/public/:token').get(topicController.publicTopics);
 
@@ -130,14 +130,14 @@ router.route('/public/:token').get(topicController.publicTopics);
  *     responses:
  *       200:
  *         description: topic array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 type: object
  *                 $ref: '#/definitions/Topic'
- *                      
+ *
  */
 router.route('/').get(auth('allTopics'), topicController.allTopics);
 router.route('/:topicId').get(topicController.getTopic);
@@ -152,7 +152,7 @@ router.route('/:topicId').get(topicController.getTopic);
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -164,7 +164,7 @@ router.route('/:topicId').get(topicController.getTopic);
  *     responses:
  *       200:
  *         description: ok
- *                      
+ *
  */
 router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate);
 
@@ -178,7 +178,7 @@ router.route('/auth').post(validate(topicValidation.authenticate), topicControll
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -190,7 +190,7 @@ router.route('/auth').post(validate(topicValidation.authenticate), topicControll
  *     responses:
  *       200:
  *         description: ok
- *                      
+ *
  */
 router.route('/archive').post(validate(topicValidation.archiveTopic), topicController.archiveTopic);
 

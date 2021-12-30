@@ -3,26 +3,27 @@ const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
 
 const validateEmail = (email) => {
-  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const re =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 };
 
-const pseudonymSchema = new mongoose.Schema({ 
-  token: { 
+const pseudonymSchema = new mongoose.Schema({
+  token: {
     type: String,
     required: true,
   },
-  pseudonym: { 
+  pseudonym: {
     type: String,
     required: true,
   },
-  active: { 
+  active: {
     type: Boolean,
   },
   isDeleted: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
 const userSchema = mongoose.Schema(
@@ -52,13 +53,13 @@ const userSchema = mongoose.Schema(
       default: 'user',
     },
     goodReputation: {
-      type: Boolean
+      type: Boolean,
     },
     email: {
       type: String,
       trim: true,
       validate: [validateEmail, 'Please fill a valid email address'],
-    }
+    },
   },
   {
     timestamps: true,

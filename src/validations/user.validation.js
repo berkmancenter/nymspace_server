@@ -15,7 +15,7 @@ const updateUser = {
     userId: Joi.string().required(),
     username: Joi.string(),
     password: Joi.string().custom(password),
-    email: Joi.string()
+    email: Joi.string(),
   }),
 };
 
@@ -53,7 +53,6 @@ module.exports = {
   updateUser,
   getUsers,
   getUser,
-  updateUser,
   deleteUser,
   addPseudonym,
 };
