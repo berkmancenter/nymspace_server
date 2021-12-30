@@ -24,18 +24,18 @@ const sendEmail = async (to, subject, text) => {
 };
 
 /**
- * Send reset password email
+ * Send password reset email
  * @param {string} to
  * @param {string} token
  * @returns {Promise}
  */
-const sendResetPasswordEmail = async (to, token) => {
+const sendPasswordResetEmail = async (to, token) => {
   const subject = 'Reset password';
   // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;
+  const resetPasswordUrl = `http://localhost:3000/reset-password?token=${token}`;
   const text = `Dear user,
 To reset your password, click on this link: ${resetPasswordUrl}
-If you did not request any password resets, then ignore this email.`;
+If you did not request any password resets, please ignore this email.`;
   await sendEmail(to, subject, text);
 };
 
@@ -75,7 +75,7 @@ To prevent archival and keep your channel on Threads, please click on this link:
 module.exports = {
   transport,
   sendEmail,
-  sendResetPasswordEmail,
+  sendPasswordResetEmail,
   sendVerificationEmail,
   sendArchiveTopicEmail,
 };

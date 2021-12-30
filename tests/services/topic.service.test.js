@@ -1,7 +1,7 @@
 const setupTestDB = require('../utils/setupTestDB');
 const { insertUsers, userOne } = require('../fixtures/user.fixture');
 const { newPublicTopic, newPrivateTopic, insertTopics } = require('../fixtures/topic.fixture');
-const { topicService } = require('../../src/services');
+const { topicService, emailService } = require('../../src/services');
 const Topic = require('../../src/models/topic.model');
 const { Token } = require('../../src/models');
 const { tokenTypes } = require('../../src/config/tokens');
@@ -72,6 +72,9 @@ describe('Topic service methods', () => {
         });
 
         test('should generate token, email user, and mark as isArchiveNotified = true', async () => {
+            jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue();
+            const sendArchiveEmailSpy = jest.spyOn(emailService, 'sendArchiveTopicEmail');
+
             publicTopic.createdAt = oldDate;
             const d = new Date();
             d.setDate(d.getDate() - 88);
@@ -82,10 +85,10 @@ describe('Topic service methods', () => {
             expect(ret).toHaveLength(1);
             expect(ret[0]._id).toEqual(publicTopic._id);
 
-            const dbToken = await Token.find({ user: userOne, type: tokenTypes.ARCHIVE_TOPIC });
-            expect(dbToken).toBeTruthy();
-
-            // Todo: see if we can check existence of sent mail using ethereal
+            expect(sendArchiveEmailSpy).toHaveBeenCalledWith(userOne.email, expect.any(Object), expect.any(String));
+            const token = sendArchiveEmailSpy.mock.calls[0][3];
+            const dbToken = await Token.findOne({ token: token });
+            expect(dbToken).toBeDefined();
 
             const dbPublicTopic = await Topic.findById(publicTopic._id);
             expect(dbPublicTopic.isArchiveNotified).toBe(true);

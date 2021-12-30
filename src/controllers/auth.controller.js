@@ -46,6 +46,16 @@ const newPseudonym = catchAsync(async (req, res) => {
   res.send({ token: token, pseudonym: pseudonym});
 });
 
+const sendPasswordReset = catchAsync(async (req, res) => {
+  await authService.sendPasswordReset(req.body.email);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
+const resetPassword = catchAsync(async (req, res) => {
+  await authService.resetPassword(req.body.token, req.body.password);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 module.exports = {
   register,
   login,
@@ -53,4 +63,6 @@ module.exports = {
   refreshTokens,
   ping,
   newPseudonym,
+  sendPasswordReset,
+  resetPassword,
 };
