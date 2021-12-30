@@ -1,6 +1,7 @@
 const request = require('supertest');
 const faker = require('faker');
 const httpStatus = require('http-status');
+const mongoose = require('mongoose');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
@@ -8,7 +9,6 @@ const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixtu
 const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
 const { insertMessages, messageOne } = require('../fixtures/message.fixture');
 const userService = require('../../src/services/user.service');
-const mongoose = require('mongoose');
 
 const createPseudo = () => {
   return {
@@ -18,83 +18,82 @@ const createPseudo = () => {
     active: false,
     isDeleted: false,
   };
-}
+};
 
 const createVote = () => {
   return {
     _id: mongoose.Types.ObjectId(),
-    owner: mongoose.Types.ObjectId()
+    owner: mongoose.Types.ObjectId(),
   };
-}
+};
 
 setupTestDB();
 
 describe('User routes', () => {
-
   describe('POST v1/users/pseudonyms', () => {
     let newPseudo;
-    beforeEach( async () => {
+    beforeEach(async () => {
       newPseudo = {
         token: userService.newToken(),
-        pseudonym: await userService.newPseudonym()
+        pseudonym: await userService.newPseudonym(),
       };
     });
 
     test('should return 201 and successfully create pseudonym', async () => {
       await insertUsers([registeredUser]);
       const ret = await request(app)
-          .post('/v1/users/pseudonyms')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send(newPseudo)
-          .expect(httpStatus.CREATED);
+        .post('/v1/users/pseudonyms')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(newPseudo)
+        .expect(httpStatus.CREATED);
 
-      const activePseudo = ret.body.find(x => x.active);
+      const activePseudo = ret.body.find((x) => x.active);
       expect(activePseudo.token).toBe(newPseudo.token);
     });
 
     test('should return 200 and activate pseudonym', async () => {
       await insertUsers([registeredUser]);
       await request(app)
-      .post('/v1/users/pseudonyms')
-      .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-      .send(newPseudo);
+        .post('/v1/users/pseudonyms')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(newPseudo);
 
       const ret = await request(app)
-          .put('/v1/users/pseudonyms/activate')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send({
-            token: registeredUser.pseudonyms[0].token
-          })
-          .expect(httpStatus.OK);
+        .put('/v1/users/pseudonyms/activate')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          token: registeredUser.pseudonyms[0].token,
+        })
+        .expect(httpStatus.OK);
 
-        expect(ret.body).toHaveLength(2);
-        const activePseudo = ret.body.find(x => x.active);
-        expect(activePseudo.token).toBe(registeredUser.pseudonyms[0].token);
-      });
+      expect(ret.body).toHaveLength(2);
+      const activePseudo = ret.body.find((x) => x.active);
+      expect(activePseudo.token).toBe(registeredUser.pseudonyms[0].token);
+    });
 
-      test('should return 500 if user already has 5 pseudonyms', async () => {
-        userOne.pseudonyms = [];
-        for (let x=0; x<5; x++) {
-          userOne.pseudonyms.push(createPseudo());
-        }
+    test('should return 500 if user already has 5 pseudonyms', async () => {
+      userOne.pseudonyms = [];
+      for (let x = 0; x < 5; x++) {
+        userOne.pseudonyms.push(createPseudo());
+      }
 
-        await insertUsers([userOne]);
-        await request(app)
+      await insertUsers([userOne]);
+      await request(app)
         .post('/v1/users/pseudonyms')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send(newPseudo)
         .expect(httpStatus.INTERNAL_SERVER_ERROR);
-      });
+    });
   });
 
   describe('GET v1/users/pseudonyms', () => {
     test('should return 200 and with pseudonyms as body', async () => {
       await insertUsers([registeredUser]);
       const ret = await request(app)
-          .get('/v1/users/pseudonyms')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send()
-          .expect(httpStatus.OK);
+        .get('/v1/users/pseudonyms')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
 
       expect(ret.body).toHaveLength(1);
     });
@@ -105,10 +104,10 @@ describe('User routes', () => {
       await insertUsers([registeredUser]);
       const pseudoId = registeredUser.pseudonyms[0]._id;
       await request(app)
-          .delete(`/v1/users/pseudonyms/${pseudoId}`)
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send()
-          .expect(httpStatus.OK);
+        .delete(`/v1/users/pseudonyms/${pseudoId}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
 
       const user = await User.findById(registeredUser._id);
       expect(user.pseudonyms).toHaveLength(0);
@@ -119,10 +118,10 @@ describe('User routes', () => {
       const pseudoId = registeredUser.pseudonyms[0]._id;
       await insertMessages([messageOne]);
       await request(app)
-          .delete(`/v1/users/pseudonyms/${pseudoId}`)
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send()
-          .expect(httpStatus.OK);
+        .delete(`/v1/users/pseudonyms/${pseudoId}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
 
       const user = await User.findById(registeredUser._id);
       expect(user.pseudonyms).toHaveLength(1);
@@ -134,7 +133,7 @@ describe('User routes', () => {
     let email;
     let username;
     let password;
-    beforeEach( async () => {
+    beforeEach(async () => {
       email = faker.internet.email().toLowerCase();
       username = faker.internet.userName();
       password = faker.internet.password();
@@ -143,15 +142,15 @@ describe('User routes', () => {
 
     test('should return 200 and successfully update the user', async () => {
       await request(app)
-          .put('/v1/users')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send({
-            userId: registeredUser._id,
-            email,
-            username,
-            password
-          })
-          .expect(httpStatus.OK);
+        .put('/v1/users')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          userId: registeredUser._id,
+          email,
+          username,
+          password,
+        })
+        .expect(httpStatus.OK);
 
       const user = await User.findById(registeredUser._id);
       expect(user.email).toEqual(email);
@@ -161,38 +160,37 @@ describe('User routes', () => {
 
     test('should return 400 if userId is not sent in request body', async () => {
       await request(app)
-          .put('/v1/users')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send({
-            email,
-            username,
-            password
-          })
-          .expect(httpStatus.BAD_REQUEST);
+        .put('/v1/users')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          email,
+          username,
+          password,
+        })
+        .expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 404 if userId is not found in db', async () => {
       await request(app)
-          .put('/v1/users')
-          .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-          .send({
-            userId: mongoose.Types.ObjectId(),
-            email,
-            username,
-            password
-          })
-          .expect(httpStatus.NOT_FOUND);
+        .put('/v1/users')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          userId: mongoose.Types.ObjectId(),
+          email,
+          username,
+          password,
+        })
+        .expect(httpStatus.NOT_FOUND);
     });
   });
 });
 
 describe('User service', () => {
-
   describe('goodReputation()', () => {
     beforeEach(() => {
       // Add five upvotes
       messageOne.upVotes = [];
-      for (let x=0; x<5; x++) {
+      for (let x = 0; x < 5; x++) {
         messageOne.upVotes.push(createVote());
       }
     });
@@ -218,7 +216,7 @@ describe('User service', () => {
       await insertUsers([registeredUser]);
       messageOne.downVotes = [];
       // Add eleven downvotes
-      for (let x=0; x<11; x++) {
+      for (let x = 0; x < 11; x++) {
         messageOne.downVotes.push(createVote());
       }
       await insertMessages([messageOne]);
@@ -247,7 +245,7 @@ describe('User service', () => {
       await insertUsers([registeredUser]);
       messageOne.downVotes = [];
       // Add eleven downvotes
-      for (let x=0; x<11; x++) {
+      for (let x = 0; x < 11; x++) {
         messageOne.downVotes.push(createVote());
       }
       await insertMessages([messageOne]);
@@ -256,9 +254,7 @@ describe('User service', () => {
       const goodReputation = await userService.goodReputation(registeredUser);
       expect(goodReputation).toBe(false);
     });
-
   });
-
 });
 
 // Todo: fix/refactor these tests from previous version

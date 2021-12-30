@@ -1,9 +1,9 @@
 const httpStatus = require('http-status');
 const crypto = require('crypto');
+const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const { User } = require('../models');
 const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
 
 /**
  * Create a user
@@ -14,12 +14,14 @@ const createUser = async (userBody) => {
   let user = {
     username: userBody.username,
     password: userBody.password,
-    pseudonyms: [{ 
-      token: userBody.token, 
-      pseudonym: userBody.pseudonym,
-      // Mark pseudonym as active
-      active: true
-    }]
+    pseudonyms: [
+      {
+        token: userBody.token,
+        pseudonym: userBody.pseudonym,
+        // Mark pseudonym as active
+        active: true,
+      },
+    ],
   };
   user = await User.create(user);
   return user;
@@ -30,13 +32,12 @@ const createUser = async (userBody) => {
  * @param {Object} userBody
  * @returns {Promise<User>}
  */
- const updateUser = async (userBody) => {
+const updateUser = async (userBody) => {
   const user = await User.findById(userBody.userId);
-  if (!user)
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  user.username = userBody.username ? userBody.username: user.username;
-  user.password = userBody.password ? userBody.password: user.password;
-  user.email = userBody.email ? userBody.email: user.email;
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  user.username = userBody.username ? userBody.username : user.username;
+  user.password = userBody.password ? userBody.password : user.password;
+  user.email = userBody.email ? userBody.email : user.email;
   await user.save();
   return user;
 };
@@ -47,16 +48,16 @@ const createUser = async (userBody) => {
  * @param {Object} user
  * @returns {Promise<User>}
  */
- const addPseudonym = async (requestBody, requestUser) => {
+const addPseudonym = async (requestBody, requestUser) => {
   requestBody.active = true;
   const user = await User.findById(requestUser.id);
-  const psuedos = user.pseudonyms.filter(p => !p.isDeleted);
+  const psuedos = user.pseudonyms.filter((p) => !p.isDeleted);
   if (psuedos.length >= 5) {
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms');
   }
-  user.pseudonyms.forEach((p) => p.active = false);
+  user.pseudonyms.forEach((p) => (p.active = false));
   user.pseudonyms.push(requestBody);
-  await user.save()
+  await user.save();
   return user;
 };
 
@@ -66,7 +67,7 @@ const createUser = async (userBody) => {
  * @param {Object} user
  * @returns {Promise<User>}
  */
- const activatePseudonym = async (requestBody, requestUser) => {
+const activatePseudonym = async (requestBody, requestUser) => {
   const user = await User.findById(requestUser.id);
   let match = false;
   user.pseudonyms.forEach((p) => {
@@ -79,7 +80,7 @@ const createUser = async (userBody) => {
   if (!match) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Pseudonym not found');
   }
-  await user.save()
+  await user.save();
   return user;
 };
 
@@ -89,7 +90,7 @@ const createUser = async (userBody) => {
  * @param {Object} user
  * @returns {Promise<void>}
  */
- const deletePseudonym = async (pseudonymId, requestUser) => {
+const deletePseudonym = async (pseudonymId, requestUser) => {
   // Check if pseudonym is used on any messages. If it is, then
   // soft delete it. If not, hard delete, since if can be used again.
   const user = await User.findById(requestUser.id);
@@ -144,8 +145,8 @@ const getUserByUsernamePassword = async (username, password) => {
  * @param {String} username
  * @returns {Promise<User>}
  */
- const getUserByUsername = async (username) => {
-  return User.findOne({ username: username });
+const getUserByUsername = async (username) => {
+  return User.findOne({ username });
 };
 
 /**
@@ -201,17 +202,19 @@ const newToken = () => {
 const newPseudonym = async () => {
   const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
   // Format pseudonym as spaced with capitalization
-  const formattedPseudo = pseudo.split('_').map((word) => {
-    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
-  }).join(' ');
+  const formattedPseudo = pseudo
+    .split('_')
+    .map((word) => {
+      return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+    })
+    .join(' ');
   // Check if this pseudonym has been used on messages already. If yes,
   // generate a new one to ensure uniqueness.
   const messages = await Message.find({ pseudonym: formattedPseudo });
   if (messages.length > 0) {
     return await newPseudonym();
-  } else {
-    return formattedPseudo;
   }
+  return formattedPseudo;
 };
 
 const isTokenGeneratedByThreads = (password) => {
@@ -237,12 +240,20 @@ const isTokenGeneratedByThreads = (password) => {
  */
 const goodReputation = async (user) => {
   // Calculate total upvotes and downvotes for all user's messages
-  const messages = await Message.find({ owner: user.id});
+  const messages = await Message.find({ owner: user.id });
   let totalDownVotes = 0;
   let totalUpVotes = 0;
   if (messages.length > 0) {
-    totalDownVotes = messages.map((m) => { return m.downVotes.length; }).reduce((x, y) => x + y);
-    totalUpVotes = messages.map((m) => { return m.upVotes.length; }).reduce((x, y) => x + y);
+    totalDownVotes = messages
+      .map((m) => {
+        return m.downVotes.length;
+      })
+      .reduce((x, y) => x + y);
+    totalUpVotes = messages
+      .map((m) => {
+        return m.upVotes.length;
+      })
+      .reduce((x, y) => x + y);
   }
   // Subtract downvotes from upvotes for "reputation score"
   const reputationScore = totalUpVotes - totalDownVotes;
@@ -252,7 +263,7 @@ const goodReputation = async (user) => {
   const weeks = Math.round((today - createdDate) / 604800000);
   // Good reputation is a combined total of message votes exceeding -5,
   // and an account more than 1 week old.
-  return ((reputationScore > -5) && (weeks > 0));
+  return reputationScore > -5 && weeks > 0;
 };
 
 module.exports = {

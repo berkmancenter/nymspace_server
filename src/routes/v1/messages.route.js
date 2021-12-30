@@ -26,7 +26,7 @@ router.post('/', auth('createMessage'), validate(messageValidation.createMessage
  *     responses:
  *       200:
  *         description: Message array
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
@@ -57,7 +57,7 @@ router.route('/:threadId').get(messageController.threadMessages);
  *             schema:
  *               type: object
  *               $ref: '#/components/schemas/Message'
- *                      
+ *
  */
 router.route('/:messageId/upVote').post(auth('upVote'), messageController.upVote);
 
@@ -82,7 +82,7 @@ router.route('/:messageId/upVote').post(auth('upVote'), messageController.upVote
  *             schema:
  *               type: object
  *               $ref: '#/components/schemas/Message'
- *                      
+ *
  */
 router.route('/:messageId/downVote').post(auth('downVote'), messageController.downVote);
 

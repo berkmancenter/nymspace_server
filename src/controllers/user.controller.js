@@ -29,12 +29,12 @@ const getPseudonyms = catchAsync(async (req, res) => {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
-  res.send(user.pseudonyms.filter(x => !x.isDeleted));
+  res.send(user.pseudonyms.filter((x) => !x.isDeleted));
 });
 
 const addPseudonym = catchAsync(async (req, res) => {
   const user = await userService.addPseudonym(req.body, req.user);
-  res.status(httpStatus.CREATED).send(user.pseudonyms.filter(x => !x.isDeleted));
+  res.status(httpStatus.CREATED).send(user.pseudonyms.filter((x) => !x.isDeleted));
 });
 
 const deletePseudonym = catchAsync(async (req, res) => {
@@ -44,7 +44,7 @@ const deletePseudonym = catchAsync(async (req, res) => {
 
 const activatePseudonym = catchAsync(async (req, res) => {
   const user = await userService.activatePseudonym(req.body, req.user);
-  res.status(httpStatus.OK).send(user.pseudonyms.filter(x => !x.isDeleted));
+  res.status(httpStatus.OK).send(user.pseudonyms.filter((x) => !x.isDeleted));
 });
 
 module.exports = {

@@ -62,7 +62,7 @@ If you did not create an account, then ignore this email.`;
  * @param {string} token
  * @returns {Promise}
  */
- const sendArchiveTopicEmail = async (to, topic, token) => {
+const sendArchiveTopicEmail = async (to, topic, token) => {
   const subject = 'Archiving Your Threads Channel';
   // replace this url with the link to the archive topic page of your front-end app
   const archivalUrl = `http://localhost:3000/archive-topic?topicId=${topic._id}&token=${token}`;

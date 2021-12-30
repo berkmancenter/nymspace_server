@@ -1,4 +1,4 @@
-const config = require('../config/config')
+const config = require('../config/config');
 
 const httpServer = require('http').createServer();
 const io = require('socket.io')(httpServer, {
@@ -14,5 +14,4 @@ const onConnection = (socket) => {
 
 io.on('connection', onConnection);
 
-if (config.env !== 'test')
-  httpServer.listen(5555);
+if (config.env !== 'test') httpServer.listen(5555);

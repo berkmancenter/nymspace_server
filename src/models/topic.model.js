@@ -48,7 +48,7 @@ const topicSchema = mongoose.Schema(
       required: true,
       private: true,
     },
-    threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }]
+    threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
   },
   {
     timestamps: true,

@@ -26,7 +26,7 @@ const threadSchema = mongoose.Schema(
       required: true,
     },
     messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
-    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
   },
   {
     timestamps: true,

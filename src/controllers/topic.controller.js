@@ -30,7 +30,7 @@ const publicTopics = catchAsync(async (req, res) => {
   }
   const topics = await topicService.allTopics();
   // Return top ten topics
-  res.status(httpStatus.OK).send(topics.slice(0,10));
+  res.status(httpStatus.OK).send(topics.slice(0, 10));
 });
 
 const authenticate = catchAsync(async (req, res) => {

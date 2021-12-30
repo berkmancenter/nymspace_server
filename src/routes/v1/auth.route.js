@@ -24,7 +24,7 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: pseudonym and token
- *         content: 
+ *         content:
  *           application/json:
  *             schema:
  *               type: object
@@ -46,7 +46,7 @@ router.route('/newPseudonym').get(authController.newPseudonym);
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -80,7 +80,7 @@ router.post('/register', validate(authValidation.register), authController.regis
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -113,7 +113,7 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -124,9 +124,9 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *       204:
  *         description: no content
  */
- router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authController.sendPasswordReset);
+router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authController.sendPasswordReset);
 
- /**
+/**
  * @swagger
  * /auth/resetPassword:
  *   post:
@@ -136,7 +136,7 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *       - application/json
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -149,6 +149,6 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *       204:
  *         description: no content
  */
-  router.post('/resetPassword', validate(authValidation.resetPassword), authController.resetPassword);
+router.post('/resetPassword', validate(authValidation.resetPassword), authController.resetPassword);
 
 module.exports = router;
