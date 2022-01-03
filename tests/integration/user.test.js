@@ -35,7 +35,7 @@ describe('User routes', () => {
     beforeEach(async () => {
       newPseudo = {
         token: userService.newToken(),
-        pseudonym: await userService.newPseudonym(),
+        pseudonym: await userService.newPseudonym(0),
       };
     });
 

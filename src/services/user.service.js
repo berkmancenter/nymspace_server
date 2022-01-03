@@ -1,9 +1,10 @@
 const httpStatus = require('http-status');
 const crypto = require('crypto');
-const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
+const { uniqueNamesGenerator } = require('unique-names-generator');
 const { User } = require('../models');
 const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries');
 
 /**
  * Create a user
@@ -199,8 +200,16 @@ const newToken = () => {
   return encrypted;
 };
 
-const newPseudonym = async () => {
-  const pseudo = uniqueNamesGenerator({ dictionaries: [adjectives, animals], length: 2 });
+const newPseudonym = async (recursionIndex) => {
+  // Get number of all possible pseudonym combinations (currently 163,564)
+  // const allPseudos = pseudonymAdjectives.flatMap(d => pseudonymNouns.map(v => d + v));
+  // console.log(allPseudos.length);
+
+  // If we reach the max number of possible pseudonyms, return error
+  if (recursionIndex === 163563) {
+    throw new Error('No more unique pseudonyms left to assign!');
+  }
+  const pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymAdjectives, pseudonymNouns], length: 2 });
   // Format pseudonym as spaced with capitalization
   const formattedPseudo = pseudo
     .split('_')
@@ -212,7 +221,8 @@ const newPseudonym = async () => {
   // generate a new one to ensure uniqueness.
   const messages = await Message.find({ pseudonym: formattedPseudo });
   if (messages.length > 0) {
-    return await newPseudonym();
+    recursionIndex++;
+    return await newPseudonym(recursionIndex);
   }
   return formattedPseudo;
 };
