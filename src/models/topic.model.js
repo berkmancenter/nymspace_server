@@ -46,7 +46,6 @@ const topicSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: true,
     },
     threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
   },
