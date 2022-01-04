@@ -58,10 +58,17 @@ router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
 
 /**
  * @swagger
- * /threads/topic/:topicId:
+ * /threads/topic/{topicId}:
  *   get:
  *     description: Returns all threads for supplied topic
  *     tags: [Thread]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the parent topic.
+ *         schema:
+ *           type: string
  *     produces:
  *      - application/json
  *     responses:

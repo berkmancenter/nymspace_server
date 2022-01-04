@@ -3,6 +3,7 @@ const allRoles = {
     'createMessage',
     'userTopics',
     'createTopic',
+    'deleteTopic',
     'createThread',
     'userThreads',
     'ping',

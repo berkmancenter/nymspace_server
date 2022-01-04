@@ -19,6 +19,11 @@ const getTopic = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(topic);
 });
 
+const deleteTopic = catchAsync(async (req, res) => {
+  await topicService.deleteTopic(req.params.topicId);
+  res.status(httpStatus.OK).send();
+});
+
 const allTopics = catchAsync(async (req, res) => {
   const topics = await topicService.allTopics(req.user);
   res.status(httpStatus.OK).send(topics);
@@ -55,4 +60,5 @@ module.exports = {
   publicTopics,
   authenticate,
   archiveTopic,
+  deleteTopic,
 };

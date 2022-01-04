@@ -39,6 +39,38 @@ describe('Topic routes', () => {
     });
   });
 
+  describe('DELETE /v1/topics/:topicId', () => {
+    test('should return 200 and soft delete a topic', async () => {
+      await insertUsers([registeredUser]);
+      await insertTopics([publicTopic, privateTopic]);
+      await request(app)
+        .delete(`/v1/topics/${privateTopic._id}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      const topicDoc = await Topic.findOne({ _id: privateTopic._id });
+      expect(topicDoc.isDeleted).toBe(true);
+    });
+
+    test('should return 400 if missing topic id', async () => {
+      await request(app)
+        .delete(`/v1/topics/`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.NOT_FOUND);
+    });
+
+    test('should return 404 if topic is not found', async () => {
+      await insertUsers([registeredUser]);
+      await request(app)
+        .delete(`/v1/topics/${privateTopic._id}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.NOT_FOUND);
+    });
+  });
+
   describe('POST /v1/topics/auth', () => {
     test('should return 200 if passcode is correct', async () => {
       await insertUsers([registeredUser]);
