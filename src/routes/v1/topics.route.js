@@ -144,6 +144,28 @@ router.route('/:topicId').get(topicController.getTopic);
 
 /**
  * @swagger
+ * /topics/{topicId}:
+ *   delete:
+ *     description: Delete a topic
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the topic to delete.
+ *         schema:
+ *           type: string
+ *     tags: [Topic]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: ok
+ *
+ */
+router.route('/:topicId').delete(auth('deleteTopic'),topicController.deleteTopic);
+
+/**
+ * @swagger
  * /topics/auth:
  *   post:
  *     description: Verify a private topic passcode
