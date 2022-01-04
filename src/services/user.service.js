@@ -23,6 +23,8 @@ const createUser = async (userBody) => {
       },
     ],
   };
+  if (userBody.email)
+    user.email = userBody.email;
   user = await User.create(user);
   return user;
 };

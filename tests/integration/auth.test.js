@@ -27,6 +27,7 @@ describe('Auth routes', () => {
         password: 'password1',
         token: userService.newToken(),
         pseudonym: faker.name.findName(),
+        email: faker.internet.email(),
       };
     });
 

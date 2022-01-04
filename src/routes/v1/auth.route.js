@@ -59,6 +59,8 @@ router.route('/newPseudonym').get(authController.newPseudonym);
  *                 type: string
  *               pseudonym:
  *                 type: string
+ *               email:
+ *                 type: string
  *     responses:
  *       201:
  *         description: User object

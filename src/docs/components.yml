@@ -59,6 +59,8 @@ components:
           type: boolean
         createdAt:
           type: date
+        email:
+          type: string
         pseudonyms:
           type: array
           items: 
