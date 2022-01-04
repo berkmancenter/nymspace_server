@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const { Topic } = require('../models');
 const { emailService, tokenService } = require('.');
 const Token = require('../models/token.model');
+const ApiError = require('../utils/ApiError');
+const httpStatus = require('http-status');
 
 /**
  * Query topics and add sorting properties
@@ -117,6 +119,19 @@ const findById = async (id) => {
   return topic;
 };
 
+/**
+ * Soft delete a topic
+ * @param {Object} topicBody
+ * @returns {Promise}
+ */
+const deleteTopic = async (id) => {
+  const topic = await Topic.findOne({ _id: id });
+  if (!topic)
+    throw new ApiError(httpStatus.NOT_FOUND, 'Topic does not exist');
+  topic.isDeleted = true;
+  await topic.save();
+};
+
 const verifyPasscode = async (topicId, passcode) => {
   const topic = await Topic.findById(topicId);
   return passcode === topic.passcode;
@@ -177,4 +192,5 @@ module.exports = {
   deleteOldTopics,
   emailUsersToArchive,
   archiveTopic,
+  deleteTopic,
 };
