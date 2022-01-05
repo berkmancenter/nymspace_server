@@ -9,6 +9,8 @@ const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixtu
 const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
 const { insertMessages, messageOne } = require('../fixtures/message.fixture');
 const userService = require('../../src/services/user.service');
+const bcrypt = require('bcrypt');
+
 
 const createPseudo = () => {
   return {
@@ -158,7 +160,7 @@ describe('User routes', () => {
     beforeEach(async () => {
       email = faker.internet.email().toLowerCase();
       username = faker.internet.userName();
-      password = faker.internet.password();
+      password = 'testing123!';
       await insertUsers([registeredUser]);
     });
 
@@ -177,7 +179,8 @@ describe('User routes', () => {
       const user = await User.findById(registeredUser._id);
       expect(user.email).toEqual(email);
       expect(user.username).toEqual(username);
-      expect(user.password).toEqual(password);
+      let match = await bcrypt.compare(password, user.password)
+      expect(match).toBe(true);
     });
 
     test('should return 400 if userId is not sent in request body', async () => {
