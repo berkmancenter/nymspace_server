@@ -218,7 +218,7 @@ const newToken = () => {
 
   const algorithm = 'aes256';
   const key = tokenKey.repeat(32).substring(0, 32)
-  const iv = key.repeat(16).substring(0, 16);
+  const iv = tokenKey.repeat(16).substring(0, 16);
 
   const cipher = crypto.createCipheriv(algorithm, key, iv);
   const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
@@ -257,7 +257,7 @@ const isTokenGeneratedByThreads = (password) => {
   try {
     const algorithm = 'aes256';
     const key = tokenKey.repeat(32).substring(0, 32)
-    const iv = key.repeat(16).substring(0, 16);
+    const iv = tokenKey.repeat(16).substring(0, 16);
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
     decryptedParsed = JSON.parse(decrypted);
