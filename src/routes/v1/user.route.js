@@ -13,6 +13,30 @@ const router = express.Router();
  *   description: User management
  */
 
+/**
+ * @swagger
+ * /users/{userId}:
+ *   get:
+ *     description: Retrieve a User
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the User
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/User'
+ */
+router.route('/user/:userId').get(auth('getUser'), userController.getUser);
+
 // Removing this route, since user creation is handled by the auth register route
 // router.post('/', validate(userValidation.createUser), userController.createUser);
 

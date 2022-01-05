@@ -30,6 +30,28 @@ const createVote = () => {
 setupTestDB();
 
 describe('User routes', () => {
+  describe('GET v1/users/user/:userId', () => {
+    test('should return 200 with user body', async () => {
+      await insertUsers([registeredUser]);
+      const ret = await request(app)
+        .get(`/v1/users/user/${registeredUser._id}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(ret.body.username).toEqual(registeredUser.username);
+    });
+
+    test('should return 401 if user is requesting a different user id', async () => {
+      await insertUsers([registeredUser, userOne]);
+      const ret = await request(app)
+        .get(`/v1/users/user/${userOne._id}`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+  });
+
   describe('POST v1/users/pseudonyms', () => {
     let newPseudo;
     beforeEach(async () => {

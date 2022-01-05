@@ -4,6 +4,7 @@ const { emailService, tokenService } = require('.');
 const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
+const updateDocument = require('../utils/updateDocument');
 
 /**
  * Query topics and add sorting properties
@@ -77,6 +78,7 @@ const topicsWithSortData = async (topicQuery) => {
 /**
  * Create a topic
  * @param {Object} topicBody
+ * @param {Object} user
  * @returns {Promise<Topic>}
  */
 const createTopic = async (topicBody, user) => {
@@ -102,6 +104,18 @@ const createTopic = async (topicBody, user) => {
     owner: user,
   });
   return topic;
+};
+
+/**
+ * Update a topic
+ * @param {Object} topicBody
+ * @returns {Promise<Topic>}
+ */
+ const updateTopic = async (topicBody) => {
+  let topicDoc = await Topic.findById(topicBody.id);
+  topicDoc = updateDocument(topicBody, topicDoc);
+  await topicDoc.save();
+  return topicDoc;
 };
 
 const userTopics = async (user) => {
@@ -193,4 +207,5 @@ module.exports = {
   emailUsersToArchive,
   archiveTopic,
   deleteTopic,
+  updateTopic,
 };
