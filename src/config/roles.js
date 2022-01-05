@@ -18,6 +18,7 @@ const allRoles = {
     'downVote',
     'managePseudonym',
     'manageAccount',
+    'getUser',
   ],
   admin: ['getUsers', 'manageUsers'],
 };

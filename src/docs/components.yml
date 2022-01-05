@@ -67,8 +67,8 @@ components:
             $ref: '#/components/schemas/Pseudonym'
       example:
         id: 5ebac534954b54139806c112
-        username: fake@example.com
-        name: fake name
+        username: fakejake
+        email: fake@example.com
         role: user
         goodReputation: true
         createdAt: 2021-11-30T01:51:01.639Z
