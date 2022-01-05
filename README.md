@@ -1,15 +1,15 @@
 # Threads API
 
 ## Description
-This the the backend API for the new version of the [Berkman Threads application](https://github.com/berkmancenter/threads_client).
+This is the backend API for the new version of the [Berkman Threads application](https://github.com/berkmancenter/threads_client).
 
 ## Setup
-Add a .env file to the root of the project with configuration Mongo, SMTP, etc. See the .env.example for more details.
+Add a .env file to the root of the project with configuration details for Mongo, SMTP, etc. See the .env.example for more details.
 
 Install all dependencies with `npm install`.
 
 ## Development
-Run `npm run dev` to serve the API locally
+Run `npm run dev` to serve the API locally.
 
 ## Tests
 Tests can be run with `npm run test`, and a coverage report can be seen with `npm run coverage`.
