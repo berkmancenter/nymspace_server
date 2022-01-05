@@ -32,7 +32,7 @@ const sendEmail = async (to, subject, text) => {
 const sendPasswordResetEmail = async (to, token) => {
   const subject = 'Reset password';
   // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `http://localhost:3000/reset-password?token=${token}`;
+  const resetPasswordUrl = `${config.appHost}/reset-password?token=${token}`;
   const text = `Dear user,
 To reset your password, click on this link: ${resetPasswordUrl}
 If you did not request any password resets, please ignore this email.`;
@@ -48,7 +48,7 @@ If you did not request any password resets, please ignore this email.`;
 const sendVerificationEmail = async (to, token) => {
   const subject = 'Email Verification';
   // replace this url with the link to the email verification page of your front-end app
-  const verificationEmailUrl = `http://link-to-app/verify-email?token=${token}`;
+  const verificationEmailUrl = `${config.appHost}/verify-email?token=${token}`;
   const text = `Dear user,
 To verify your email, click on this link: ${verificationEmailUrl}
 If you did not create an account, then ignore this email.`;
@@ -65,7 +65,7 @@ If you did not create an account, then ignore this email.`;
 const sendArchiveTopicEmail = async (to, topic, token) => {
   const subject = 'Archiving Your Threads Channel';
   // replace this url with the link to the archive topic page of your front-end app
-  const archivalUrl = `http://localhost:3000/archive-topic?topicId=${topic._id}&token=${token}`;
+  const archivalUrl = `${config.appHost}/archive-topic?topicId=${topic._id}&token=${token}`;
   const text = `Dear user,
 Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.
 To prevent archival and keep your channel on Threads, please click on this link: ${archivalUrl}`;
