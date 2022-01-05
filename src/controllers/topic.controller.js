@@ -9,6 +9,11 @@ const createTopic = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(topic);
 });
 
+const updateTopic = catchAsync(async (req, res) => {
+  const topic = await topicService.updateTopic(req.body);
+  res.status(httpStatus.OK).send(topic);
+});
+
 const userTopics = catchAsync(async (req, res) => {
   const topics = await topicService.userTopics(req.user);
   res.status(httpStatus.OK).send(topics);
@@ -54,6 +59,7 @@ const archiveTopic = catchAsync(async (req, res) => {
 
 module.exports = {
   createTopic,
+  updateTopic,
   userTopics,
   getTopic,
   allTopics,

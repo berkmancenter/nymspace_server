@@ -16,11 +16,11 @@ const updateUser = catchAsync(async (req, res) => {
 });
 
 const getUser = catchAsync(async (req, res) => {
+  if (req.params.userId !== req.user.id) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User can only request their own details');
+  }
   const user = await userService.getUserById(req.params.userId);
   user.goodReputation = await userService.goodReputation(user);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
   res.send(user);
 });
 

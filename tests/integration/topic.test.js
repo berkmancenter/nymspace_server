@@ -10,6 +10,7 @@ const { tokenService } = require('../../src/services');
 const Topic = require('../../src/models/topic.model');
 const { tokenTypes } = require('../../src/config/tokens');
 const Token = require('../../src/models/token.model');
+const slugify = require('slugify');
 
 setupTestDB();
 
@@ -68,6 +69,55 @@ describe('Topic routes', () => {
         .set('Authorization', `Bearer ${registeredUserAccessToken}`)
         .send()
         .expect(httpStatus.NOT_FOUND);
+    });
+  });
+
+  describe('PUT /v1/topics/', () => {
+    test('should return 200 and update topic using merge strategy', async () => {
+      await insertUsers([registeredUser]);
+      await insertTopics([publicTopic]);
+      const topicBody = {};
+      topicBody.id = publicTopic._id;
+      topicBody.name = 'favorite dogs';
+      topicBody.archivable = true;
+      await request(app)
+        .put(`/v1/topics/`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(topicBody)
+        .expect(httpStatus.OK);
+
+      const topicDoc = await Topic.findOne({ _id: publicTopic._id });
+      // Check that properties sent in request are updated
+      expect(topicDoc.name).toEqual(topicBody.name);
+      expect(topicDoc.slug).toEqual(slugify(topicBody.name));
+      expect(topicDoc.archivable).toEqual(topicBody.archivable);
+      // Check that property that was not sent in request is not missing or updated
+      expect(topicDoc.votingAllowed).toBeDefined();
+      expect(topicDoc.votingAllowed).toEqual(publicTopic.votingAllowed);
+    });
+
+    test('should return 400 if missing topic id', async () => {
+      await insertUsers([registeredUser]);
+      const topicBody = { name: "favorite dogs" };
+      await request(app)
+        .put(`/v1/topics/`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(topicBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    test('should return 400 if a private unallowed property is sent', async () => {
+      await insertTopics([publicTopic]);
+      await insertUsers([registeredUser]);
+      const topicBody = {};
+      topicBody.id = publicTopic._id;
+      topicBody.name = 'favorite dogs';
+      topicBody.isArchiveNotified = true;
+      await request(app)
+        .put(`/v1/topics/`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(topicBody)
+        .expect(httpStatus.BAD_REQUEST);
     });
   });
 

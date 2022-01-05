@@ -4,6 +4,7 @@ const allRoles = {
     'userTopics',
     'createTopic',
     'deleteTopic',
+    'updateTopic',
     'createThread',
     'userThreads',
     'ping',
@@ -17,6 +18,7 @@ const allRoles = {
     'downVote',
     'managePseudonym',
     'manageAccount',
+    'getUser',
   ],
   admin: ['getUsers', 'manageUsers'],
 };
