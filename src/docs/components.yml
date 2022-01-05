@@ -122,8 +122,6 @@ components:
         archivable:
           type: boolean
           required: true
-        archived:
-          type: boolean
         owner:
           type
         createdAt:

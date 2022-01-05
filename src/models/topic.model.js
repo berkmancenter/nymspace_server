@@ -33,14 +33,17 @@ const topicSchema = mongoose.Schema(
     archived: {
       type: Boolean,
       default: false,
+      private: true,
     },
     isDeleted: {
       type: Boolean,
       default: false,
+      private: true,
     },
     isArchiveNotified: {
       type: Boolean,
       default: false,
+      private: true,
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,

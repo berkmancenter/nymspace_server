@@ -50,6 +50,33 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
 
 /**
  * @swagger
+ * /topics:
+ *   put:
+ *     description: Update a topic
+ *     tags: [Topic]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             $ref: '#/components/schemas/Topic'
+ *     responses:
+ *       200:
+ *         description: ok
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Topic'
+ *
+ */
+ router.route('/').put(auth('updateTopic'), validate(topicValidation.updateTopic), topicController.updateTopic);
+
+/**
+ * @swagger
  * definitions:
  *   Topic:
  *     properties:

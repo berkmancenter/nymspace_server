@@ -9,6 +9,17 @@ const createTopic = {
   }),
 };
 
+const updateTopic = {
+  body: Joi.object().keys({
+    id: Joi.string().required(),
+    name: Joi.string(),
+    slug: Joi.string(),
+    votingAllowed: Joi.boolean(),
+    private: Joi.boolean(),
+    archivable: Joi.boolean(),
+  }),
+};
+
 const authenticate = {
   body: Joi.object().keys({
     passcode: Joi.number().required(),
@@ -26,5 +37,6 @@ const archiveTopic = {
 module.exports = {
   authenticate,
   createTopic,
+  updateTopic,
   archiveTopic,
 };
