@@ -5,6 +5,20 @@ const { User } = require('../models');
 const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries');
+const bcrypt = require('bcrypt');
+
+const tokenKey = 'greenheron';
+
+/**
+ * Hash a password
+ * @param {String} password
+ * @returns {Promise<String>}
+ */
+const hashPassword = async (password) => {
+  const saltRounds = 10;
+  const hash = await bcrypt.hash(password, saltRounds);
+  return hash;
+};
 
 /**
  * Create a user
@@ -12,9 +26,12 @@ const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dic
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
+  let hash = undefined;
+  if (userBody.password)
+    hash = await hashPassword(userBody.password);
   let user = {
     username: userBody.username,
-    password: userBody.password,
+    password: hash,
     pseudonyms: [
       {
         token: userBody.token,
@@ -39,7 +56,9 @@ const updateUser = async (userBody) => {
   const user = await User.findById(userBody.userId);
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   user.username = userBody.username ? userBody.username : user.username;
-  user.password = userBody.password ? userBody.password : user.password;
+  if (userBody.password) {
+    user.password = await hashPassword(userBody.password);
+  }
   user.email = userBody.email ? userBody.email : user.email;
   await user.save();
   return user;
@@ -137,10 +156,13 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByUsernamePassword = async (username, password) => {
-  return User.findOne({
-    username,
-    password,
-  });
+  const user = await getUserByUsername(username);
+  if (user) {
+    const match = await bcrypt.compare(password, user.password);
+    if (match)
+      return user;
+  }
+  return null;
 };
 
 /**
@@ -195,9 +217,10 @@ const newToken = () => {
   });
 
   const algorithm = 'aes256';
-  const key = 'password';
+  const key = tokenKey.repeat(32).substring(0, 32)
+  const iv = key.repeat(16).substring(0, 16);
 
-  const cipher = crypto.createCipher(algorithm, key);
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
   const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
   return encrypted;
 };
@@ -233,8 +256,9 @@ const isTokenGeneratedByThreads = (password) => {
   let decryptedParsed = {};
   try {
     const algorithm = 'aes256';
-    const key = 'password';
-    const decipher = crypto.createDecipher(algorithm, key);
+    const key = tokenKey.repeat(32).substring(0, 32)
+    const iv = key.repeat(16).substring(0, 16);
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
     const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
     decryptedParsed = JSON.parse(decrypted);
   } catch (err) {
@@ -294,4 +318,5 @@ module.exports = {
   addPseudonym,
   activatePseudonym,
   deletePseudonym,
+  hashPassword,
 };

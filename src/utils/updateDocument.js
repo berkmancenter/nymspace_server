@@ -11,7 +11,6 @@ const { Document } = require("mongoose");
  const updateDocument = (incomingObj, document) => {
     Object.keys(incomingObj).forEach((prop) => {
         if (prop !== 'id') {
-            console.log('Found prop to update:', prop);
             document[prop] = incomingObj[prop];
         }
     });
