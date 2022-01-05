@@ -11,7 +11,7 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "start": "pm2 start ecosystem.config.json --no-daemon",
+    "start": "pm2 start ecosystem.config.json",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "test": "jest -i --colors --verbose",
     "test:watch": "jest -i --watchAll",
