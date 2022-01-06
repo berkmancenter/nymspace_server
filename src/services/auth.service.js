@@ -64,7 +64,13 @@ const sendPasswordReset = async (email) => {
     return;
   }
   const resetToken = await tokenService.generatePasswordResetToken(user);
-  await emailService.sendPasswordResetEmail(user.email, resetToken);
+  emailService.sendPasswordResetEmail(user.email, resetToken, function (err, info) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    console.log(info);
+  });
 };
 
 /**
