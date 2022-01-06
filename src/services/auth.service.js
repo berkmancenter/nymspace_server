@@ -6,6 +6,7 @@ const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
 const emailService = require('./email.service');
 const User = require('../models/user.model');
+const logger = require('../config/logger');
 
 /**
  * Login with username and password
@@ -64,7 +65,13 @@ const sendPasswordReset = async (email) => {
     return;
   }
   const resetToken = await tokenService.generatePasswordResetToken(user);
-  await emailService.sendPasswordResetEmail(user.email, resetToken);
+  emailService.sendPasswordResetEmail(user.email, resetToken, (err, info) => {
+    if (err) {
+      logger.error(`Error occurred sending password reset email: ${err.message}`);
+      return;
+    }
+    logger.info(`Password reset email sent successfully to ${user.email}. Response: ${info.response}`);
+  });
 };
 
 /**
