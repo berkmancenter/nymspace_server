@@ -9,6 +9,7 @@ const allRoles = {
     'userThreads',
     'ping',
     'followThread',
+    'followTopic',
     'getThread',
     'allTopics',
     'publicThreads',

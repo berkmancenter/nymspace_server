@@ -243,4 +243,6 @@ router.route('/auth').post(validate(topicValidation.authenticate), topicControll
  */
 router.route('/archive').post(validate(topicValidation.archiveTopic), topicController.archiveTopic);
 
+router.route('/follow').post(auth('followTopic'), topicController.follow);
+
 module.exports = router;

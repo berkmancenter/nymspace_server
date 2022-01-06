@@ -19,6 +19,11 @@ const userTopics = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(topics);
 });
 
+const follow = catchAsync(async (req, res) => {
+  await topicService.follow(req.body.status, req.body.topicId, req.user);
+  res.status(httpStatus.OK).send('ok');
+});
+
 const getTopic = catchAsync(async (req, res) => {
   const topic = await topicService.findById(req.params.topicId);
   res.status(httpStatus.OK).send(topic);
@@ -67,4 +72,5 @@ module.exports = {
   authenticate,
   archiveTopic,
   deleteTopic,
+  follow,
 };

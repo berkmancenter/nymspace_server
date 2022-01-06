@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { Topic } = require('../models');
+const { Topic, Follower } = require('../models');
 const { emailService, tokenService } = require('.');
 const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
@@ -18,8 +18,7 @@ const topicsWithSortData = async (topicQuery) => {
       path: 'threads',
       select: 'id',
       populate: [
-        { path: 'messages', select: ['id', 'createdAt'] },
-        { path: 'followers', select: 'id' },
+        { path: 'messages', select: ['id', 'createdAt'] }
       ],
     })
     .select('name slug private votingAllowed owner')
@@ -32,7 +31,6 @@ const topicsWithSortData = async (topicQuery) => {
     const topic = {};
     const threadMsgTimes = [];
     let msgCount = 0;
-    let followerCount = 0;
     t.threads.forEach((thread) => {
       if (thread.messages && thread.messages.length > 0) {
         // Get the createdAt datetime for the final message,
@@ -42,8 +40,6 @@ const topicsWithSortData = async (topicQuery) => {
         // Sum up the messages and followers for all threads
         msgCount += thread.messages.length;
       }
-      // Sum up followers for all threads
-      if (thread.followers && thread.followers.length > 0) followerCount += thread.followers.length;
     });
     topic.name = t.name;
     topic.slug = t.slug;
@@ -59,7 +55,6 @@ const topicsWithSortData = async (topicQuery) => {
     topic.latestMessageCreatedAt = threadMsgTimes.length > 0 ? threadMsgTimes[0] : null;
     topic.messageCount = msgCount;
     topic.threadCount = t.threads.length;
-    topic.follows = followerCount;
     // Calculate default sort avg as (message activity x recency)
     topic.defaultSortAverage = 0;
     if (topic.latestMessageCreatedAt && topic.messageCount) {
@@ -119,7 +114,23 @@ const createTopic = async (topicBody, user) => {
 };
 
 const userTopics = async (user) => {
-  const topics = await topicsWithSortData({ owner: user, isDeleted: false });
+  const followedTopics = await Follower.find({ user }).select('topic').exec();
+  const followedTopicIds = followedTopics.map((el) => el.topic).filter((el) => el);
+  const topics = await topicsWithSortData(
+    {
+      $and: [
+        { $or: [{ owner: user }, { _id: { $in: followedTopicIds } }] },
+        {
+          isDeleted: false,
+        },
+      ],
+    }
+  );
+  topics.forEach((topic) => {
+    if (followedTopicIds.map(f => f.toString()).includes(topic.id)){
+      topic.followed = true;
+    }
+  });
   return topics;
 };
 
@@ -129,7 +140,7 @@ const allTopics = async () => {
 };
 
 const findById = async (id) => {
-  const topic = await Topic.findOne({ _id: id }).select('name slug private votingAllowed owner').exec();
+  const topic = await Topic.findOne({ _id: id }).populate('followers').select('name slug private votingAllowed owner').exec();
   return topic;
 };
 
@@ -197,6 +208,28 @@ const archiveTopic = async (token, topicId) => {
   await Token.deleteOne({ token });
 };
 
+/**
+ * Follow or unfollow a topic
+ * @param {Boolean} status
+ * @param {String} topicId
+ * @param {String} user
+ * @returns {Promise}
+ */
+const follow = async (status, topicId, user) => {
+  const topic = await findById(topicId);
+  const params = {
+    user,
+    topic,
+  };
+  if (status === true) {
+    const follower = await Follower.create(params);
+    topic.followers.push(follower.toObject());
+    topic.save();
+  } else {
+    await Follower.deleteMany(params);
+  }
+};
+
 module.exports = {
   createTopic,
   userTopics,
@@ -208,4 +241,5 @@ module.exports = {
   archiveTopic,
   deleteTopic,
   updateTopic,
+  follow,
 };

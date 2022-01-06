@@ -51,6 +51,7 @@ const topicSchema = mongoose.Schema(
       required: true,
     },
     threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
   },
   {
     timestamps: true,

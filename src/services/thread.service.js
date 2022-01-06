@@ -43,7 +43,7 @@ const createThread = async (threadBody, user) => {
 const userThreads = async (user) => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const followedThreads = await Follower.find({ user }).select('thread').exec();
-  const followedThreadsIds = followedThreads.map((el) => el.thread);
+  const followedThreadsIds = followedThreads.map((el) => el.thread).filter((el) => el);
   let threads = await Thread.find({
     $and: [
       { $or: [{ owner: user }, { _id: { $in: followedThreadsIds } }] },
@@ -56,7 +56,6 @@ const userThreads = async (user) => {
     .select('name slug')
     .exec();
   threads = addMessageCount(threads);
-  console.log(followedThreadsIds);
   threads.forEach((thread) => {
     if (followedThreadsIds.map(f => f.toString()).includes(thread.id)){
       thread.followed = true;
