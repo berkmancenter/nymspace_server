@@ -207,6 +207,34 @@ describe('User routes', () => {
         })
         .expect(httpStatus.NOT_FOUND);
     });
+
+    test('should return 409 if email is already in use', async () => {
+      await insertUsers([userOne]);
+      await request(app)
+        .put('/v1/users')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          userId: registeredUser._id,
+          email: userOne.email,
+          username,
+          password,
+        })
+        .expect(httpStatus.CONFLICT);
+    });
+
+    test('should return 409 if username is already in use', async () => {
+      await insertUsers([userOne]);
+      await request(app)
+        .put('/v1/users')
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send({
+          userId: registeredUser._id,
+          email,
+          username: userOne.username,
+          password,
+        })
+        .expect(httpStatus.CONFLICT);
+    });
   });
 });
 

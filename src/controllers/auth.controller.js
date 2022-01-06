@@ -13,6 +13,12 @@ const register = catchAsync(async (req, res) => {
       throw new ApiError(httpStatus.CONFLICT, 'Username is already registered');
     }
   }
+  if (req.body.email) {
+    const existingUser = await userService.getUserByEmail(req.body.email);
+    if (existingUser) {
+      throw new ApiError(httpStatus.CONFLICT, 'Email address is already registered');
+    }
+  }
   const user = await userService.createUser(req.body);
   user.goodReputation = await userService.goodReputation(user);
   const tokens = await tokenService.generateAuthTokens(user);

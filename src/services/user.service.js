@@ -55,6 +55,18 @@ const createUser = async (userBody) => {
 const updateUser = async (userBody) => {
   const user = await User.findById(userBody.userId);
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  if (userBody.username && userBody.username !== user.username) {
+    const existingUser = await getUserByUsername(userBody.username);
+    if (existingUser) {
+      throw new ApiError(httpStatus.CONFLICT, 'Username is already registered');
+    }
+  }
+  if (userBody.email && userBody.email !== user.email) {
+    const existingUser = await getUserByEmail(userBody.email);
+    if (existingUser) {
+      throw new ApiError(httpStatus.CONFLICT, 'Email address is already registered');
+    }
+  }
   user.username = userBody.username ? userBody.username : user.username;
   if (userBody.password) {
     user.password = await hashPassword(userBody.password);
@@ -172,6 +184,15 @@ const getUserByUsernamePassword = async (username, password) => {
  */
 const getUserByUsername = async (username) => {
   return User.findOne({ username });
+};
+
+/**
+ * Get user by email
+ * @param {String} email
+ * @returns {Promise<User>}
+ */
+ const getUserByEmail = async (email) => {
+  return User.findOne({ email });
 };
 
 /**
@@ -311,6 +332,7 @@ module.exports = {
   deleteUserById,
   getUserByUsernamePassword,
   getUserByUsername,
+  getUserByEmail,
   isTokenGeneratedByThreads,
   newToken,
   newPseudonym,

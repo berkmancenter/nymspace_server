@@ -54,7 +54,14 @@ describe('Auth routes', () => {
       await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.CONFLICT);
     });
 
-    test('should return 400 error if password length is less than 8 characters', async () => {
+    test('should return 409 error if email is already used', async () => {
+      await insertUsers([userOne]);
+      newUser.email = userOne.email;
+
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.CONFLICT);
+    });
+
+    test('should return 409 error if password length is less than 8 characters', async () => {
       newUser.password = 'passwo1';
 
       await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
