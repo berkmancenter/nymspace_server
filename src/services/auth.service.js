@@ -85,7 +85,7 @@ const resetPassword = async (token, password) => {
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found');
   }
-  user.password = password;
+  user.password = await userService.hashPassword(password);
   await user.save();
   await Token.deleteOne({ _id: tokenDoc._id });
 };

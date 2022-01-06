@@ -269,9 +269,8 @@ describe('Auth routes', () => {
         .expect(httpStatus.NO_CONTENT);
 
       const dbUser = await User.findById(registeredUser._id);
-      // const isPasswordMatch = await bcrypt.compare('testing123', dbUser.password);
-      // expect(isPasswordMatch).toBe(true);
-      expect(dbUser.password).toEqual('testing123');
+      const isPasswordMatch = await bcrypt.compare('testing123', dbUser.password);
+      expect(isPasswordMatch).toBe(true);
 
       const dbResetPasswordTokenCount = await Token.countDocuments({
         user: registeredUser._id,
