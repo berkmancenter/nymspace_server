@@ -11,6 +11,8 @@ const Topic = require('../../src/models/topic.model');
 const { tokenTypes } = require('../../src/config/tokens');
 const Token = require('../../src/models/token.model');
 const slugify = require('slugify');
+const mongoose = require('mongoose');
+const { insertFollowers } = require('../fixtures/follower.fixture');
 
 setupTestDB();
 
@@ -197,6 +199,40 @@ describe('Topic routes', () => {
           token: faker.datatype.uuid(),
         })
         .expect(httpStatus.INTERNAL_SERVER_ERROR);
+    });
+  });
+
+  describe('POST /v1/topics/userTopics', () => {
+    test('should return 200 and body should be all topics for logged-in user', async () => {
+      await insertUsers([userOne]);
+      await insertTopics([publicTopic, privateTopic]);
+      const resp = await request(app)
+        .get(`/v1/topics/userTopics`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(resp.body.length).toEqual(2);
+    });
+
+    test('should return 200 and threads should include followed', async () => {
+      const newTopic = newPublicTopic();
+      newTopic.owner = mongoose.Types.ObjectId();
+      await insertUsers([userOne]);
+      await insertTopics([publicTopic, privateTopic, newTopic]);
+      const topicFollow = {
+        _id: mongoose.Types.ObjectId(),
+        user: userOne._id,
+        topic: newTopic._id,
+      }
+      await insertFollowers([topicFollow]);
+      const resp = await request(app)
+        .get(`/v1/topics/userTopics`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(resp.body.length).toEqual(3);
     });
   });
 });
