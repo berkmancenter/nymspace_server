@@ -30,7 +30,7 @@ const deleteTopic = catchAsync(async (req, res) => {
 });
 
 const allTopics = catchAsync(async (req, res) => {
-  const topics = await topicService.allTopics(req.user);
+  const topics = await topicService.allTopicsByUser(req.user);
   res.status(httpStatus.OK).send(topics);
 });
 
@@ -38,7 +38,7 @@ const publicTopics = catchAsync(async (req, res) => {
   if (userService.isTokenGeneratedByThreads(req.params.token) === false) {
     throw new Error('Invalid token');
   }
-  const topics = await topicService.allTopics();
+  const topics = await topicService.allPublicTopics();
   // Return top ten topics
   res.status(httpStatus.OK).send(topics.slice(0, 10));
 });

@@ -123,8 +123,24 @@ const userTopics = async (user) => {
   return topics;
 };
 
-const allTopics = async () => {
-  const topics = await topicsWithSortData({ isDeleted: false });
+const allPublicTopics = async () => {
+  const topics = await topicsWithSortData({ isDeleted: false, private: false });
+  return topics;
+};
+
+const allTopicsByUser = async (user) => {
+  const otherPrivateTopics = await Topic.find({ $and: [{ private: true }, { owner: { $ne: user }} ]} );
+  console.log(otherPrivateTopics);
+  // $and: [
+  //   { $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] },
+  //   {
+  //     topic: { $nin: deletedTopics },
+  //   },
+  const topics = await topicsWithSortData({
+    $and: [
+    { isDeleted: false  },
+    { _id: { $nin: otherPrivateTopics.map((x) => x._id) }}
+    ]})
   return topics;
 };
 
@@ -201,7 +217,8 @@ module.exports = {
   createTopic,
   userTopics,
   findById,
-  allTopics,
+  allPublicTopics,
+  allTopicsByUser,
   verifyPasscode,
   deleteOldTopics,
   emailUsersToArchive,
