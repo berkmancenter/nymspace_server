@@ -38,9 +38,9 @@ router.route('/:threadId').get(messageController.threadMessages);
 
 /**
  * @swagger
- * /messages/{messageId}/upVote:
+ * /messages/{messageId}/vote:
  *   post:
- *     description: Upvote a message
+ *     description: Vote on a message
  *     tags: [Message]
  *     parameters:
  *       - in: path
@@ -49,6 +49,19 @@ router.route('/:threadId').get(messageController.threadMessages);
  *         description: Id of message to apply vote to.
  *         schema:
  *           type: string
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: boolean
+ *               direction:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Message object
@@ -59,31 +72,6 @@ router.route('/:threadId').get(messageController.threadMessages);
  *               $ref: '#/components/schemas/Message'
  *
  */
-router.route('/:messageId/upVote').post(auth('upVote'), messageController.upVote);
-
-/**
- * @swagger
- * /messages/{messageId}/downVote:
- *   post:
- *     description: Downvote a message
- *     parameters:
- *       - in: path
- *         name: messageId
- *         required: true
- *         description: Id of message to apply vote to.
- *         schema:
- *           type: string
- *     tags: [Message]
- *     responses:
- *       200:
- *         description: Message object
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               $ref: '#/components/schemas/Message'
- *
- */
-router.route('/:messageId/downVote').post(auth('downVote'), messageController.downVote);
+router.route('/:messageId/vote').post(auth('vote'), messageController.vote);
 
 module.exports = router;

@@ -42,24 +42,54 @@ const threadMessages = async (id) => {
  * @param {Object} direction
  * @returns {Promise<Message>}
  */
-const vote = async (messageId, direction, requestUser) => {
+const vote = async (messageId, direction, status, requestUser) => {
   const user = await User.findById(requestUser.id);
   const message = await Message.findById(messageId);
   if (message.owner.toString() === user._id.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Users cannot vote for their own messages.');
   }
-  const votes = message.upVotes.concat(message.downVotes);
-  if (votes && votes.length > 0) {
-    const existingVote = votes.find((x) => x.owner.toString() === user._id.toString());
-    if (existingVote) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+
+  if (status) {
+      if (message.upVotes && message.upVotes.length > 0) {
+        const existingVote = message.upVotes.find((x) => x.owner.toString() === user._id.toString());
+        if (existingVote && direction === 'down') {
+          throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+        }
+      }
+    if (message.downVotes && message.downVotes.length > 0) {
+      const existingVote = message.downVotes.find((x) => x.owner.toString() === user._id.toString());
+      if (existingVote && direction === 'up') {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
+      }
+    }
+} 
+
+  if (status) {
+    if (direction === 'up') {
+      message.upVotes.push({ owner: user._id });
+    } else {
+      message.downVotes.push({ owner: user._id });
+    }
+  } else {
+    if (direction === 'up') {
+      for (let x=0; x<message.upVotes.length; x++) {
+        if (message.upVotes[x].owner.toString() === user._id.toString()) {
+          message.upVotes.id(message.upVotes[x]._id).remove();  
+        }
+      }
+    } else {
+      for (let x=0; x<message.downVotes.length; x++) {
+        if (message.downVotes[x].owner.toString() === user._id.toString()) {
+          message.downVotes.id(message.downVotes[x]._id).remove();  
+        }
+      }
     }
   }
-  if (direction === 'up') {
-    message.upVotes.push({ owner: user._id });
-  } else {
-    message.downVotes.push({ owner: user._id });
-  }
+  // if (status) {
+  //   message.votes.push({ owner: user._id, direction: direction})
+  // } else {
+  //   message.votes.remove({ owner: user._id, direction: direction })
+  // }
 
   await message.save();
   return message;
