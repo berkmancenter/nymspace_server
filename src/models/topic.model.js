@@ -45,6 +45,9 @@ const topicSchema = mongoose.Schema(
       default: false,
       private: true,
     },
+    archiveEmail: {
+      type: String,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',

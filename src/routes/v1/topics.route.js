@@ -36,6 +36,8 @@ const router = express.Router();
  *                 type: boolean
  *               archivable:
  *                 type: boolean
+ *               archiveEmail:
+ *                 type: string
  *     responses:
  *       200:
  *         description: ok
