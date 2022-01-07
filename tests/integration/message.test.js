@@ -40,7 +40,7 @@ describe('Message routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    test('should return 400 because user has already voted for message', async () => {
+    test('should return 400 because user cant downvote after upvoting', async () => {
       await insertUsers([registeredUser, userOne]);
       await insertMessages([messageOne]);
       await request(app)
@@ -53,6 +53,22 @@ describe('Message routes', () => {
         .post(`/v1/messages/${messageOne._id}/vote`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send({status: true, direction: 'down'})
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    test('should return 400 because user has already upvoted for message', async () => {
+      await insertUsers([registeredUser, userOne]);
+      await insertMessages([messageOne]);
+      await request(app)
+        .post(`/v1/messages/${messageOne._id}/vote`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send({status: true, direction: 'up'})
+        .expect(httpStatus.OK);
+
+      await request(app)
+        .post(`/v1/messages/${messageOne._id}/vote`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send({status: true, direction: 'up'})
         .expect(httpStatus.BAD_REQUEST);
     });
   });
