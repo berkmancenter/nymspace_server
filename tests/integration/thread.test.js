@@ -6,8 +6,9 @@ const app = require('../../src/app');
 const { insertUsers, userOne } = require('../fixtures/user.fixture');
 const { userOneAccessToken } = require('../fixtures/token.fixture');
 const { insertTopics } = require('../fixtures/topic.fixture');
-const { threadOne, threadTwo, insertThreads, publicTopic, privateTopic } = require('../fixtures/thread.fixture');
+const { threadOne, threadTwo, threadThree, insertThreads, publicTopic, privateTopic } = require('../fixtures/thread.fixture');
 const { messageOne, messageTwo, messageThree, insertMessages } = require('../fixtures/message.fixture');
+const { threadFollow, insertFollowers } = require('../fixtures/follower.fixture');
 
 setupTestDB();
 
@@ -18,7 +19,7 @@ describe('Thread routes', () => {
     await insertMessages([messageOne, messageTwo, messageThree]);
     threadOne.messages = [messageOne];
     threadTwo.messages = [messageTwo, messageThree];
-    await insertThreads([threadOne, threadTwo]);
+    await insertThreads([threadOne, threadTwo, threadThree]);
   });
 
   describe('POST /v1/threads/', () => {
@@ -29,7 +30,7 @@ describe('Thread routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(resp.body.length).toEqual(2);
+      expect(resp.body.length).toEqual(3);
 
       const t1 = resp.body.find((x) => x.id === threadOne._id.toString());
       expect(t1.messageCount).toEqual(1);
@@ -53,7 +54,7 @@ describe('Thread routes', () => {
   });
 
   describe('POST /v1/threads/userThreads', () => {
-    test('should return 200 and body should be all topics for logged-in user', async () => {
+    test('should return 200 and body should be all threads for logged-in user', async () => {
       const resp = await request(app)
         .get(`/v1/threads/userThreads`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
@@ -61,6 +62,17 @@ describe('Thread routes', () => {
         .expect(httpStatus.OK);
 
       expect(resp.body.length).toEqual(2);
+    });
+
+    test('should return 200 and threads should include followed', async () => {
+      await insertFollowers([threadFollow]);
+      const resp = await request(app)
+        .get(`/v1/threads/userThreads`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(resp.body.length).toEqual(3);
     });
   });
 });
