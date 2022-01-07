@@ -22,6 +22,7 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     APP_HOST: Joi.string().description('the host url for the frontend app'),
+    TRULY_RANDOM_PSEUDONYMS: Joi.string().default('false').description('true/false if pseudonyms are made truly random with UID'),
   })
   .unknown();
 
@@ -63,4 +64,5 @@ module.exports = {
     authTokenSecret: envVars.AUTH_TOKEN_SECRET,
   },
   appHost: envVars.APP_HOST,
+  trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
 };

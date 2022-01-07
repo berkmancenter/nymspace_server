@@ -6,6 +6,9 @@ const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries');
 const bcrypt = require('bcrypt');
+const logger = require('../config/logger');
+const { uid } = require('uid');
+const config = require('../config/config');
 
 const tokenKey = 'greenheron';
 
@@ -251,26 +254,37 @@ const newPseudonym = async (recursionIndex) => {
   // const allPseudos = pseudonymAdjectives.flatMap(d => pseudonymNouns.map(v => d + v));
   // console.log(allPseudos.length);
 
-  // If we reach the max number of possible pseudonyms, return error
+  // If we reach the max number of possible pseudonyms, switch to random pseudonyms
   if (recursionIndex === 163563) {
-    throw new Error('No more unique pseudonyms left to assign!');
+    logger.error('No more unique pseudonyms left to assign. Switching to truly random pseudonyms.');
+    config.trulyRandomPseudonyms = 'true';
   }
-  const pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymAdjectives, pseudonymNouns], length: 2 });
-  // Format pseudonym as spaced with capitalization
-  const formattedPseudo = pseudo
-    .split('_')
-    .map((word) => {
-      return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
-    })
-    .join(' ');
+
+  let pseudo = '';
+  if (config.trulyRandomPseudonyms === 'false') {
+    // Returns human friendly random pseudonym. Example: Bold Aardvark
+    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymAdjectives, pseudonymNouns], length: 2 });
+    pseudo = pseudo
+      .split('_')
+      .map((word) => {
+        return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+      })
+      .join(' ');
+  } else {
+    // Returns truly random pseudo. Example: Woodpecker_e65ddfe1d20
+    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymNouns], length: 1 });
+    pseudo = pseudo.charAt(0).toUpperCase() + pseudo.slice(1);       
+    pseudo = `${pseudo}_${uid()}`;
+  }
+
   // Check if this pseudonym has been used on messages already. If yes,
-  // generate a new one to ensure uniqueness.
-  const messages = await Message.find({ pseudonym: formattedPseudo });
+  // generate a new one via recursion, to ensure uniqueness.
+  const messages = await Message.find({ pseudonym: pseudo });
   if (messages.length > 0) {
     recursionIndex++;
-    return await newPseudonym(recursionIndex);
+    return newPseudonym(recursionIndex);
   }
-  return formattedPseudo;
+  return pseudo;
 };
 
 const isTokenGeneratedByThreads = (password) => {
