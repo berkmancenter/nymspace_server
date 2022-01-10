@@ -21,7 +21,7 @@ const topicsWithSortData = async (topicQuery) => {
         { path: 'messages', select: ['id', 'createdAt'] }
       ],
     })
-    .select('name slug private votingAllowed owner')
+    .select('name slug private votingAllowed archiveEmail owner')
     .exec();
 
   const topics = [];
@@ -47,6 +47,7 @@ const topicsWithSortData = async (topicQuery) => {
     topic.private = t.private;
     topic.votingAllowed = t.votingAllowed;
     topic.owner = t.owner;
+    topic.archiveEmail = t.archiveEmail;
     // Sort the most recent messages for all threads, to determine the
     // most recent message for the topic/channel.
     threadMsgTimes.sort((a, b) => {

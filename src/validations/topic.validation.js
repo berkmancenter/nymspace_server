@@ -6,7 +6,7 @@ const createTopic = {
     votingAllowed: Joi.boolean().required(),
     private: Joi.boolean().required(),
     archivable: Joi.boolean().required(),
-    archiveEmail: Joi.string(),
+    archiveEmail: Joi.string().allow(null, ''),
   }),
 };
 
@@ -18,7 +18,7 @@ const updateTopic = {
     votingAllowed: Joi.boolean(),
     private: Joi.boolean(),
     archivable: Joi.boolean(),
-    archiveEmail: Joi.string(),
+    archiveEmail: Joi.string().allow(null, ''),
   }),
 };
 
