@@ -12,19 +12,18 @@ const threadMessages = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(messages);
 });
 
-const upVote = catchAsync(async (req, res) => {
-  const message = await messageService.vote(req.params.messageId, 'up', req.user);
+const vote = catchAsync(async (req, res) => {
+  const message = await messageService.vote(req.params.messageId, req.body.direction, req.body.status, req.user);
   res.status(httpStatus.OK).send(message);
 });
 
-const downVote = catchAsync(async (req, res) => {
-  const message = await messageService.vote(req.params.messageId, 'down', req.user);
-  res.status(httpStatus.OK).send(message);
-});
+// const downVote = catchAsync(async (req, res) => {
+//   const message = await messageService.vote(req.params.messageId, 'down', req.user);
+//   res.status(httpStatus.OK).send(message);
+// });
 
 module.exports = {
   createMessage,
   threadMessages,
-  upVote,
-  downVote,
+  vote,
 };
