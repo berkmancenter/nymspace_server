@@ -179,16 +179,50 @@ const verifyPasscode = async (topicId, passcode) => {
 };
 
 const deleteOldTopics = async () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 97);
+  // Set target date
+  const targetDeletionDate = new Date();
+  targetDeletionDate.setDate(targetDeletionDate.getDate() - 97);
+
   // Get all deletable topics
-  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: date } });
-  for (let x = 0; x < topics.length; x++) {
+  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: targetDeletionDate } })
+    // Populate threads and messages
+    .populate({
+      path: 'threads',
+      select: 'id',
+      populate: [
+        { path: 'messages', select: ['id', 'createdAt'] },
+      ],
+    })
+    .exec();
+  
+  // Remove topics that have recent activity
+  const deletableTopics = topics.filter((topic) => {
+    const threadMsgTimes = [];
+    topic.threads.forEach((thread) => {
+      if (thread.messages && thread.messages.length > 0) {
+        // Get the createdAt datetime for the final message,
+        // which will always be the most recent as it is pushed
+        // to Thread.messages upon message creation.
+        threadMsgTimes.push(thread.messages.slice(-1)[0].createdAt);
+      }
+    });
+    threadMsgTimes.sort((a, b) => {
+      return a < b ? 1 : a > b ? -1 : 0;
+    });
+    const latestMessageCreatedAt = threadMsgTimes.length > 0 ? new Date(threadMsgTimes[0].toString()) : null;
+    if (latestMessageCreatedAt && latestMessageCreatedAt < targetDeletionDate) {
+      // Remove this topic from deletion, since it has recent messages
+      return false;
+    }
+    return true;
+  });
+
+  for (let x=0; x<deletableTopics.length; x++) {
     // Save topic as deleted
-    topics[x].isDeleted = true;
-    await topics[x].save();
+    deletableTopics[x].isDeleted = true;
+    await deletableTopics[x].save();
   }
-  return topics;
+  return deletableTopics;
 };
 
 const emailUsersToArchive = async () => {

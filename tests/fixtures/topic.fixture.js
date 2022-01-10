@@ -29,6 +29,7 @@ const newPublicTopic = () => {
     owner: userOne._id,
     isDeleted: false,
     isArchiveNotified: false,
+    threads: [],
   };
 };
 
@@ -45,6 +46,7 @@ const newPrivateTopic = () => {
     owner: userOne._id,
     isDeleted: false,
     isArchiveNotified: false,
+    threads: [],
   };
 };
 

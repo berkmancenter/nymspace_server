@@ -5,6 +5,8 @@ const { topicService, emailService } = require('../../src/services');
 const Topic = require('../../src/models/topic.model');
 const { Token } = require('../../src/models');
 const { tokenTypes } = require('../../src/config/tokens');
+const { threadOne, insertThreads } = require('../fixtures/thread.fixture');
+const { messageOne, insertMessages } = require('../fixtures/message.fixture');
 
 setupTestDB();
 
@@ -26,7 +28,7 @@ describe('Topic service methods', () => {
       oldDate = d.toISOString();
     });
 
-    test('should delete topics older than 97 days', async () => {
+    test('should delete topics older than 97 days with no recent messages', async () => {
       publicTopic.createdAt = oldDate;
       const d = new Date();
       d.setDate(d.getDate() - 96);
@@ -39,6 +41,27 @@ describe('Topic service methods', () => {
 
       const dbPublicTopic = await Topic.findById(publicTopic._id);
       expect(dbPublicTopic.isDeleted).toBe(true);
+
+      const dbPrivateTopic = await Topic.findById(privateTopic._id);
+      expect(dbPrivateTopic.isDeleted).toBe(false);
+    });
+
+    test('should not delete topics older than 97 days with recent messages', async () => {
+      publicTopic.createdAt = oldDate;
+
+      const d = new Date();
+      d.setDate(d.getDate() - 96);
+      privateTopic.createdAt = d.toISOString();
+
+      await insertTopics([publicTopic, privateTopic]);
+      await insertThreads([threadOne]);
+      await insertMessages([messageOne]);
+
+      const ret = await topicService.deleteOldTopics();
+      expect(ret).toHaveLength(0);
+
+      const dbPublicTopic = await Topic.findById(publicTopic._id);
+      expect(dbPublicTopic.isDeleted).toBe(false);
 
       const dbPrivateTopic = await Topic.findById(privateTopic._id);
       expect(dbPrivateTopic.isDeleted).toBe(false);
