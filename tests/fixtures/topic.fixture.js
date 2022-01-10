@@ -15,6 +15,7 @@ const topicPost = {
   votingAllowed: true,
   private: false,
   archivable: true,
+  archiveEmail: faker.internet.email(),
 };
 
 const newPublicTopic = () => {

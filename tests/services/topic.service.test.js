@@ -5,6 +5,7 @@ const { topicService, emailService } = require('../../src/services');
 const Topic = require('../../src/models/topic.model');
 const { Token } = require('../../src/models');
 const { tokenTypes } = require('../../src/config/tokens');
+const faker = require('faker');
 
 setupTestDB();
 
@@ -92,6 +93,23 @@ describe('Topic service methods', () => {
 
       const dbPublicTopic = await Topic.findById(publicTopic._id);
       expect(dbPublicTopic.isArchiveNotified).toBe(true);
+    });
+
+    test('should use topic-level email if it exists', async () => {
+      jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue();
+      const sendArchiveEmailSpy = jest.spyOn(emailService, 'sendArchiveTopicEmail');
+
+      publicTopic.createdAt = oldDate;
+      const d = new Date();
+      d.setDate(d.getDate() - 88);
+      privateTopic.createdAt = d.toISOString();
+      publicTopic.archiveEmail = faker.internet.email();
+      await insertTopics([publicTopic, privateTopic]);
+
+      const ret = await topicService.emailUsersToArchive();
+      expect(ret).toHaveLength(1);
+
+      expect(sendArchiveEmailSpy).toHaveBeenCalledWith(publicTopic.archiveEmail, expect.any(Object), expect.any(String));
     });
 
     test('should not send email if topic is not archivable', async () => {

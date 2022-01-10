@@ -122,6 +122,9 @@ components:
         archivable:
           type: boolean
           required: true
+        archiveEmail:
+          type: string
+          required: true
         owner:
           type
         createdAt:

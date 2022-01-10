@@ -95,6 +95,7 @@ const createTopic = async (topicBody, user) => {
     votingAllowed: topicBody.votingAllowed,
     private: topicBody.private,
     archivable: topicBody.archivable,
+    archiveEmail: topicBody.archiveEmail,
     passcode,
     owner: user,
   });
@@ -206,10 +207,13 @@ const emailUsersToArchive = async () => {
   for (let x = 0; x < topics.length; x++) {
     // Email users prompting them to archive
     const topic = topics[x];
-    const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
-    await emailService.sendArchiveTopicEmail(topic.owner.email, topic, archiveToken);
-    topic.isArchiveNotified = true;
-    await topic.save();
+    const emailAddress = topic.archiveEmail ? topic.archiveEmail : topic.owner.email;
+    if (emailAddress) {
+      const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
+      await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken);
+      topic.isArchiveNotified = true;
+      await topic.save();
+    }
   }
   return topics;
 };
