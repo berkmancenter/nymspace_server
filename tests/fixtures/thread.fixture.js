@@ -17,6 +17,7 @@ const threadOne = {
   slug: nameSlug1,
   owner: userOne._id,
   topic: publicTopic._id,
+  messages: [],
 };
 
 const threadTwo = {

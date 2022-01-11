@@ -5,6 +5,7 @@ const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const updateDocument = require('../utils/updateDocument');
+const User = require('../models/user.model');
 
 /**
  * Query topics and add sorting properties
@@ -180,43 +181,109 @@ const verifyPasscode = async (topicId, passcode) => {
   return passcode === topic.passcode;
 };
 
-const deleteOldTopics = async () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 97);
-  // Get all deletable topics
-  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: date } });
-  for (let x = 0; x < topics.length; x++) {
-    // Save topic as deleted
-    topics[x].isDeleted = true;
-    await topics[x].save();
+/**
+ * Filter out a topic that has recent message activity occurring after targetDate
+ * @param {Topic} topic
+ * @param {Date} targetDate
+ * @returns {Promise}
+ */
+const activeTopicFilter = (topic, targetDate)  => {
+  const threadMsgTimes = [];
+  topic.threads.forEach((thread) => {
+    if (thread.messages && thread.messages.length > 0) {
+      // Get the createdAt datetime for the final message,
+      // which will always be the most recent as it is pushed
+      // to Thread.messages upon message creation.
+      threadMsgTimes.push(thread.messages.slice(-1)[0].createdAt);
+    }
+  });
+  threadMsgTimes.sort((a, b) => {
+    return a < b ? 1 : a > b ? -1 : 0;
+  });
+  const latestMessageCreatedAt = threadMsgTimes.length > 0 ? new Date(threadMsgTimes[0].toString()) : null;
+  if (latestMessageCreatedAt && latestMessageCreatedAt > targetDate) {
+    // Remove this topic from deletion, since it has recent messages
+    return false;
   }
-  return topics;
+  return true;
 };
 
+/**
+ * Soft delete all topics that haven't been active for 97 days
+ * @returns {Promise}
+ */
+const deleteOldTopics = async () => {
+  // Set target date
+  const targetDeletionDate = new Date();
+  targetDeletionDate.setDate(targetDeletionDate.getDate() - 97);
+
+  // Get all deletable topics
+  const topics = await Topic.find({ isDeleted: false, archived: false, createdAt: { $lte: targetDeletionDate } })
+    // Populate threads and messages
+    .populate({
+      path: 'threads',
+      select: 'id',
+      populate: [
+        { path: 'messages', select: ['id', 'createdAt'] },
+      ],
+    })
+    .exec();
+  
+  // Filter out topics that have recent activity
+  const deletableTopics = topics.filter(activeTopicFilter);
+
+  for (let x=0; x<deletableTopics.length; x++) {
+    // Save topic as deleted
+    deletableTopics[x].isDeleted = true;
+    await deletableTopics[x].save();
+  }
+  return deletableTopics;
+};
+
+/**
+ * Prompt users to archive all topics that haven't been active for 97 days
+ * and are archivable.
+ * @returns {Promise}
+ */
 const emailUsersToArchive = async () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 90);
-  // Get all archivable topics
-  let topics = await Topic.find({
+  // Set target date
+  const targetDeletionDate = new Date();
+  targetDeletionDate.setDate(targetDeletionDate.getDate() - 90);
+
+  // Get all deletable topics
+  const topics = await Topic.find({ 
     isArchiveNotified: false,
     isDeleted: false,
     archived: false,
     archivable: true,
-    createdAt: { $lte: date },
-  }).populate('owner');
-  topics = topics.filter((t) => t.owner.email);
-  for (let x = 0; x < topics.length; x++) {
+    createdAt: { $lte: targetDeletionDate },
+  })
+    // Populate threads and messages
+    .populate({
+      path: 'threads',
+      select: 'id',
+      populate: [
+        { path: 'messages', select: ['id', 'createdAt'] },
+      ],
+    })
+    .exec();
+  // Filter out topics that have recent activity
+  const archivableTopics = topics.filter(activeTopicFilter);
+  const returnTopics = [];
+  for (let x = 0; x < archivableTopics.length; x++) {
     // Email users prompting them to archive
-    const topic = topics[x];
-    const emailAddress = topic.archiveEmail ? topic.archiveEmail : topic.owner.email;
+    const topic = archivableTopics[x];
+    const owner = await User.findById(topic.owner);
+    const emailAddress = topic.archiveEmail ? topic.archiveEmail : owner.email;
     if (emailAddress) {
-      const archiveToken = await tokenService.generateArchiveTopicToken(topic.owner);
+      const archiveToken = await tokenService.generateArchiveTopicToken(owner);
       await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken);
       topic.isArchiveNotified = true;
       await topic.save();
+      returnTopics.push(topic);
     }
   }
-  return topics;
+  return returnTopics;
 };
 
 const archiveTopic = async (token, topicId) => {
