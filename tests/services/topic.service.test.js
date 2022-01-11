@@ -7,6 +7,7 @@ const { Token } = require('../../src/models');
 const { tokenTypes } = require('../../src/config/tokens');
 const { threadOne, insertThreads } = require('../fixtures/thread.fixture');
 const { messageOne, insertMessages } = require('../fixtures/message.fixture');
+const Thread = require('../../src/models/thread.model');
 
 setupTestDB();
 
@@ -57,10 +58,18 @@ describe('Topic service methods', () => {
       await insertThreads([threadOne]);
       await insertMessages([messageOne]);
 
+      let dbPublicTopic = await Topic.findById(publicTopic._id);
+      dbPublicTopic.threads.push(threadOne);
+      await dbPublicTopic.save();
+
+      const dbThreadOne = await Thread.findById(threadOne._id);
+      dbThreadOne.messages.push(messageOne);
+      await dbThreadOne.save();
+
       const ret = await topicService.deleteOldTopics();
       expect(ret).toHaveLength(0);
 
-      const dbPublicTopic = await Topic.findById(publicTopic._id);
+      dbPublicTopic = await Topic.findById(publicTopic._id);
       expect(dbPublicTopic.isDeleted).toBe(false);
 
       const dbPrivateTopic = await Topic.findById(privateTopic._id);
@@ -115,6 +124,37 @@ describe('Topic service methods', () => {
 
       const dbPublicTopic = await Topic.findById(publicTopic._id);
       expect(dbPublicTopic.isArchiveNotified).toBe(true);
+    });
+
+    test('should not archive topic if topic has recent message activity', async () => {
+      jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue();
+      const sendArchiveEmailSpy = jest.spyOn(emailService, 'sendArchiveTopicEmail');
+
+      publicTopic.createdAt = oldDate;
+      const d = new Date();
+      d.setDate(d.getDate() - 88);
+      privateTopic.createdAt = d.toISOString();
+
+      await insertTopics([publicTopic, privateTopic]);
+      await insertThreads([threadOne]);
+      await insertMessages([messageOne]);
+
+      let dbPublicTopic = await Topic.findById(publicTopic._id);
+      dbPublicTopic.threads.push(threadOne);
+      await dbPublicTopic.save();
+
+      const dbThreadOne = await Thread.findById(threadOne._id);
+      dbThreadOne.messages.push(messageOne);
+      await dbThreadOne.save();
+
+      const ret = await topicService.emailUsersToArchive();
+      expect(ret).toHaveLength(0);
+
+      dbPublicTopic = await Topic.findById(publicTopic._id);
+      expect(dbPublicTopic.isArchiveNotified).toBe(false);
+
+      const dbPrivateTopic = await Topic.findById(privateTopic._id);
+      expect(dbPrivateTopic.isArchiveNotified).toBe(false);
     });
 
     test('should not send email if topic is not archivable', async () => {
