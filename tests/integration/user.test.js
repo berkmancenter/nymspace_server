@@ -10,6 +10,7 @@ const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/t
 const { insertMessages, messageOne } = require('../fixtures/message.fixture');
 const userService = require('../../src/services/user.service');
 const bcrypt = require('bcrypt');
+const config = require('../../src/config/config');
 
 
 const createPseudo = () => {
@@ -248,10 +249,10 @@ describe('User service', () => {
       }
     });
 
-    test('should return true if user vote score < -5 and account is more than 1 week old', async () => {
+    test('should return true if user vote score < -5 and account is more than DAYS_FOR_GOOD_REPUTATION old', async () => {
       // Set created date to > week ago
       const d = new Date();
-      d.setDate(d.getDate() - 8);
+      d.setDate(d.getDate() - (config.DAYS_FOR_GOOD_REPUTATION + 1));
       registeredUser.createdAt = d.toISOString();
       await insertUsers([registeredUser]);
       await insertMessages([messageOne]);
@@ -264,7 +265,7 @@ describe('User service', () => {
     test('should return false if user vote score < -5', async () => {
       // Set created date to > week ago
       const d = new Date();
-      d.setDate(d.getDate() - 8);
+      d.setDate(d.getDate() - (config.DAYS_FOR_GOOD_REPUTATION + 1));
       registeredUser.createdAt = d.toISOString();
       await insertUsers([registeredUser]);
       messageOne.downVotes = [];
@@ -279,8 +280,7 @@ describe('User service', () => {
       expect(goodReputation).toBe(false);
     });
 
-    test('should return false if user account is less than one week old', async () => {
-      // Set created date to > week ago
+    test('should return false if user account is less than DAYS_FOR_GOOD_REPUTATION old', async () => {
       const d = new Date();
       registeredUser.createdAt = d.toISOString();
       await insertUsers([registeredUser]);
@@ -291,7 +291,7 @@ describe('User service', () => {
       expect(goodReputation).toBe(false);
     });
 
-    test('should return false if user account is less than one week old user vote score < -5', async () => {
+    test('should return false if user account is less DAYS_FOR_GOOD_REPUTATION old and user vote score < -5', async () => {
       // Set created date to > week ago
       const d = new Date();
       registeredUser.createdAt = d.toISOString();

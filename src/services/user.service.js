@@ -330,11 +330,11 @@ const goodReputation = async (user) => {
   const reputationScore = totalUpVotes - totalDownVotes;
   // Calculate weeks since account creation
   const today = new Date();
-  const createdDate = new Date(user.createdAt);
-  const weeks = Math.round((today - createdDate) / 604800000);
+  const createdDate = new Date(user.createdAt); 
+  const days = Math.round((today - createdDate) / 86400000);
   // Good reputation is a combined total of message votes exceeding -5,
-  // and an account more than 1 week old.
-  return reputationScore > -5 && weeks > 0;
+  // and an account more than 1 day old.
+  return reputationScore > -5 && days >= config.DAYS_FOR_GOOD_REPUTATION;
 };
 
 module.exports = {

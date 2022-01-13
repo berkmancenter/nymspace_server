@@ -23,6 +23,7 @@ const envVarsSchema = Joi.object()
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     APP_HOST: Joi.string().description('the host url for the frontend app'),
     TRULY_RANDOM_PSEUDONYMS: Joi.string().default('false').description('true/false if pseudonyms are made truly random with UID'),
+    DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
   })
   .unknown();
 
@@ -65,4 +66,5 @@ module.exports = {
   },
   appHost: envVars.APP_HOST,
   trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
+  DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION,
 };
