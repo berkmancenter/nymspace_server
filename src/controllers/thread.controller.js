@@ -1,9 +1,11 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { threadService } = require('../services');
+const { io } = require('../websockets/index');
 
 const createThread = catchAsync(async (req, res) => {
   const thread = await threadService.createThread(req.body, req.user);
+  io.in(thread.topic._id.toString()).emit('thread:new', thread);
   res.status(httpStatus.CREATED).send(thread);
 });
 

@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { messageService } = require('../services');
+const { io } = require('../websockets/index');
 
 const createMessage = catchAsync(async (req, res) => {
   const message = await messageService.createMessage(req.body, req.user);
@@ -14,6 +15,7 @@ const threadMessages = catchAsync(async (req, res) => {
 
 const vote = catchAsync(async (req, res) => {
   const message = await messageService.vote(req.params.messageId, req.body.direction, req.body.status, req.user);
+  io.in(message.thread._id.toString()).emit('vote:new', message);
   res.status(httpStatus.OK).send(message);
 });
 

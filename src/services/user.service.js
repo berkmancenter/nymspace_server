@@ -328,7 +328,7 @@ const goodReputation = async (user) => {
   }
   // Subtract downvotes from upvotes for "reputation score"
   const reputationScore = totalUpVotes - totalDownVotes;
-  // Calculate weeks since account creation
+  // Calculate days since account creation
   const today = new Date();
   const createdDate = new Date(user.createdAt); 
   const days = Math.round((today - createdDate) / 86400000);
