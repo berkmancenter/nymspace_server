@@ -144,7 +144,6 @@ const allPublicTopics = async () => {
 
 const allTopicsByUser = async (user) => {
   const otherPrivateTopics = await Topic.find({ $and: [{ private: true }, { owner: { $ne: user }} ]} );
-  console.log(otherPrivateTopics);
   // $and: [
   //   { $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] },
   //   {
