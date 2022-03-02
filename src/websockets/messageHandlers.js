@@ -22,6 +22,10 @@ module.exports = (io, socket) => {
 
   socket.on('message:create', createMessage);
   socket.on('thread:join', joinThread);
+  socket.on('thread:disconnect', () => {
+    logger.info(`Server is disconnecting socket id ${socket.id}.`);
+    socket.disconnect(true);
+  });
   socket.on('disconnect', () => {
     logger.info(`Socket id ${socket.id} has disconnected.`);
   });
