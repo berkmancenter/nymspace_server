@@ -12,7 +12,6 @@ module.exports = (io, socket) => {
 
   socket.on('topic:join', joinTopic);
   socket.on('topic:disconnect', () => {
-    logger.info(`Server is disconnecting socket id ${socket.id}.`);
     socket.disconnect(true);
   });
 };
