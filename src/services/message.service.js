@@ -13,6 +13,9 @@ const ApiError = require('../utils/ApiError');
 const createMessage = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread);
   const thread = await Thread.findById(threadId);
+  if (thread.locked) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'This thread is locked and cannot receive messages.');
+  }
   const activePseudo = user.pseudonyms.find((x) => x.active);
   const message = await Message.create({
     body: messageBody.body,

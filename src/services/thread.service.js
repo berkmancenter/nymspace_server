@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Thread, Topic, Follower, Message } = require('../models');
+const updateDocument = require('../utils/updateDocument');
 
 /**
  * Removed messages array property and replaces with messageCount
@@ -38,6 +39,26 @@ const createThread = async (threadBody, user) => {
   topic.save();
 
   return thread;
+};
+
+/**
+ * Update a thread
+ * @param {Object} threadBody
+ * @returns {Promise<Thread>}
+ */
+ const updateThread = async (threadBody, user) => {
+  let threadDoc = await Thread.findById(threadBody.id);
+
+  if (user._id.toString() !== threadDoc.owner.toString()) {
+    return {
+      errorCode: httpStatus.UNAUTHORIZED,
+      message: "You're not the owner of this thread",
+    };
+  }
+
+  threadDoc = updateDocument(threadBody, threadDoc);
+  await threadDoc.save();
+  return threadDoc;
 };
 
 const userThreads = async (user) => {
@@ -135,4 +156,5 @@ module.exports = {
   findByIdFull,
   allPublic,
   deleteThread,
+  updateThread,
 };

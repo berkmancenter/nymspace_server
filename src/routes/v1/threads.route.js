@@ -1,6 +1,7 @@
 const express = require('express');
 const threadsController = require('../../controllers/thread.controller');
 const auth = require('../../middlewares/auth');
+const threadValidation = require('../../validations/thread.validation');
 
 const router = express.Router();
 
@@ -84,6 +85,54 @@ router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
  */
 router.route('/topic/:topicId').get(auth('topicThreads'), threadsController.getTopicThreads);
 router.route('/follow').post(auth('followThread'), threadsController.follow);
-router.route('/deleteThread/:threadId').delete(auth('deleteThread'), threadsController.deleteThread);
+
+/**
+ * @swagger
+ * /threads:
+ *   put:
+ *     description: Update a thread
+ *     tags: [Thread]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             $ref: '#/components/schemas/Thread'
+ *     responses:
+ *       200:
+ *         description: ok
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Thread'
+ *
+ */
+router.route('/').put(auth('updateThread'), validate(threadValidation.updateThread), threadsController.updateThread);
+
+/**
+ * @swagger
+ * /thread/{threadId}:
+ *   delete:
+ *     description: Delete a thread
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the thread to delete.
+ *         schema:
+ *           type: string
+ *     tags: [Thread]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: ok
+ *
+ */
+router.route('/:threadId').delete(auth('deleteThread'), threadsController.deleteThread);
 
 module.exports = router;

@@ -14,6 +14,10 @@ const threadSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    locked: {
+      type: Boolean,
+      default: false,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',

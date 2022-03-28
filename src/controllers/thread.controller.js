@@ -9,6 +9,11 @@ const createThread = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(thread);
 });
 
+const updateThread = catchAsync(async (req, res) => {
+  const thread = await threadService.updateThread(req.body, req.user);
+  res.status(httpStatus.OK).send(thread);
+});
+
 const userThreads = catchAsync(async (req, res) => {
   const threads = await threadService.userThreads(req.user);
   res.status(httpStatus.OK).send(threads);
@@ -35,7 +40,7 @@ const allPublic = catchAsync(async (req, res) => {
 });
 
 const deleteThread = catchAsync(async (req, res) => {
-  const thread = await threadService.deleteThread(req.params.threadId, req.user, res);
+  const thread = await threadService.deleteThread(req.params.threadId, req.user);
 
   if (thread.errorCode) {
     return res.status(thread.errorCode).send(thread.message);
@@ -46,6 +51,7 @@ const deleteThread = catchAsync(async (req, res) => {
 
 module.exports = {
   createThread,
+  updateThread,
   userThreads,
   getThread,
   getTopicThreads,
