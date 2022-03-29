@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Thread, Topic, Follower, Message } = require('../models');
 const updateDocument = require('../utils/updateDocument');
+const ApiError = require('../utils/ApiError');
 
 /**
  * Removed messages array property and replaces with messageCount
@@ -50,10 +51,7 @@ const createThread = async (threadBody, user) => {
   let threadDoc = await Thread.findById(threadBody.id);
 
   if (user._id.toString() !== threadDoc.owner.toString()) {
-    return {
-      errorCode: httpStatus.UNAUTHORIZED,
-      message: "You're not the owner of this thread",
-    };
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Only thread owner can update.");
   }
 
   threadDoc = updateDocument(threadBody, threadDoc);
@@ -74,7 +72,7 @@ const userThreads = async (user) => {
     ],
   })
     .populate({ path: 'messages', select: 'id' })
-    .select('name slug')
+    .select('name slug locked')
     .exec();
   threads = addMessageCount(threads);
   threads.forEach((thread) => {
@@ -91,15 +89,16 @@ const findById = async (id) => {
 };
 
 const findByIdFull = async (id, user) => {
-  const thread = await Thread.findOne({ _id: id }).select('name slug').lean().exec();
-  thread.followed = await Follower.findOne({ thread, user }).select('_id').exec();
-  return thread;
+  const thread = await Thread.findOne({ _id: id }).select('name slug locked').exec();
+  const threadPojo = thread.toObject();
+  threadPojo.followed = await Follower.findOne({ thread, user }).select('_id').exec();
+  return threadPojo;
 };
 
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId })
     .populate({ path: 'messages', select: 'id' })
-    .select('name slug')
+    .select('name slug locked')
     .exec();
   return addMessageCount(threads);
 };
@@ -124,7 +123,7 @@ const follow = async (status, threadId, user) => {
 const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
-    .select('name slug')
+    .select('name slug locked')
     .populate({ path: 'messages', select: 'id' })
     .exec();
   return addMessageCount(threads);
@@ -134,17 +133,12 @@ const deleteThread = async (id, user) => {
   const thread = await Thread.findOne({ _id: id }).select('name slug owner').exec();
 
   if (user._id.toString() !== thread.owner.toString()) {
-    return {
-      errorCode: httpStatus.UNAUTHORIZED,
-      message: "You're not the owner of this thread",
-    };
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Only thread owner can delete.");
   }
 
   await Thread.deleteOne({ _id: id });
   await Follower.deleteMany({ thread });
   await Message.deleteMany({ thread });
-
-  return thread;
 };
 
 module.exports = {

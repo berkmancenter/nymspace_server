@@ -2,6 +2,7 @@ const express = require('express');
 const threadsController = require('../../controllers/thread.controller');
 const auth = require('../../middlewares/auth');
 const threadValidation = require('../../validations/thread.validation');
+const validate = require('../../middlewares/validate');
 
 const router = express.Router();
 

@@ -150,12 +150,15 @@ components:
           type: string
         slug:
           type: string
+        locked:
+          type: boolean
         messageCount:
           type: number
       example:
         id: 61b0ffca7d4eb20ee9dcfe8c
         name: my favorite dog is Rottweiler
         slug: my-favorite-dog-is-Rottweiler
+        locked: false
         messageCount: 5
 
   responses:
