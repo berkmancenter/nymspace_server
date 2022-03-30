@@ -4,7 +4,7 @@ const { Thread, Topic, Follower, Message } = require('../models');
 const updateDocument = require('../utils/updateDocument');
 const ApiError = require('../utils/ApiError');
 
-const gettersReturnFields = 'name slug locked owner';
+const returnFields = 'name slug locked owner';
 
 /**
  * Removed messages array property and replaces with messageCount
@@ -41,7 +41,12 @@ const createThread = async (threadBody, user) => {
   topic.threads.push(thread.toObject());
   topic.save();
 
-  return thread;
+  // Owner is missing from create return on line 35, so add it.
+  // Probably a better way to do this, but don't want to dig through the Mongoose docs.
+  const threadRet = thread.toObject();
+  threadRet.owner = user.id;
+
+  return threadRet;
 };
 
 /**
@@ -58,7 +63,11 @@ const createThread = async (threadBody, user) => {
 
   threadDoc = updateDocument(threadBody, threadDoc);
   await threadDoc.save();
-  return threadDoc;
+
+  const threadRet = threadDoc.toObject();
+  threadRet.owner = user.id;
+
+  return threadRet;
 };
 
 const userThreads = async (user) => {
@@ -74,7 +83,7 @@ const userThreads = async (user) => {
     ],
   })
     .populate({ path: 'messages', select: 'id' })
-    .select(gettersReturnFields)
+    .select(returnFields)
     .exec();
   threads = addMessageCount(threads);
   threads.forEach((thread) => {
@@ -91,7 +100,7 @@ const findById = async (id) => {
 };
 
 const findByIdFull = async (id, user) => {
-  const thread = await Thread.findOne({ _id: id }).select(gettersReturnFields).exec();
+  const thread = await Thread.findOne({ _id: id }).select(returnFields).exec();
   const threadPojo = thread.toObject();
   threadPojo.followed = await Follower.findOne({ thread, user }).select('_id').exec();
   return threadPojo;
@@ -100,7 +109,7 @@ const findByIdFull = async (id, user) => {
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId })
     .populate({ path: 'messages', select: 'id' })
-    .select(gettersReturnFields)
+    .select(returnFields)
     .exec();
   return addMessageCount(threads);
 };
@@ -125,7 +134,7 @@ const follow = async (status, threadId, user) => {
 const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
-    .select(gettersReturnFields)
+    .select(returnFields)
     .populate({ path: 'messages', select: 'id' })
     .exec();
   return addMessageCount(threads);
