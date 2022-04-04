@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Thread, Topic, Follower, Message } = require('../models');
+const updateDocument = require('../utils/updateDocument');
+const ApiError = require('../utils/ApiError');
+
+const returnFields = 'name slug locked owner';
 
 /**
  * Removed messages array property and replaces with messageCount
@@ -37,7 +41,33 @@ const createThread = async (threadBody, user) => {
   topic.threads.push(thread.toObject());
   topic.save();
 
-  return thread;
+  // Owner is missing from create return on line 35, so add it.
+  // Probably a better way to do this, but don't want to dig through the Mongoose docs.
+  const threadRet = thread.toObject();
+  threadRet.owner = user.id;
+
+  return threadRet;
+};
+
+/**
+ * Update a thread
+ * @param {Object} threadBody
+ * @returns {Promise<Thread>}
+ */
+ const updateThread = async (threadBody, user) => {
+  let threadDoc = await Thread.findById(threadBody.id);
+
+  if (user._id.toString() !== threadDoc.owner.toString()) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Only thread owner can update.");
+  }
+
+  threadDoc = updateDocument(threadBody, threadDoc);
+  await threadDoc.save();
+
+  const threadRet = threadDoc.toObject();
+  threadRet.owner = user.id;
+
+  return threadRet;
 };
 
 const userThreads = async (user) => {
@@ -53,7 +83,7 @@ const userThreads = async (user) => {
     ],
   })
     .populate({ path: 'messages', select: 'id' })
-    .select('name slug')
+    .select(returnFields)
     .exec();
   threads = addMessageCount(threads);
   threads.forEach((thread) => {
@@ -70,15 +100,16 @@ const findById = async (id) => {
 };
 
 const findByIdFull = async (id, user) => {
-  const thread = await Thread.findOne({ _id: id }).select('name slug').lean().exec();
-  thread.followed = await Follower.findOne({ thread, user }).select('_id').exec();
-  return thread;
+  const thread = await Thread.findOne({ _id: id }).select(returnFields).exec();
+  const threadPojo = thread.toObject();
+  threadPojo.followed = await Follower.findOne({ thread, user }).select('_id').exec();
+  return threadPojo;
 };
 
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId })
     .populate({ path: 'messages', select: 'id' })
-    .select('name slug')
+    .select(returnFields)
     .exec();
   return addMessageCount(threads);
 };
@@ -103,7 +134,7 @@ const follow = async (status, threadId, user) => {
 const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id');
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
-    .select('name slug')
+    .select(returnFields)
     .populate({ path: 'messages', select: 'id' })
     .exec();
   return addMessageCount(threads);
@@ -113,17 +144,12 @@ const deleteThread = async (id, user) => {
   const thread = await Thread.findOne({ _id: id }).select('name slug owner').exec();
 
   if (user._id.toString() !== thread.owner.toString()) {
-    return {
-      errorCode: httpStatus.UNAUTHORIZED,
-      message: "You're not the owner of this thread",
-    };
+    throw new ApiError(httpStatus.FORBIDDEN, "Only thread owner can delete.");
   }
 
   await Thread.deleteOne({ _id: id });
   await Follower.deleteMany({ thread });
   await Message.deleteMany({ thread });
-
-  return thread;
 };
 
 module.exports = {
@@ -135,4 +161,5 @@ module.exports = {
   findByIdFull,
   allPublic,
   deleteThread,
+  updateThread,
 };

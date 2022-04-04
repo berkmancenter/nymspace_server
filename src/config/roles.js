@@ -19,6 +19,7 @@ const allRoles = {
     'managePseudonym',
     'manageAccount',
     'getUser',
+    'updateThread'
   ],
   admin: ['getUsers', 'manageUsers'],
 };
