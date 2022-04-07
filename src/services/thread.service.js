@@ -46,6 +46,10 @@ const createThread = async (threadBody, user) => {
   const threadRet = thread.toObject();
   threadRet.owner = user.id;
 
+  // Replace _id with id since toJSON plugin will not be applied
+  threadRet.id = threadRet._id.toString();
+  delete threadRet._id;
+
   return threadRet;
 };
 
@@ -66,6 +70,8 @@ const createThread = async (threadBody, user) => {
 
   const threadRet = threadDoc.toObject();
   threadRet.owner = user.id;
+  threadRet.id = threadRet._id.toString();
+  delete threadRet._id;
 
   return threadRet;
 };
@@ -103,6 +109,9 @@ const findByIdFull = async (id, user) => {
   const thread = await Thread.findOne({ _id: id }).select(returnFields).exec();
   const threadPojo = thread.toObject();
   threadPojo.followed = await Follower.findOne({ thread, user }).select('_id').exec();
+
+  threadPojo.id = threadPojo._id.toString();
+  delete threadPojo._id;
   return threadPojo;
 };
 
