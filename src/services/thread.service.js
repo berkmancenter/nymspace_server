@@ -41,16 +41,7 @@ const createThread = async (threadBody, user) => {
   topic.threads.push(thread.toObject());
   topic.save();
 
-  // Owner is missing from create return on line 35, so add it.
-  // Probably a better way to do this, but don't want to dig through the Mongoose docs.
-  const threadRet = thread.toObject();
-  threadRet.owner = user.id;
-
-  // Replace _id with id since toJSON plugin will not be applied
-  threadRet.id = threadRet._id.toString();
-  delete threadRet._id;
-
-  return threadRet;
+  return thread;
 };
 
 /**
@@ -68,12 +59,7 @@ const createThread = async (threadBody, user) => {
   threadDoc = updateDocument(threadBody, threadDoc);
   await threadDoc.save();
 
-  const threadRet = threadDoc.toObject();
-  threadRet.owner = user.id;
-  threadRet.id = threadRet._id.toString();
-  delete threadRet._id;
-
-  return threadRet;
+  return threadDoc;
 };
 
 const userThreads = async (user) => {
@@ -101,7 +87,7 @@ const userThreads = async (user) => {
 };
 
 const findById = async (id) => {
-  const thread = await Thread.findOne({ _id: id }).populate('followers').select('name slug').exec();
+  const thread = await Thread.findOne({ _id: id }).populate('followers').select('name slug owner').exec();
   return thread;
 };
 
