@@ -11,6 +11,7 @@ const createThread = catchAsync(async (req, res) => {
 
 const updateThread = catchAsync(async (req, res) => {
   const thread = await threadService.updateThread(req.body, req.user);
+  io.in(thread.topic._id.toString()).emit('thread:update', thread);
   res.status(httpStatus.OK).send(thread);
 });
 
