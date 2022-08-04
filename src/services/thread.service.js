@@ -50,10 +50,11 @@ const createThread = async (threadBody, user) => {
  * @returns {Promise<Thread>}
  */
  const updateThread = async (threadBody, user) => {
-  let threadDoc = await Thread.findById(threadBody.id);
-
-  if (user._id.toString() !== threadDoc.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Only thread owner can update.");
+  let threadDoc = await Thread.findById(threadBody.id).populate('topic');
+  if ((user._id.toString() !== threadDoc.owner.toString())
+      && (user._id.toString() !== threadDoc.topic.owner.toString())
+     ) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Only thread or topic owner can update.");
   }
 
   threadDoc = updateDocument(threadBody, threadDoc);
@@ -136,10 +137,12 @@ const allPublic = async () => {
 };
 
 const deleteThread = async (id, user) => {
-  const thread = await Thread.findOne({ _id: id }).select('name slug owner').exec();
+  const thread = await Thread.findOne({ _id: id }).populate('topic').select('name slug owner topic').exec();
 
-  if (user._id.toString() !== thread.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Only thread owner can delete.");
+  if ((user._id.toString() !== thread.owner.toString())
+      && (user._id.toString() !== thread.topic.owner.toString())
+     ) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Only thread or topic owner can delete.");
   }
 
   await Thread.deleteOne({ _id: id });
