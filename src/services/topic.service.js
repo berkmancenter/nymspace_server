@@ -22,7 +22,7 @@ const topicsWithSortData = async (topicQuery) => {
         { path: 'messages', select: ['id', 'createdAt'] }
       ],
     })
-    .select('name slug private votingAllowed archiveEmail owner')
+    .select('name slug private votingAllowed threadCreationAllowed archiveEmail owner')
     .exec();
 
   const topics = [];
@@ -47,6 +47,7 @@ const topicsWithSortData = async (topicQuery) => {
     topic.id = t.id;
     topic.private = t.private;
     topic.votingAllowed = t.votingAllowed;
+    topic.threadCreationAllowed = t.threadCreationAllowed;
     topic.owner = t.owner;
     topic.archiveEmail = t.archiveEmail;
     // Sort the most recent messages for all threads, to determine the
@@ -95,6 +96,7 @@ const createTopic = async (topicBody, user) => {
   const topic = await Topic.create({
     name: topicBody.name,
     votingAllowed: topicBody.votingAllowed,
+    threadCreationAllowed: topicBody.threadCreationAllowed,
     private: topicBody.private,
     archivable: topicBody.archivable,
     archiveEmail: topicBody.archiveEmail,
@@ -158,7 +160,7 @@ const allTopicsByUser = async (user) => {
 };
 
 const findById = async (id) => {
-  const topic = await Topic.findOne({ _id: id }).populate('followers').select('name slug private votingAllowed owner').exec();
+  const topic = await Topic.findOne({ _id: id }).populate('followers').select('name slug private votingAllowed threadCreationAllowed owner').exec();
   return topic;
 };
 

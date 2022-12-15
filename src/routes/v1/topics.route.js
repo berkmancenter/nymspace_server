@@ -32,6 +32,8 @@ const router = express.Router();
  *                 type: string
  *               votingAllowed:
  *                 type: boolean
+ *               threadCreationAllowed:
+ *                 type: boolean
  *               private:
  *                 type: boolean
  *               archivable:
@@ -101,6 +103,8 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
  *       private:
  *         type: boolean
  *       votingAllowed:
+ *         type: boolean
+ *       threadCreationAllowed:
  *         type: boolean
  */
 
