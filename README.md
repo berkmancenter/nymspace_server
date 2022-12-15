@@ -9,6 +9,8 @@ Add a .env file to the root of the project with configuration details for Mongo,
 Install all dependencies with `npm install`.
 
 ## Development
+Start by copying `.env.example` to `.env`.
+
 Run `npm run dev` to serve the API locally.
 
 ## Tests
