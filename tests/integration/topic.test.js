@@ -96,6 +96,8 @@ describe('Topic routes', () => {
       // Check that property that was not sent in request is not missing or updated
       expect(topicDoc.votingAllowed).toBeDefined();
       expect(topicDoc.votingAllowed).toEqual(publicTopic.votingAllowed);
+      expect(topicDoc.threadCreationAllowed).toBeDefined();
+      expect(topicDoc.threadCreationAllowed).toEqual(publicTopic.threadCreationAllowed);
     });
 
     test('should return 400 if missing topic id', async () => {
