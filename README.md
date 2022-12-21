@@ -9,7 +9,10 @@ Add a .env file to the root of the project with configuration details for Mongo,
 Install all dependencies with `npm install`.
 
 ## Development
-Run `npm run dev` to serve the API locally.
+1. Start by copying `.env.example` to `.env`.
+2. Install `mongodb`
+3. Run MongoDB with `mongod`
+4. Run `npm run dev` to serve the API locally.
 
 ## Tests
 Tests can be run with `npm run test`, and a coverage report can be seen with `npm run coverage`.

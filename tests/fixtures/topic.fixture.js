@@ -13,6 +13,7 @@ const getRandomInt = (min, max) => {
 const topicPost = {
   name: nameSlug,
   votingAllowed: true,
+  threadCreationAllowed: true,
   private: false,
   archivable: true,
   archiveEmail: faker.internet.email(),
@@ -24,6 +25,7 @@ const newPublicTopic = () => {
     name: nameSlug,
     slug: nameSlug,
     votingAllowed: true,
+    threadCreationAllowed: true,
     private: false,
     archivable: true,
     archived: false,
@@ -40,6 +42,7 @@ const newPrivateTopic = () => {
     name: nameSlug,
     slug: nameSlug,
     votingAllowed: false,
+    threadCreationAllowed: false,
     private: true,
     passcode: getRandomInt(1000000, 9999999),
     archivable: true,

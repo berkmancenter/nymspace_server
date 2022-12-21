@@ -18,6 +18,10 @@ const topicSchema = mongoose.Schema(
       type: Boolean,
       required: true,
     },
+    threadCreationAllowed: {
+      type: Boolean,
+      required: true,
+    },
     private: {
       type: Boolean,
       required: true,

@@ -4,6 +4,7 @@ const createTopic = {
   body: Joi.object().keys({
     name: Joi.string().required(),
     votingAllowed: Joi.boolean().required(),
+    threadCreationAllowed: Joi.boolean().required(),
     private: Joi.boolean().required(),
     archivable: Joi.boolean().required(),
     archiveEmail: Joi.string().allow(null, ''),
@@ -16,6 +17,7 @@ const updateTopic = {
     name: Joi.string(),
     slug: Joi.string(),
     votingAllowed: Joi.boolean(),
+    threadCreationAllowed: Joi.boolean(),
     private: Joi.boolean(),
     archivable: Joi.boolean(),
     archiveEmail: Joi.string().allow(null, ''),

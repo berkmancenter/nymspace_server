@@ -32,6 +32,10 @@ const createThread = async (threadBody, user) => {
   const topicId = mongoose.Types.ObjectId(threadBody.topicId);
   const topic = await Topic.findById(topicId);
 
+  if (!topic.threadCreationAllowed && user._id.toString() !== topic.owner.toString()) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed.');
+  }
+
   const thread = await Thread.create({
     name: threadBody.name,
     owner: user,

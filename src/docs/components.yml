@@ -116,6 +116,8 @@ components:
           type: string
         votingAllowed:
           type: boolean
+        threadCreationAllowed:
+          type: boolean
         private:
           type: boolean
           required: true
@@ -136,6 +138,7 @@ components:
         name: favorite dogs
         slug: favorite-dogs
         votingAllowed: true
+        threadCreationAllowed: true
         private: false
         archivable: true
         createdAt: 2021-11-30T01:51:01.639Z
