@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
+const logger = require('../config/logger');
 const { Message } = require('../models');
 const { Thread } = require('../models');
 const { User } = require('../models');
@@ -17,6 +18,24 @@ const createMessage = async (messageBody, user) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This thread is locked and cannot receive messages.');
   }
   const activePseudo = user.pseudonyms.find((x) => x.active);
+  const pseudoForThread = user.pseudonyms.find((x) => x.threads.includes(threadId));
+
+  if (pseudoForThread && activePseudo._id.toString() !== pseudoForThread._id.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You cannot post in this thread with your active pseudonym.');
+  }
+
+  if (!pseudoForThread) {
+    const newPseudonyms = user.pseudonyms.map((x) => {
+      if (x.active) {
+        x.threads.push(threadId);
+      }
+      return x;
+    });
+    user.pseudonyms.set(newPseudonyms);
+    user.markModified('pseudonyms');
+    user.save();
+  }
+
   const message = await Message.create({
     body: messageBody.body,
     thread,
@@ -60,7 +79,7 @@ const vote = async (messageId, direction, status, requestUser) => {
         throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.');
       }
     }
-} 
+  }
 
   if (status) {
     if (direction === 'up') {
@@ -70,15 +89,15 @@ const vote = async (messageId, direction, status, requestUser) => {
     }
   } else {
     if (direction === 'up') {
-      for (let x=0; x<message.upVotes.length; x++) {
+      for (let x = 0; x < message.upVotes.length; x++) {
         if (message.upVotes[x].owner.toString() === user._id.toString()) {
-          message.upVotes.id(message.upVotes[x]._id).remove();  
+          message.upVotes.id(message.upVotes[x]._id).remove();
         }
       }
     } else {
-      for (let x=0; x<message.downVotes.length; x++) {
+      for (let x = 0; x < message.downVotes.length; x++) {
         if (message.downVotes[x].owner.toString() === user._id.toString()) {
-          message.downVotes.id(message.downVotes[x]._id).remove();  
+          message.downVotes.id(message.downVotes[x]._id).remove();
         }
       }
     }
