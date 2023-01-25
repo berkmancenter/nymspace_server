@@ -21,6 +21,7 @@ const createMessage = async (messageBody, user) => {
   const pseudoForThread = user.pseudonyms.find((x) => x.threads.includes(threadId));
 
   if (pseudoForThread && activePseudo._id.toString() !== pseudoForThread._id.toString()) {
+    logger.error(`CANNOT POST - THREAD: ${pseudoForThread._id}, ACTIVE: ${activePseudo._id}`);
     throw new ApiError(httpStatus.BAD_REQUEST, 'You cannot post in this thread with your active pseudonym.');
   }
 
