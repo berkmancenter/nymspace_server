@@ -14,6 +14,10 @@ const onConnection = (socket) => {
   logger.info('Socket connecting.');
   registerMessageHandlers(io, socket);
   registerThreadHandlers(io, socket);
+
+  socket.on('error', (error) => {
+    logger.info('Socket error. %s', error);
+  });
 };
 
 io.on('connection', onConnection);
