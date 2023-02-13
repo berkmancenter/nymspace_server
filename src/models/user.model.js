@@ -24,6 +24,10 @@ const pseudonymSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  threads: {
+    type: [String],
+    default: [],
+  },
 });
 
 const userSchema = mongoose.Schema(
