@@ -5,10 +5,15 @@ const logger = require('../config/logger');
 
 module.exports = (io, socket) => {
   const createMessage = catchAsync(async (data) => {
-    logger.info('Creating message via socket for userId %s. Message text = "%s"', data.user._id, data.message.body);
+    logger.info(
+      'Creating message %s via socket for userId %s. Message text = "%s"',
+      data.request,
+      data.user._id,
+      data.message.body
+    );
     const message = await messageService.createMessage(data.message, data.user);
     message.owner = data.user._id;
-    io.in(message.thread._id.toString()).emit('message:new', message);
+    io.in(message.thread._id.toString()).emit('message:new', { ...message.toJSON(), request: data.request });
   });
 
   const joinThread = catchAsync(async (data) => {
