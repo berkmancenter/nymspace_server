@@ -11,9 +11,16 @@ module.exports = (io, socket) => {
       data.user._id,
       data.message.body
     );
-    const message = await messageService.createMessage(data.message, data.user);
-    message.owner = data.user._id;
-    io.in(message.thread._id.toString()).emit('message:new', { ...message.toJSON(), request: data.request });
+
+    try {
+      const message = await messageService.createMessage(data.message, data.user);
+      message.owner = data.user._id;
+
+      io.in(message.thread._id.toString()).emit('message:new', { ...message.toJSON(), request: data.request });
+    } catch (e) {
+      logger.info('createMessage error - request: %s, thread: %s, error: %s', data.request, data.message.thread, e);
+      io.in(data.message.thread).emit('message:new', { error: e.toString(), request: data.request });
+    }
   });
 
   const joinThread = catchAsync(async (data) => {
