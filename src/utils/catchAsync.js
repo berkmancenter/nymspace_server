@@ -1,7 +1,11 @@
-const catchAsync = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch((err) => {
+const WebsocketError = require('./WebsocketError');
+
+const catchAsync = (fn) => (req, data, next) => {
+  Promise.resolve(fn(req, data, next)).catch((err) => {
+    const websocketError = new WebsocketError(err, data);
+
     if (next) {
-      next(err);
+      next(websocketError);
     }
   });
 };

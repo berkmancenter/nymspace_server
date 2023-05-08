@@ -3,6 +3,11 @@ const { checkAuth } = require('./utils');
 const logger = require('../config/logger');
 
 module.exports = (io, socket) => {
+  const joinUser = catchAsync(async (data) => {
+    logger.info('Joining user via socket. UserId = %s', data.user._id);
+    socket.join(data.userId.toString());
+  });
+
   const joinTopic = catchAsync(async (data) => {
     logger.info('Joining topic via socket. TopicId = %s', data.topicId);
     socket.join(data.topicId.toString());
@@ -13,6 +18,7 @@ module.exports = (io, socket) => {
     checkAuth(event, args, next);
   });
 
+  socket.on('user:join', joinUser);
   socket.on('topic:join', joinTopic);
   socket.on('topic:disconnect', () => {
     logger.info('Socket disconnecting from topic.');
