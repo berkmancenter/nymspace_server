@@ -4,16 +4,12 @@ const { User } = require('../models');
 const catchAsync = require('../utils/catchAsync');
 
 const checkAuth = catchAsync(async (event, args, next) => {
-    try {
-      const payload = jwt.verify(args.token, config.jwt.secret);
-      args.user = await User.findById(payload.sub);
-    } catch (e) {
-      return;
-    }
+  const payload = jwt.verify(args.token, config.jwt.secret);
+  args.user = await User.findById(payload.sub);
 
-    next();
-  });
+  next();
+});
 
-  module.exports = {
-      checkAuth,
-  }
+module.exports = {
+  checkAuth,
+};
