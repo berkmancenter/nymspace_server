@@ -2,6 +2,7 @@ const request = require('supertest');
 const faker = require('faker');
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
@@ -9,9 +10,7 @@ const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixtu
 const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture');
 const { insertMessages, messageOne } = require('../fixtures/message.fixture');
 const userService = require('../../src/services/user.service');
-const bcrypt = require('bcrypt');
 const config = require('../../src/config/config');
-
 
 const createPseudo = () => {
   return {
@@ -180,7 +179,7 @@ describe('User routes', () => {
       const user = await User.findById(registeredUser._id);
       expect(user.email).toEqual(email);
       expect(user.username).toEqual(username);
-      let match = await bcrypt.compare(password, user.password)
+      const match = await bcrypt.compare(password, user.password);
       expect(match).toBe(true);
     });
 
