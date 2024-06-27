@@ -4,3 +4,5 @@ services:
   node-app:
     container_name: node-app-dev
     command: yarn && yarn dev -L
+    env_file:
+      - .env.local
