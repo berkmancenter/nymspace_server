@@ -2,7 +2,8 @@ const dotenv = require('dotenv');
 const path = require('path');
 const Joi = require('joi');
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+const env = process.env.NODE_ENV === 'development' ? '.env.local' : '.env';
+dotenv.config({ path: path.join(__dirname, `../../${env}`) });
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -22,7 +23,9 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     APP_HOST: Joi.string().description('the host url for the frontend app'),
-    TRULY_RANDOM_PSEUDONYMS: Joi.string().default('false').description('true/false if pseudonyms are made truly random with UID'),
+    TRULY_RANDOM_PSEUDONYMS: Joi.string()
+      .default('false')
+      .description('true/false if pseudonyms are made truly random with UID'),
     DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
   })
   .unknown();
@@ -59,8 +62,8 @@ module.exports = {
         pass: envVars.SMTP_PASSWORD,
       },
       tls: {
-	rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     },
     from: envVars.EMAIL_FROM,
   },

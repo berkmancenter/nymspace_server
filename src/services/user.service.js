@@ -1,13 +1,13 @@
 const httpStatus = require('http-status');
 const crypto = require('crypto');
 const { uniqueNamesGenerator } = require('unique-names-generator');
+const bcrypt = require('bcryptjs');
+const { uid } = require('uid');
 const { User } = require('../models');
 const { Message } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries');
-const bcrypt = require('bcrypt');
 const logger = require('../config/logger');
-const { uid } = require('uid');
 const config = require('../config/config');
 
 const tokenKey = 'greenheron';
@@ -29,9 +29,8 @@ const hashPassword = async (password) => {
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  let hash = undefined;
-  if (userBody.password)
-    hash = await hashPassword(userBody.password);
+  let hash;
+  if (userBody.password) hash = await hashPassword(userBody.password);
   let user = {
     username: userBody.username,
     password: hash,
@@ -44,8 +43,7 @@ const createUser = async (userBody) => {
       },
     ],
   };
-  if (userBody.email)
-    user.email = userBody.email;
+  if (userBody.email) user.email = userBody.email;
   user = await User.create(user);
   return user;
 };
@@ -174,8 +172,7 @@ const getUserByUsernamePassword = async (username, password) => {
   const user = await getUserByUsername(username);
   if (user) {
     const match = await bcrypt.compare(password, user.password);
-    if (match)
-      return user;
+    if (match) return user;
   }
   return null;
 };
@@ -194,7 +191,7 @@ const getUserByUsername = async (username) => {
  * @param {String} email
  * @returns {Promise<User>}
  */
- const getUserByEmail = async (email) => {
+const getUserByEmail = async (email) => {
   return User.findOne({ email });
 };
 
@@ -241,7 +238,7 @@ const newToken = () => {
   });
 
   const algorithm = 'aes256';
-  const key = tokenKey.repeat(32).substring(0, 32)
+  const key = tokenKey.repeat(32).substring(0, 32);
   const iv = tokenKey.repeat(16).substring(0, 16);
 
   const cipher = crypto.createCipheriv(algorithm, key, iv);
@@ -273,7 +270,7 @@ const newPseudonym = async (recursionIndex) => {
   } else {
     // Returns truly random pseudo. Example: Woodpecker_e65ddfe1d20
     pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymNouns], length: 1 });
-    pseudo = pseudo.charAt(0).toUpperCase() + pseudo.slice(1);       
+    pseudo = pseudo.charAt(0).toUpperCase() + pseudo.slice(1);
     pseudo = `${pseudo}_${uid()}`;
   }
 
@@ -291,7 +288,7 @@ const isTokenGeneratedByThreads = (password) => {
   let decryptedParsed = {};
   try {
     const algorithm = 'aes256';
-    const key = tokenKey.repeat(32).substring(0, 32)
+    const key = tokenKey.repeat(32).substring(0, 32);
     const iv = tokenKey.repeat(16).substring(0, 16);
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
@@ -330,7 +327,7 @@ const goodReputation = async (user) => {
   const reputationScore = totalUpVotes - totalDownVotes;
   // Calculate days since account creation
   const today = new Date();
-  const createdDate = new Date(user.createdAt); 
+  const createdDate = new Date(user.createdAt);
   const days = Math.round((today - createdDate) / 86400000);
   // Good reputation is a combined total of message votes exceeding -5,
   // and an account more than 1 day old.
