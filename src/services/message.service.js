@@ -48,6 +48,8 @@ const createMessage = async (messageBody, user) => {
   thread.messages.push(message.toObject());
   thread.save();
 
+  const messages = await Message.find({ thread: threadId });
+  message.count = messages.length;
   return message;
 };
 
