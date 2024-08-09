@@ -22,13 +22,18 @@ module.exports = (io, socket) => {
     try {
       const message = await messageService.createMessage(data.message, data.user);
       message.owner = data.user._id;
-  
-      io.in(message.thread._id.toString()).emit('message:new', { ...message.toJSON(), request: data.request });
+
+      message.thread.messages = [];
+
+      io.in(message.thread._id.toString()).emit('message:new', {
+        ...message.toJSON(),
+        count: message.count,
+        request: data.request,
+      });
     } catch (err) {
       logger.error('Error creating message via socket - %s', err.message);
       // throw new WebsocketError('message:create', data.user._id, err.message);
     }
-    
   };
 
   const joinThread = catchAsync(async (data) => {
@@ -57,12 +62,12 @@ module.exports = (io, socket) => {
       logger.error('Socket error - %s', err.message);
     }
   });
+
   socket.on('message:create', createMessage);
   socket.on('thread:join', joinThread);
   socket.on('thread:disconnect', () => {
     logger.info('Socket disconnecting from thread.');
     socket.disconnect(true);
   });
-  socket.on('disconnect', () => {
-  });
+  socket.on('disconnect', () => {});
 };
