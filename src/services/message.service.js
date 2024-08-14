@@ -34,7 +34,7 @@ const createMessage = async (messageBody, user) => {
     });
     user.pseudonyms.set(newPseudonyms);
     user.markModified('pseudonyms');
-    user.save();
+    await user.save();
   }
 
   const message = await Message.create({
@@ -46,7 +46,7 @@ const createMessage = async (messageBody, user) => {
   });
 
   thread.messages.push(message.toObject());
-  thread.save();
+  await thread.save();
 
   const messages = await Message.find({ thread: threadId });
   message.count = messages.length;
