@@ -1,17 +1,25 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { threadService } = require('../services');
-const { io } = require('../websockets/index');
+const { worker } = require('../websockets/index');
 
 const createThread = catchAsync(async (req, res) => {
   const thread = await threadService.createThread(req.body, req.user);
-  io.in(thread.topic._id.toString()).emit('thread:new', thread);
+  worker.send({
+    thread: thread.topic._id.toString(),
+    event: 'thread:new',
+    message: thread,
+  });
   res.status(httpStatus.CREATED).send(thread);
 });
 
 const updateThread = catchAsync(async (req, res) => {
   const thread = await threadService.updateThread(req.body, req.user);
-  io.in(thread.topic._id.toString()).emit('thread:update', thread);
+  worker.send({
+    thread: thread.topic._id.toString(),
+    event: 'thread:update',
+    message: thread,
+  });
   res.status(httpStatus.OK).send(thread);
 });
 
