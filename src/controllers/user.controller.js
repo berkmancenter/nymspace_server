@@ -1,45 +1,58 @@
 const httpStatus = require('http-status');
-const crypto = require('crypto');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
   res.status(httpStatus.CREATED).send(user);
 });
 
+const updateUser = catchAsync(async (req, res) => {
+  const user = await userService.updateUser(req.body);
+  user.goodReputation = await userService.goodReputation(user);
+  res.status(httpStatus.OK).send(user);
+});
+
 const getUser = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  if (req.params.userId !== req.user.id) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User can only request their own details');
   }
+  const user = await userService.getUserById(req.params.userId);
+  user.goodReputation = await userService.goodReputation(user);
   res.send(user);
 });
 
-const newToken = catchAsync(async (req, res) => {
-  const currentDate = new Date().valueOf().toString();
-  const random = Math.random().toString();
-  const result = crypto
-    .createHash('sha256')
-    .update(currentDate + random)
-    .digest('hex');
+const getPseudonyms = catchAsync(async (req, res) => {
+  const user = await userService.getUserById(req.user);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  res.send(user.pseudonyms.filter((x) => !x.isDeleted));
+});
 
-  const data = JSON.stringify({
-    token: result,
-  });
+const addPseudonym = catchAsync(async (req, res) => {
+  const user = await userService.addPseudonym(req.body, req.user);
+  res.status(httpStatus.CREATED).send(user.pseudonyms.filter((x) => !x.isDeleted));
+});
 
-  const algorithm = 'aes256';
-  const key = 'password';
+const deletePseudonym = catchAsync(async (req, res) => {
+  await userService.deletePseudonym(req.params.pseudonymId, req.user);
+  res.status(httpStatus.OK).send();
+});
 
-  const cipher = crypto.createCipher(algorithm, key);
-  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
-
-  res.send(encrypted);
+const activatePseudonym = catchAsync(async (req, res) => {
+  const user = await userService.activatePseudonym(req.body, req.user);
+  res.status(httpStatus.OK).send(user.pseudonyms.filter((x) => !x.isDeleted));
 });
 
 module.exports = {
   createUser,
+  updateUser,
   getUser,
-  newToken,
+  addPseudonym,
+  activatePseudonym,
+  getPseudonyms,
+  deletePseudonym,
 };

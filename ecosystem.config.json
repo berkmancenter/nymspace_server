@@ -1,12 +1,12 @@
 {
   "apps": [
     {
-      "name": "app",
+      "name": "threads-api",
       "script": "src/index.js",
-      "instances": 1,
+      "exec_mode": "cluster",
+      "instances": "max",
       "autorestart": true,
       "watch": false,
-      "time": true,
       "env": {
         "NODE_ENV": "production"
       }

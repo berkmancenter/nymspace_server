@@ -94,10 +94,36 @@ const generateVerifyEmailToken = async (user) => {
   return verifyEmailToken;
 };
 
+/**
+ * Generate password reset token
+ * @param {User} user
+ * @returns {Promise<string>}
+ */
+const generatePasswordResetToken = async (user) => {
+  const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
+  const resetToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD);
+  await saveToken(resetToken, user.id, expires, tokenTypes.RESET_PASSWORD);
+  return resetToken;
+};
+
+/**
+ * Generate archive topic token
+ * @param {User} user
+ * @returns {Promise<string>}
+ */
+const generateArchiveTopicToken = async (user) => {
+  const expires = moment().add(7, 'days');
+  const archiveTopicToken = await generateToken(user.id, expires, tokenTypes.ARCHIVE_TOPIC);
+  await saveToken(archiveTopicToken, user.id, expires, tokenTypes.ARCHIVE_TOPIC);
+  return archiveTopicToken;
+};
+
 module.exports = {
   generateToken,
   saveToken,
   verifyToken,
   generateAuthTokens,
   generateVerifyEmailToken,
+  generateArchiveTopicToken,
+  generatePasswordResetToken,
 };

@@ -17,6 +17,7 @@ services:
       - node-network
 
   mongodb:
+    platform: linux/x86_64
     image: mongo:3.2.19
     ports:
       - '27017:27017'

@@ -14,17 +14,23 @@ const threadSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    locked: {
+      type: Boolean,
+      default: false,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: true,
+      private: false,
     },
     topic: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Topic',
       required: true,
     },
+    messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
   },
   {
     timestamps: true,

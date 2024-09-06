@@ -14,12 +14,51 @@ const topicSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    votingAllowed: {
+      type: Boolean,
+      required: true,
+    },
+    threadCreationAllowed: {
+      type: Boolean,
+      required: true,
+    },
+    private: {
+      type: Boolean,
+      required: true,
+    },
+    passcode: {
+      type: Number,
+      private: true,
+    },
+    archivable: {
+      type: Boolean,
+      required: true,
+    },
+    archived: {
+      type: Boolean,
+      default: false,
+      private: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      private: true,
+    },
+    isArchiveNotified: {
+      type: Boolean,
+      default: false,
+      private: true,
+    },
+    archiveEmail: {
+      type: String,
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: true,
     },
+    threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
   },
   {
     timestamps: true,

@@ -4,6 +4,9 @@ const userService = require('./user.service');
 const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
+const emailService = require('./email.service');
+const User = require('../models/user.model');
+const logger = require('../config/logger');
 
 /**
  * Login with username and password
@@ -11,10 +14,10 @@ const { tokenTypes } = require('../config/tokens');
  * @param {string} password
  * @returns {Promise<User>}
  */
-const loginUserWithPassword = async (password) => {
-  const user = await userService.getUserByPassword(password);
+const loginUser = async (loginBody) => {
+  const user = await userService.getUserByUsernamePassword(loginBody.username, loginBody.password);
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect password');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect credentials');
   }
   return user;
 };
@@ -51,8 +54,46 @@ const refreshAuth = async (refreshToken) => {
   }
 };
 
+/**
+ * Send a password reset email to user
+ * @param {string} email
+ * @returns {Promise}
+ */
+const sendPasswordReset = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user || !user.email) {
+    return;
+  }
+  const resetToken = await tokenService.generatePasswordResetToken(user);
+  emailService.sendPasswordResetEmail(user.email, resetToken, (err, info) => {
+    if (err) {
+      logger.error(`Error occurred sending password reset email: ${err.message}`);
+      return;
+    }
+    logger.info(`Password reset email sent successfully to ${user.email}. Response: ${info.response}`);
+  });
+};
+
+/**
+ * Resets a user's password
+ * @param {string} email
+ * @returns {Promise}
+ */
+const resetPassword = async (token, password) => {
+  const tokenDoc = await tokenService.verifyToken(token, tokenTypes.RESET_PASSWORD);
+  const user = await User.findById(tokenDoc.user);
+  if (!user) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found');
+  }
+  user.password = await userService.hashPassword(password);
+  await user.save();
+  await Token.deleteOne({ _id: tokenDoc._id });
+};
+
 module.exports = {
-  loginUserWithPassword,
+  loginUser,
   logout,
   refreshAuth,
+  sendPasswordReset,
+  resetPassword,
 };

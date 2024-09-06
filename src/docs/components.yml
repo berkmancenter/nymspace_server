@@ -1,23 +1,80 @@
 components:
   schemas:
+
+    Vote:
+      type: object 
+      properties:
+        _id:
+          type: string
+        owner:
+          type: string
+
+    Message:
+      type: object 
+      properties:
+        id:
+          type: string
+        body:
+          type: string
+        owner:
+          type: string
+        thread:
+          type: string
+        upVotes:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Vote'
+        downVotes:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Vote'
+        pseuodonym:
+          type: string
+        pseuodonymId:
+          type: string
+
+    Pseudonym:
+      type: object 
+      properties:
+        _id:
+          type: string
+        token:
+          type: string
+        pseudonym:
+          type: string
+        active:
+          type: boolean
+
     User:
       type: object
       properties:
         id:
           type: string
-        email:
-          type: string
-          format: email
-        name:
+        username:
           type: string
         role:
           type: string
           enum: [user, admin]
+        goodReputation:
+          type: boolean
+        createdAt:
+          type: date
+        email:
+          type: string
+        pseudonyms:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Pseudonym'
       example:
         id: 5ebac534954b54139806c112
+        username: fakejake
         email: fake@example.com
-        name: fake name
         role: user
+        goodReputation: true
+        createdAt: 2021-11-30T01:51:01.639Z
+        pseudonyms:  
+          - token: b019d20aa74a16c8c68701cc2937c8a76bc6cdc6247d51cf80bb3d1f27f6ac3f9dec9c0dbe80543f8d2c40428c84576cc3a644668be5b3156be070f57be0521a13c3f6f42a8d2c8ef13f92e092236f4e
+            pseudonym: Profound Red Rattlesnake
 
     Token:
       type: object
@@ -46,6 +103,66 @@ components:
           type: number
         message:
           type: string
+
+    Topic:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          required: true
+        slug:
+          type: string
+        votingAllowed:
+          type: boolean
+        threadCreationAllowed:
+          type: boolean
+        private:
+          type: boolean
+          required: true
+        archivable:
+          type: boolean
+          required: true
+        archiveEmail:
+          type: string
+          required: true
+        owner:
+          type
+        createdAt:
+          type: date
+        updatedAt:
+          type: date
+      example:
+        id: 61b7ea6aa771004e80ed4409
+        name: favorite dogs
+        slug: favorite-dogs
+        votingAllowed: true
+        threadCreationAllowed: true
+        private: false
+        archivable: true
+        createdAt: 2021-11-30T01:51:01.639Z
+        updatedAt: 2021-11-30T01:51:01.639Z
+
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        locked:
+          type: boolean
+        messageCount:
+          type: number
+      example:
+        id: 61b0ffca7d4eb20ee9dcfe8c
+        name: my favorite dog is Rottweiler
+        slug: my-favorite-dog-is-Rottweiler
+        locked: false
+        messageCount: 5
 
   responses:
     DuplicateEmail:

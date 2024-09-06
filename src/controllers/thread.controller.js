@@ -1,10 +1,26 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { threadService } = require('../services');
+const { worker } = require('../websockets/index');
 
 const createThread = catchAsync(async (req, res) => {
   const thread = await threadService.createThread(req.body, req.user);
+  worker.send({
+    thread: thread.topic._id.toString(),
+    event: 'thread:new',
+    message: thread,
+  });
   res.status(httpStatus.CREATED).send(thread);
+});
+
+const updateThread = catchAsync(async (req, res) => {
+  const thread = await threadService.updateThread(req.body, req.user);
+  worker.send({
+    thread: thread.topic._id.toString(),
+    event: 'thread:update',
+    message: thread,
+  });
+  res.status(httpStatus.OK).send(thread);
 });
 
 const userThreads = catchAsync(async (req, res) => {
@@ -33,17 +49,13 @@ const allPublic = catchAsync(async (req, res) => {
 });
 
 const deleteThread = catchAsync(async (req, res) => {
-  const thread = await threadService.deleteThread(req.params.threadId, req.user, res);
-
-  if (thread.errorCode) {
-    return res.status(thread.errorCode).send(thread.message);
-  }
-
-  res.status(httpStatus.OK).send(thread);
+  await threadService.deleteThread(req.params.threadId, req.user);
+  res.status(httpStatus.OK).send();
 });
 
 module.exports = {
   createThread,
+  updateThread,
   userThreads,
   getThread,
   getTopicThreads,

@@ -1,5 +1,14 @@
+const { string } = require('joi');
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
+
+const voteSchema = mongoose.Schema({
+  owner: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: 'User',
+    required: false,
+  },
+});
 
 const messageSchema = mongoose.Schema(
   {
@@ -16,6 +25,20 @@ const messageSchema = mongoose.Schema(
     thread: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Thread',
+      required: true,
+    },
+    upVotes: {
+      type: [voteSchema],
+    },
+    downVotes: {
+      type: [voteSchema],
+    },
+    pseudonym: {
+      type: String,
+      required: true,
+    },
+    pseudonymId: {
+      type: mongoose.SchemaTypes.ObjectId,
       required: true,
     },
   },

@@ -18,25 +18,57 @@ if (config.env !== 'test') {
  * @param {string} text
  * @returns {Promise}
  */
-const sendEmail = async (to, subject, text) => {
-  const msg = { from: config.email.from, to, subject, text };
+const sendEmailAsync = async (to, subject, text, html) => {
+  const msg = { from: config.email.from, to, subject, text, html };
   await transport.sendMail(msg);
 };
 
 /**
- * Send reset password email
+ * Send an email
+ * @param {string} to
+ * @param {string} subject
+ * @param {string} text
+ * @returns {Promise}
+ */
+const sendEmail = (to, subject, text, html, callback) => {
+  const msg = { from: config.email.from, to, subject, text, html };
+  transport.sendMail(msg, callback);
+};
+
+/**
+ * Send password reset email asynchronously
  * @param {string} to
  * @param {string} token
  * @returns {Promise}
  */
-const sendResetPasswordEmail = async (to, token) => {
+const sendPasswordResetEmailAsync = async (to, token) => {
   const subject = 'Reset password';
-  // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;
+  const resetPasswordUrl = `${config.appHost}/reset-password?token=${token}`;
   const text = `Dear user,
-To reset your password, click on this link: ${resetPasswordUrl}
-If you did not request any password resets, then ignore this email.`;
-  await sendEmail(to, subject, text);
+  To reset your password, copy and paste this link in your browser: ${resetPasswordUrl}
+  If you did not request any password resets, please ignore this email.`;
+  const html = `<p>Dear Threads user,</p>
+  <p>To reset your password, please <a href="${resetPasswordUrl}">click here</a>.</p>
+  <p>If you did not request any password resets, please ignore this email.</p>`;
+  await sendEmailAsync(to, subject, text, html);
+};
+
+/**
+ * Send password reset email synchronously
+ * @param {string} to
+ * @param {string} token
+ * @returns {Promise}
+ */
+const sendPasswordResetEmail = (to, token, callback) => {
+  const subject = 'Reset password';
+  const resetPasswordUrl = `${config.appHost}/reset-password?token=${token}`;
+  const text = `Dear user,
+  To reset your password, copy and paste this link in your browser: ${resetPasswordUrl}
+  If you did not request any password resets, please ignore this email.`;
+  const html = `<p>Dear Threads user,</p>
+  <p>To reset your password, please <a href="${resetPasswordUrl}">click here</a>.</p>
+  <p>If you did not request any password resets, please ignore this email.</p>`;
+  sendEmail(to, subject, text, html, callback);
 };
 
 /**
@@ -45,19 +77,42 @@ If you did not request any password resets, then ignore this email.`;
  * @param {string} token
  * @returns {Promise}
  */
-const sendVerificationEmail = async (to, token) => {
-  const subject = 'Email Verification';
-  // replace this url with the link to the email verification page of your front-end app
-  const verificationEmailUrl = `http://link-to-app/verify-email?token=${token}`;
-  const text = `Dear user,
-To verify your email, click on this link: ${verificationEmailUrl}
-If you did not create an account, then ignore this email.`;
-  await sendEmail(to, subject, text);
+// const sendVerificationEmail = async (to, token) => {
+//   const subject = 'Email Verification';
+//   // replace this url with the link to the email verification page of your front-end app
+//   const verificationEmailUrl = `${config.appHost}/verify-email?token=${token}`;
+//   const text = `Dear user,
+// To verify your email, click on this link: ${verificationEmailUrl}
+// If you did not create an account, then ignore this email.`;
+//   await sendEmailAsync(to, subject, text);
+// };
+
+/**
+ * Send email to user for channel archiving
+ * @param {string} to
+ * @param {Topic} topic
+ * @param {string} token
+ * @returns {Promise}
+ */
+const sendArchiveTopicEmail = async (to, topic, token) => {
+  const subject = 'Archiving Your Threads Channel';
+  // replace this url with the link to the archive topic page of your front-end app
+  const archivalUrl = `${config.appHost}/archive-topic?topicId=${topic._id}&token=${token}`;
+  const text = `Dear Threads user,
+Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.
+To prevent archival and keep your channel on Threads, please copy and paste this link in your browser: ${archivalUrl}`;
+  const html = `<p>Dear user,</p>
+<p>Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.</p>
+<p>To prevent archival and keep your channel on Threads, please <a href="${archivalUrl}">click here</a>.</p>`;
+  await sendEmailAsync(to, subject, text, html);
 };
 
 module.exports = {
   transport,
   sendEmail,
-  sendResetPasswordEmail,
-  sendVerificationEmail,
+  sendEmailAsync,
+  sendPasswordResetEmail,
+  sendPasswordResetEmailAsync,
+  //sendVerificationEmail,
+  sendArchiveTopicEmail,
 };
