@@ -1,10 +1,10 @@
-const express = require('express');
-const validate = require('../../middlewares/validate');
-const authValidation = require('../../validations/auth.validation');
-const authController = require('../../controllers/auth.controller');
-const auth = require('../../middlewares/auth');
+const express = require('express')
+const validate = require('../../middlewares/validate')
+const authValidation = require('../../validations/auth.validation')
+const authController = require('../../controllers/auth.controller')
+const auth = require('../../middlewares/auth')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ const router = express.Router();
  *                 pseudonym:
  *                   type: string
  */
-router.route('/newPseudonym').get(authController.newPseudonym);
+router.route('/newPseudonym').get(authController.newPseudonym)
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ router.route('/newPseudonym').get(authController.newPseudonym);
  *               type: object
  *               $ref: '#/components/schemas/User'
  */
-router.post('/register', validate(authValidation.register), authController.register);
+router.post('/register', validate(authValidation.register), authController.register)
 
 /**
  * @swagger
@@ -100,10 +100,10 @@ router.post('/register', validate(authValidation.register), authController.regis
  *               type: object
  *               $ref: '#/components/schemas/User'
  */
-router.post('/login', validate(authValidation.login), authController.login);
-router.post('/logout', validate(authValidation.logout), authController.logout);
-router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens);
-router.route('/ping').get(auth('ping'), authController.ping);
+router.post('/login', validate(authValidation.login), authController.login)
+router.post('/logout', validate(authValidation.logout), authController.logout)
+router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens)
+router.route('/ping').get(auth('ping'), authController.ping)
 
 /**
  * @swagger
@@ -126,7 +126,7 @@ router.route('/ping').get(auth('ping'), authController.ping);
  *       204:
  *         description: no content
  */
-router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authController.sendPasswordReset);
+router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authController.sendPasswordReset)
 
 /**
  * @swagger
@@ -151,6 +151,6 @@ router.post('/forgotPassword', validate(authValidation.sendPasswordReset), authC
  *       204:
  *         description: no content
  */
-router.post('/resetPassword', validate(authValidation.resetPassword), authController.resetPassword);
+router.post('/resetPassword', validate(authValidation.resetPassword), authController.resetPassword)
 
-module.exports = router;
+module.exports = router

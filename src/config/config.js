@@ -1,9 +1,9 @@
-const dotenv = require('dotenv');
-const path = require('path');
-const Joi = require('joi');
+const dotenv = require('dotenv')
+const path = require('path')
+const Joi = require('joi')
 
-const env = process.env.NODE_ENV === 'development' ? '.env.local' : '.env';
-dotenv.config({ path: path.join(__dirname, `../../${env}`) });
+const env = process.env.NODE_ENV === 'development' ? '.env.local' : '.env'
+dotenv.config({ path: path.join(__dirname, `../../${env}`) })
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -26,14 +26,14 @@ const envVarsSchema = Joi.object()
     TRULY_RANDOM_PSEUDONYMS: Joi.string()
       .default('false')
       .description('true/false if pseudonyms are made truly random with UID'),
-    DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
+    DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation')
   })
-  .unknown();
+  .unknown()
 
-const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
+const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env)
 
 if (error) {
-  throw new Error(`Config validation error: ${error.message}`);
+  throw new Error(`Config validation error: ${error.message}`)
 }
 
 module.exports = {
@@ -44,14 +44,14 @@ module.exports = {
     options: {
       useCreateIndex: true,
       useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+      useUnifiedTopology: true
+    }
   },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
-    resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
+    resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES
   },
   email: {
     smtp: {
@@ -59,18 +59,18 @@ module.exports = {
       port: envVars.SMTP_PORT,
       auth: {
         user: envVars.SMTP_USERNAME,
-        pass: envVars.SMTP_PASSWORD,
+        pass: envVars.SMTP_PASSWORD
       },
       tls: {
-        rejectUnauthorized: false,
-      },
+        rejectUnauthorized: false
+      }
     },
-    from: envVars.EMAIL_FROM,
+    from: envVars.EMAIL_FROM
   },
   auth: {
-    authTokenSecret: envVars.AUTH_TOKEN_SECRET,
+    authTokenSecret: envVars.AUTH_TOKEN_SECRET
   },
   appHost: envVars.APP_HOST,
   trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
-  DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION,
-};
+  DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION
+}

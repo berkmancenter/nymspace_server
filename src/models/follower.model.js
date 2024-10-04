@@ -1,34 +1,34 @@
-const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const mongoose = require('mongoose')
+const { toJSON, paginate } = require('./plugins')
 
 const schema = mongoose.Schema(
   {
     user: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
-      required: true,
+      required: true
     },
     thread: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Thread',
+      ref: 'Thread'
     },
     topic: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Topic',
-    },
+      ref: 'Topic'
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
-);
+)
 
 // add plugin that converts mongoose to json
-schema.plugin(toJSON);
-schema.plugin(paginate);
+schema.plugin(toJSON)
+schema.plugin(paginate)
 
 /**
  * @typedef Follower
  */
-const Follower = mongoose.model('Follower', schema);
+const Follower = mongoose.model('Follower', schema)
 
-module.exports = Follower;
+module.exports = Follower

@@ -2,7 +2,7 @@
 
 ## Description
 
-This is the backend API for [berkmancenter/threads_client](https://github.com/berkmancenter/threads_client).
+This is the backend API for [berkmancenter/nymspace_client](https://github.com/berkmancenter/nymspace_client).
 
 ## Installation
 
@@ -34,17 +34,17 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 ## Running locally
 
-1. Start by copying `.env.example` to `.env`.
+1. Start by copying `.env.example` to `.env.local`.
 2. Install `mongodb`
 3. Run MongoDB with `mongod`
-4. Install all dependencies with `npm install`.
-5. Run `npm run dev` to serve the API locally.
+4. Install all dependencies with `yarn`.
+5. Run `yarn run dev` to serve the API locally.
 
 ## Tests
 
 ### Unit and integration tests
 
-Unit and integration tests can be run with `npm run test`, and a coverage report can be seen with `npm run coverage`.
+Unit and integration tests can be run with `yarn run test`, and a coverage report can be seen with `yarn run coverage`.
 
 ### Stress tests
 
@@ -54,4 +54,4 @@ Stress tests can be run from the client repo in the [k6 directory](https://githu
 
 1. Pull the latest code from Github (currently the dev branch)
 2. Configure .env and install dependencies
-3. Run `npm run start` to serve the API with [PM2](https://pm2.keymetrics.io/docs/usage/process-management/)
+3. Run `yarn run start` to serve the API with [PM2](https://pm2.keymetrics.io/docs/usage/process-management/)

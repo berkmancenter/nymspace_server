@@ -1,10 +1,10 @@
-const express = require('express');
-const userController = require('../../controllers/user.controller');
-const userValidation = require('../../validations/user.validation');
-const validate = require('../../middlewares/validate');
-const auth = require('../../middlewares/auth');
+const express = require('express')
+const userController = require('../../controllers/user.controller')
+const userValidation = require('../../validations/user.validation')
+const validate = require('../../middlewares/validate')
+const auth = require('../../middlewares/auth')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -35,7 +35,7 @@ const router = express.Router();
  *               type: object
  *               $ref: '#/components/schemas/User'
  */
-router.route('/user/:userId').get(auth('getUser'), userController.getUser);
+router.route('/user/:userId').get(auth('getUser'), userController.getUser)
 
 // Removing this route, since user creation is handled by the auth register route
 // router.post('/', validate(userValidation.createUser), userController.createUser);
@@ -73,7 +73,7 @@ router.route('/user/:userId').get(auth('getUser'), userController.getUser);
  *               type: object
  *               $ref: '#/components/schemas/User'
  */
-router.put('/', auth('manageAccount'), validate(userValidation.updateUser), userController.updateUser);
+router.put('/', auth('manageAccount'), validate(userValidation.updateUser), userController.updateUser)
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ router.put('/', auth('manageAccount'), validate(userValidation.updateUser), user
  *                 $ref: '#/components/schemas/Pseudonym'
  *
  */
-router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseudonyms);
+router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseudonyms)
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.route('/pseudonyms').get(auth('managePseudonym'), userController.getPseud
  *                 type: object
  *                 $ref: '#/components/schemas/Pseudonym'
  */
-router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseudonym);
+router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseudonym)
 
 /**
  * @swagger
@@ -157,7 +157,7 @@ router.route('/pseudonyms').post(auth('managePseudonym'), userController.addPseu
  *                 type: object
  *                 $ref: '#/components/schemas/Pseudonym'
  */
-router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController.activatePseudonym);
+router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController.activatePseudonym)
 
 /**
  * @swagger
@@ -179,6 +179,6 @@ router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController
  *                 $ref: '#/components/schemas/User'
  *
  */
-router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym);
+router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym)
 
-module.exports = router;
+module.exports = router

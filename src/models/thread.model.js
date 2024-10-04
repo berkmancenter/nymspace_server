@@ -1,55 +1,55 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
-const { toJSON, paginate } = require('./plugins');
+const mongoose = require('mongoose')
+const slugify = require('slugify')
+const { toJSON, paginate } = require('./plugins')
 
 const threadSchema = mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
     slug: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
     locked: {
       type: Boolean,
-      default: false,
+      default: false
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: false,
+      private: false
     },
     topic: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Topic',
-      required: true,
+      required: true
     },
     messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
-    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
   },
   {
-    timestamps: true,
+    timestamps: true
   }
-);
+)
 
 // add plugin that converts mongoose to json
-threadSchema.plugin(toJSON);
-threadSchema.plugin(paginate);
+threadSchema.plugin(toJSON)
+threadSchema.plugin(paginate)
 
 threadSchema.pre('validate', function (next) {
-  const thread = this;
-  thread.slug = slugify(thread.name);
-  next();
-});
+  const thread = this
+  thread.slug = slugify(thread.name)
+  next()
+})
 
 /**
  * @typedef Thread
  */
-const Thread = mongoose.model('Thread', threadSchema);
+const Thread = mongoose.model('Thread', threadSchema)
 
-module.exports = Thread;
+module.exports = Thread

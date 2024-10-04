@@ -1,10 +1,10 @@
-const express = require('express');
-const threadsController = require('../../controllers/thread.controller');
-const auth = require('../../middlewares/auth');
-const threadValidation = require('../../validations/thread.validation');
-const validate = require('../../middlewares/validate');
+const express = require('express')
+const threadsController = require('../../controllers/thread.controller')
+const auth = require('../../middlewares/auth')
+const threadValidation = require('../../validations/thread.validation')
+const validate = require('../../middlewares/validate')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -13,7 +13,7 @@ const router = express.Router();
  *   description: Manage application Threads
  */
 
-router.route('/').post(auth('createThread'), threadsController.createThread);
+router.route('/').post(auth('createThread'), threadsController.createThread)
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ router.route('/').post(auth('createThread'), threadsController.createThread);
  *                 type: object
  *                 $ref: '#/components/schemas/Thread'
  */
-router.route('/').get(auth('publicThreads'), threadsController.allPublic);
+router.route('/').get(auth('publicThreads'), threadsController.allPublic)
 
 /**
  * @swagger
@@ -55,8 +55,8 @@ router.route('/').get(auth('publicThreads'), threadsController.allPublic);
  *                 type: object
  *                 $ref: '#/components/schemas/Thread'
  */
-router.route('/userThreads').get(auth('userThreads'), threadsController.userThreads);
-router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
+router.route('/userThreads').get(auth('userThreads'), threadsController.userThreads)
+router.route('/:threadId').get(auth('getThread'), threadsController.getThread)
 
 /**
  * @swagger
@@ -84,8 +84,8 @@ router.route('/:threadId').get(auth('getThread'), threadsController.getThread);
  *                 type: object
  *                 $ref: '#/components/schemas/Thread'
  */
-router.route('/topic/:topicId').get(auth('topicThreads'), threadsController.getTopicThreads);
-router.route('/follow').post(auth('followThread'), threadsController.follow);
+router.route('/topic/:topicId').get(auth('topicThreads'), threadsController.getTopicThreads)
+router.route('/follow').post(auth('followThread'), threadsController.follow)
 
 /**
  * @swagger
@@ -112,7 +112,7 @@ router.route('/follow').post(auth('followThread'), threadsController.follow);
  *               $ref: '#/components/schemas/Thread'
  *
  */
-router.route('/').put(auth('updateThread'), validate(threadValidation.updateThread), threadsController.updateThread);
+router.route('/').put(auth('updateThread'), validate(threadValidation.updateThread), threadsController.updateThread)
 
 /**
  * @swagger
@@ -134,6 +134,6 @@ router.route('/').put(auth('updateThread'), validate(threadValidation.updateThre
  *         description: ok
  *
  */
-router.route('/:threadId').delete(auth('deleteThread'), threadsController.deleteThread);
+router.route('/:threadId').delete(auth('deleteThread'), threadsController.deleteThread)
 
-module.exports = router;
+module.exports = router

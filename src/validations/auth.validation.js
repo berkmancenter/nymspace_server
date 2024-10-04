@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const { password } = require('./custom.validation');
+const Joi = require('joi')
+const { password } = require('./custom.validation')
 
 const register = {
   body: Joi.object().keys({
@@ -7,41 +7,41 @@ const register = {
     password: Joi.string().custom(password),
     pseudonym: Joi.string().required(),
     token: Joi.string().required(),
-    email: Joi.string(),
-  }),
-};
+    email: Joi.string()
+  })
+}
 
 const login = {
   body: Joi.object().keys({
     username: Joi.string().required(),
-    password: Joi.string().required(),
-  }),
-};
+    password: Joi.string().required()
+  })
+}
 
 const logout = {
   body: Joi.object().keys({
-    refreshToken: Joi.string().required(),
-  }),
-};
+    refreshToken: Joi.string().required()
+  })
+}
 
 const refreshTokens = {
   body: Joi.object().keys({
-    refreshToken: Joi.string().required(),
-  }),
-};
+    refreshToken: Joi.string().required()
+  })
+}
 
 const sendPasswordReset = {
   body: Joi.object().keys({
-    email: Joi.string().required(),
-  }),
-};
+    email: Joi.string().required()
+  })
+}
 
 const resetPassword = {
   body: Joi.object().keys({
     token: Joi.string().required(),
-    password: Joi.string().custom(password),
-  }),
-};
+    password: Joi.string().custom(password)
+  })
+}
 
 module.exports = {
   register,
@@ -49,5 +49,5 @@ module.exports = {
   logout,
   refreshTokens,
   sendPasswordReset,
-  resetPassword,
-};
+  resetPassword
+}
