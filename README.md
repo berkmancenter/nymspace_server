@@ -46,6 +46,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 Unit and integration tests can be run with `yarn run test`, and a coverage report can be seen with `yarn run coverage`.
 
+Note that the tests use the `.env` file instead of `.env.local`. Copy `.env.local` to `.env` for local running tests in local development environment.
+
 ### Stress tests
 
 Stress tests can be run from the client repo in the [k6 directory](https://github.com/berkmancenter/threads_client/blob/main/k6).
