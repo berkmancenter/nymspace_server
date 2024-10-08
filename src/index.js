@@ -6,7 +6,7 @@ const { startJobs } = require('./jobs')
 
 let server
 
-// mongoose.set('debug', true)
+if (config.mongoose.debug !== undefined) mongoose.set('debug', config.mongoose.debug)
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB')
   server = app.listen(config.port, () => {
