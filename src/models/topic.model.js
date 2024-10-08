@@ -12,7 +12,8 @@ const topicSchema = mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      index: true
     },
     votingAllowed: {
       type: Boolean,
@@ -24,7 +25,8 @@ const topicSchema = mongoose.Schema(
     },
     private: {
       type: Boolean,
-      required: true
+      required: true,
+      index: true // we query on this
     },
     passcode: {
       type: Number,
@@ -32,22 +34,26 @@ const topicSchema = mongoose.Schema(
     },
     archivable: {
       type: Boolean,
-      required: true
+      required: true,
+      index: true
     },
     archived: {
       type: Boolean,
       default: false,
-      private: true
+      private: true,
+      index: true
     },
     isDeleted: {
       type: Boolean,
       default: false,
-      private: true
+      private: true,
+      index: true // We need to query on this
     },
     isArchiveNotified: {
       type: Boolean,
       default: false,
-      private: true
+      private: true,
+      index: true
     },
     archiveEmail: {
       type: String
@@ -55,7 +61,8 @@ const topicSchema = mongoose.Schema(
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      index: true
     },
     threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
@@ -68,6 +75,10 @@ const topicSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 topicSchema.plugin(toJSON)
 topicSchema.plugin(paginate)
+
+// index timestamps
+topicSchema.index({ createdAt: 1 })
+topicSchema.index({ updatedAt: 1 })
 
 topicSchema.pre('validate', function (next) {
   const topic = this

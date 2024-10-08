@@ -1,4 +1,3 @@
-const { string } = require('joi')
 const mongoose = require('mongoose')
 const { toJSON, paginate } = require('./plugins')
 
@@ -20,12 +19,14 @@ const messageSchema = mongoose.Schema(
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
-      required: false
+      required: false,
+      index: true
     },
     thread: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Thread',
-      required: true
+      required: true,
+      index: true
     },
     upVotes: {
       type: [voteSchema]
@@ -39,7 +40,8 @@ const messageSchema = mongoose.Schema(
     },
     pseudonymId: {
       type: mongoose.SchemaTypes.ObjectId,
-      required: true
+      required: true,
+      index: true
     }
   },
   {
@@ -50,6 +52,10 @@ const messageSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 messageSchema.plugin(toJSON)
 messageSchema.plugin(paginate)
+
+// index timestamps
+messageSchema.index({ createdAt: 1 })
+messageSchema.index({ updatedAt: 1 })
 
 /**
  * @typedef User

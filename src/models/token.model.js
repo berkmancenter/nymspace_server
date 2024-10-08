@@ -12,20 +12,24 @@ const tokenSchema = mongoose.Schema(
     user: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      index: true
     },
     type: {
       type: String,
       enum: [tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD, tokenTypes.VERIFY_EMAIL, tokenTypes.ARCHIVE_TOPIC],
-      required: true
+      required: true,
+      index: true
     },
     expires: {
       type: Date,
-      required: true
+      required: true,
+      index: true
     },
     blacklisted: {
       type: Boolean,
-      default: false
+      default: false,
+      index: true
     }
   },
   {

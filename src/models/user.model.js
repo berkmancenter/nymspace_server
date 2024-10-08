@@ -4,25 +4,29 @@ const { roles } = require('../config/roles')
 
 const validateEmail = (email) => {
   const re =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    /^(([^<>()[]\\.,;:\s@"]+(\.[^<>()[]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   return re.test(email)
 }
 
 const pseudonymSchema = new mongoose.Schema({
   token: {
     type: String,
-    required: true
+    required: true,
+    index: true
   },
   pseudonym: {
     type: String,
-    required: true
+    required: true,
+    index: true
   },
   active: {
-    type: Boolean
+    type: Boolean,
+    index: true
   },
   isDeleted: {
     type: Boolean,
-    default: false
+    default: false,
+    index: true
   },
   threads: {
     type: [String],
@@ -54,10 +58,12 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       enum: roles,
-      default: 'user'
+      default: 'user',
+      index: true
     },
     goodReputation: {
-      type: Boolean
+      type: Boolean,
+      index: true
     },
     email: {
       type: String,

@@ -6,15 +6,18 @@ const schema = mongoose.Schema(
     user: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      index: true
     },
     thread: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Thread'
+      ref: 'Thread',
+      index: true
     },
     topic: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Topic'
+      ref: 'Topic',
+      index: true
     }
   },
   {
