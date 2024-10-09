@@ -37,8 +37,10 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 1. Start by copying `.env.example` to `.env.local`.
 2. Install `mongodb`
 3. Run MongoDB with `mongod`
-4. Install all dependencies with `yarn`.
-5. Run `yarn run dev` to serve the API locally.
+4. Install `node.js` and set to version specified in `package.json` file (Consider using [nvm](https://github.com/nvm-sh/nvm))
+5. Install [yarn](https://classic.yarnpkg.com/lang/en/docs/install)
+6. Install all dependencies with `yarn install`.
+7. Run `yarn run dev` to serve the API locally.
 
 ## Tests
 
