@@ -76,7 +76,7 @@ const createMessage = async (messageBody, user, thread) => {
  * @param {Thread} thread
  * @returns {Promise<Message>}
  */
-const agentProcess = async (message, thread) => {
+const agentProcess = async (message, user, thread) => {
   // handle agent integrations
   if (config.enableAgents && thread.enableAgents) {
     const agentResponses = []
@@ -84,7 +84,7 @@ const agentProcess = async (message, thread) => {
     // handle agents in sequence
     for (const agent of thread.agents) {
       /* eslint-disable no-await-in-loop */
-      const agentResponse = await agentService.processMessage(message.body, agent)
+      const agentResponse = await agentService.processMessage(message.body, user, thread, agent)
 
       switch (agentResponse.action) {
         case AgentMessageActions.REJECT:

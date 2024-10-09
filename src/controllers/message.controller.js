@@ -5,7 +5,7 @@ const { worker } = require('../websockets/index')
 
 const createMessage = catchAsync(async (req, res) => {
   const thread = await messageService.fetchThread(req.body, req.user)
-  const processedMessagePayload = await messageService.agentProcess(req.body, thread)
+  const processedMessagePayload = await messageService.agentProcess(req.body, req.user, thread)
   const message = await messageService.createMessage(processedMessagePayload, req.user)
   res.status(httpStatus.CREATED).send(message)
 })

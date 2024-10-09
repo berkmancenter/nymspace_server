@@ -21,7 +21,7 @@ module.exports = (io, socket) => {
 
     try {
       const thread = await messageService.fetchThread(data.message, data.user)
-      const processedMessagePayload = await messageService.agentProcess(data.message, thread)
+      const processedMessagePayload = await messageService.agentProcess(data.message, data.user, thread)
       const message = await messageService.createMessage(processedMessagePayload, data.user, thread)
       message.owner = data.user._id
 
