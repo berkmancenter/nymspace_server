@@ -5,7 +5,7 @@ const Token = require('../models/token.model')
 const ApiError = require('../utils/ApiError')
 const { tokenTypes } = require('../config/tokens')
 const emailService = require('./email.service')
-const User = require('../models/user.model')
+const User = require('../models/user.model/user.model')
 const logger = require('../config/logger')
 
 /**

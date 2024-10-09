@@ -1,5 +1,6 @@
 module.exports.Token = require('./token.model')
-module.exports.User = require('./user.model')
+module.exports.User = require('./user.model/user.model')
+module.exports.Agent = require('./user.model/agent.model')
 module.exports.Message = require('./message.model')
 module.exports.Topic = require('./topic.model')
 module.exports.Thread = require('./thread.model')

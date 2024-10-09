@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const app = require('./app')
 const config = require('./config/config')
 const logger = require('./config/logger')
+const setup = require('./setup')
 const { startJobs } = require('./jobs')
 
 let server
@@ -9,10 +10,12 @@ let server
 if (config.mongoose.debug !== undefined) mongoose.set('debug', config.mongoose.debug)
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB')
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`)
+  setup().then(() => {
+    server = app.listen(config.port, () => {
+      logger.info(`Listening to port ${config.port}`)
+    })
+    if (config.env !== 'test') startJobs()
   })
-  if (config.env !== 'test') startJobs()
 })
 
 const exitHandler = () => {

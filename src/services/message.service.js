@@ -1,17 +1,21 @@
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
+const config = require('../config/config')
 const logger = require('../config/logger')
 const { Message } = require('../models')
 const { Thread } = require('../models')
 const { User } = require('../models')
+const agentService = require('./agent.service')
+const { AgentMessageActions } = require('../types/agent.types')
 const ApiError = require('../utils/ApiError')
 
 /**
- * Create a message
+ * Check if we can create a message and fetch thread
  * @param {Object} messageBody
- * @returns {Promise<Message>}
+ * @param {User} user
+ * @returns {Promise<Thread>}
  */
-const createMessage = async (messageBody, user) => {
+const fetchThread = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread)
   const thread = await Thread.findById(threadId)
   if (thread.locked) {
@@ -37,6 +41,19 @@ const createMessage = async (messageBody, user) => {
     await user.save()
   }
 
+  return thread
+}
+
+/**
+ * Create a message
+ * @param {Object} messageBody
+ * @param {User} user
+ * @param {Thread} thread
+ * @returns {Promise<Message>}
+ */
+const createMessage = async (messageBody, user, thread) => {
+  const activePseudo = user.pseudonyms.find((x) => x.active)
+
   const message = await Message.create({
     body: messageBody.body,
     thread,
@@ -48,8 +65,46 @@ const createMessage = async (messageBody, user) => {
   thread.messages.push(message.toObject())
   await thread.save()
 
-  const messages = await Message.find({ thread: threadId })
+  const messages = await Message.find({ thread: thread._id })
   message.count = messages.length
+  return message
+}
+
+/**
+ * Create a message
+ * @param {Object} messageBody
+ * @param {Thread} thread
+ * @returns {Promise<Message>}
+ */
+const agentProcess = async (message, thread) => {
+  // handle agent integrations
+  if (config.enableAgents && thread.enableAgents) {
+    const agentResponses = []
+
+    // handle agents in sequence
+    for (const agent of thread.agents) {
+      /* eslint-disable no-await-in-loop */
+      const agentResponse = await agentService.processMessage(message.body, agent)
+
+      switch (agentResponse.action) {
+        case AgentMessageActions.REJECT:
+          // we use UNPROCESSABLE_ENTITY to indicate we need the user to try again
+          throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, agentResponse.suggestion)
+
+        case AgentMessageActions.ANNOTATE:
+          // TODO: handle annotation
+          logger.info('Handle annotation here!')
+          break
+
+        default:
+      }
+      agentResponses.push(agentResponse)
+    }
+
+    logger.info('Agent processing complete.')
+    logger.info(JSON.stringify(agentResponses, null, 2))
+  }
+
   return message
 }
 
@@ -114,6 +169,8 @@ const vote = async (messageId, direction, status, requestUser) => {
 }
 
 module.exports = {
+  fetchThread,
+  agentProcess,
   createMessage,
   threadMessages,
   vote

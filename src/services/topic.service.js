@@ -5,7 +5,7 @@ const { emailService, tokenService } = require('.')
 const Token = require('../models/token.model')
 const ApiError = require('../utils/ApiError')
 const updateDocument = require('../utils/updateDocument')
-const User = require('../models/user.model')
+const User = require('../models/user.model/user.model')
 
 /**
  * Query topics and add sorting properties
@@ -51,7 +51,7 @@ const topicsWithSortData = async (topicQuery) => {
     // Sort the most recent messages for all threads, to determine the
     // most recent message for the topic/channel.
     threadMsgTimes.sort((a, b) => {
-      return a < b ? 1 : a > b ? -1 : 0
+      return b - a
     })
     topic.latestMessageCreatedAt = threadMsgTimes.length > 0 ? threadMsgTimes[0] : null
     topic.messageCount = msgCount
@@ -129,6 +129,7 @@ const userTopics = async (user) => {
   })
   topics.forEach((topic) => {
     if (followedTopicIds.map((f) => f.toString()).includes(topic.id)) {
+      // eslint-disable-next-line
       topic.followed = true
     }
   })
@@ -195,7 +196,7 @@ const activeTopicFilter = (topic, targetDate) => {
     }
   })
   threadMsgTimes.sort((a, b) => {
-    return a < b ? 1 : a > b ? -1 : 0
+    return b - a
   })
   const latestMessageCreatedAt = threadMsgTimes.length > 0 ? new Date(threadMsgTimes[0].toString()) : null
   if (latestMessageCreatedAt && latestMessageCreatedAt > targetDate) {
@@ -227,11 +228,15 @@ const deleteOldTopics = async () => {
   // Filter out topics that have recent activity
   const deletableTopics = topics.filter(activeTopicFilter)
 
+  const toSave = []
   for (let x = 0; x < deletableTopics.length; x++) {
     // Save topic as deleted
     deletableTopics[x].isDeleted = true
-    await deletableTopics[x].save()
+    toSave.push(deletableTopics[x])
   }
+
+  await Promise.all(toSave.map((t) => t.save()))
+
   return deletableTopics
 }
 
@@ -263,19 +268,27 @@ const emailUsersToArchive = async () => {
   // Filter out topics that have recent activity
   const archivableTopics = topics.filter(activeTopicFilter)
   const returnTopics = []
+
+  const promises = []
+
   for (let x = 0; x < archivableTopics.length; x++) {
-    // Email users prompting them to archive
-    const topic = archivableTopics[x]
-    const owner = await User.findById(topic.owner)
-    const emailAddress = topic.archiveEmail ? topic.archiveEmail : owner.email
-    if (emailAddress) {
-      const archiveToken = await tokenService.generateArchiveTopicToken(owner)
-      await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken)
-      topic.isArchiveNotified = true
-      await topic.save()
-      returnTopics.push(topic)
-    }
+    promises.push(async () => {
+      // Email users prompting them to archive
+      const topic = archivableTopics[x]
+      const owner = await User.findById(topic.owner)
+      const emailAddress = topic.archiveEmail ? topic.archiveEmail : owner.email
+      if (emailAddress) {
+        const archiveToken = await tokenService.generateArchiveTopicToken(owner)
+        await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken)
+        topic.isArchiveNotified = true
+        await topic.save()
+        returnTopics.push(topic)
+      }
+    })
   }
+
+  await Promise.all(promises)
+
   return returnTopics
 }
 

@@ -1,10 +1,12 @@
 const mongoose = require('mongoose')
-const { toJSON, paginate } = require('./plugins')
-const { roles } = require('../config/roles')
+const { toJSON, paginate } = require('../plugins')
+const { roles } = require('../../config/roles')
+const BaseUser = require('./baseUser.model')
 
 const validateEmail = (email) => {
   const re =
-    /^(([^<>()[]\\.,;:\s@"]+(\.[^<>()[]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    // eslint-disable-next-line
+    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   return re.test(email)
 }
 
@@ -89,6 +91,6 @@ userSchema.pre('validate', function (next) {
 /**
  * @typedef User
  */
-const User = mongoose.model('User', userSchema)
+const User = BaseUser.discriminator('User', userSchema)
 
 module.exports = User

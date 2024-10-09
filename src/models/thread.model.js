@@ -20,6 +20,12 @@ const threadSchema = mongoose.Schema(
       default: false,
       index: true
     },
+    enableAgents: {
+      type: Boolean,
+      // TODO: Turn false once we have config set up
+      default: true,
+      index: true
+    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
@@ -34,7 +40,8 @@ const threadSchema = mongoose.Schema(
       index: true
     },
     messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
-    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
+    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
+    agents: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Agent' }]
   },
   {
     timestamps: true

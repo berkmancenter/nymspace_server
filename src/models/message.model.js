@@ -42,6 +42,20 @@ const messageSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       required: true,
       index: true
+    },
+    // from a non-human agent
+    fromAgent: {
+      type: Boolean,
+      default: false,
+      required: true,
+      index: true
+    },
+    // to help with backchannel interactions
+    visible: {
+      type: Boolean,
+      default: true,
+      required: true,
+      index: true
     }
   },
   {

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
-const { Thread, Topic, Follower, Message } = require('../models')
+const { Thread, Topic, Follower, Message, Agent } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
@@ -12,8 +12,8 @@ const returnFields = 'name slug locked owner'
  * @returns {Array}
  */
 const addMessageCount = (threads) => {
-  return threads.map((t) => {
-    t = t.toObject()
+  return threads.map((thread) => {
+    const t = thread.toObject()
     t.messageCount = t.messages ? t.messages.length : 0
     delete t.messages
     // Replace _id with id since toJSON plugin will not be applied
@@ -36,10 +36,14 @@ const createThread = async (threadBody, user) => {
     throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed.')
   }
 
+  // TODO: Replace this with user selection
+  const agent = await Agent.findOne()
+
   const thread = await Thread.create({
     name: threadBody.name,
     owner: user,
-    topic
+    topic,
+    agents: [agent]
   })
 
   topic.threads.push(thread.toObject())
@@ -83,6 +87,7 @@ const userThreads = async (user) => {
   threads = addMessageCount(threads)
   threads.forEach((thread) => {
     if (followedThreadsIds.map((f) => f.toString()).includes(thread.id)) {
+      // eslint-disable-next-line
       thread.followed = true
     }
   })

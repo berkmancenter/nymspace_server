@@ -11,7 +11,7 @@ const envVarsSchema = Joi.object()
     PORT: Joi.number().default(3000),
     MONGODB_URL: Joi.string().required().description('Mongo DB url'),
     MONGODB_DEBUG: Joi.boolean().description('Enable mongoose debugging'),
-    NYMSPACE_ENABLE_LLM: Joi.boolean().default(true).description('Enable LLM support'),
+    NYMSPACE_ENABLE_AGENTS: Joi.boolean().default(true).description('Enable agent support'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -73,7 +73,7 @@ module.exports = {
   auth: {
     authTokenSecret: envVars.AUTH_TOKEN_SECRET
   },
-  enableLLM: envVars.NYMSPACE_ENABLE_LLM,
+  enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
   appHost: envVars.APP_HOST,
   trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
   DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION
