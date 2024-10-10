@@ -1,6 +1,6 @@
 const httpStatus = require('http-status')
 const logger = require('../../config/logger')
-const { Poll, PollResponse } = require('../../models')
+const { Poll, PollChoice, PollResponse } = require('../../models')
 const ApiError = require('../../utils/ApiError')
 
 const createPoll = async (pollData, user) => {
@@ -9,7 +9,7 @@ const createPoll = async (pollData, user) => {
     owner: user._id
   })
   await poll.save()
-  logger.info('Created poll', poll._id, poll.title)
+  logger.info('Created poll %s %s', poll._id, poll.title)
   return poll
 }
 
@@ -20,14 +20,14 @@ const findById = async (pollId) => {
 
 // TODO: Transform poll view for user?
 const getUserPollView = (poll, user) => {
-  logger.info('Get user poll view', poll._id, user._id)
+  logger.info('Get user poll view %s %s', poll._id, user._id)
   return poll
 }
 
 // TODO: Query and sorting params structure? Evaluate existing structure...
 const listPolls = async (query, user) => {
   const polls = await Poll.find(query)
-  logger.info('List polls', query, polls.length)
+  logger.info('List polls %s %s', query, polls.length)
   return polls.map((poll) => getUserPollView(poll, user))
 }
 
@@ -35,15 +35,55 @@ const listPolls = async (query, user) => {
 // function validatePoll(poll, validator, response) {
 // }
 
-const votePoll = async (poll, voter, choiceId) => {
-  logger.info('Vote poll', poll._id, voter._id, choiceId)
-  return { voteResponse: 'placeholder' }
+// choice can be a choiceId or a new choice object
+const votePoll = async (pollId, choiceIdOrObject, user) => {
+  const poll = await Poll.findById(pollId)
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+
+  const existingVote = await PollResponse.findOne({ poll: poll._id, owner: user._id })
+  if (existingVote) throw new ApiError(httpStatus.BAD_REQUEST, 'You have already voted on this poll')
+
+  let choice
+
+  if (typeof choiceIdOrObject === 'string') {
+    // look up existing choice by id
+    choice = await PollChoice.findById(choiceIdOrObject)
+    if (!choice) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll choice')
+    if (!choice.poll._id.equals(poll._id)) throw new ApiError(httpStatus.NOT_FOUND, 'No such choice for this poll')
+  } else {
+    // create a new choice
+    const choiceData = choiceIdOrObject
+    if (!choiceData.text) throw new ApiError(httpStatus.BAD_REQUEST, 'Provide choice is missing the text field')
+    const existingPollChoice = await PollChoice.findOne({ poll: poll._id, text: choiceData.text })
+    if (existingPollChoice)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'The new choice text provided matches an existing choice')
+
+    choiceData.owner = user
+    choiceData.poll = poll
+    choice = new PollChoice(choiceData)
+    await choice.save()
+  }
+
+  const vote = new PollResponse({
+    owner: user,
+    poll,
+    choice
+  })
+
+  await vote.save()
+
+  logger.info('Vote poll %s %s', pollId, user._id, choice._id)
+  return vote.replaceObjectsWithIds()
 }
 
 const inspectPoll = async (pollId, user) => {
-  const poll = await Poll.findById(pollId)
-  logger.info('Inspect poll', pollId, user._id)
-  const userPollView = await getUserPollView(poll, user)
+  const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId })])
+  logger.info('Inspect poll %s %s', pollId, user._id)
+
+  const pollData = poll.toObject()
+  pollData.choices = choices.map((choice) => choice.toObject())
+
+  const userPollView = await getUserPollView(pollData, user)
   return userPollView
 }
 
@@ -55,8 +95,8 @@ const getPollResponses = async (pollId, user) => {
   const myVote = await PollResponse.findOne({ poll: pollId, owner: user._id })
   if (!myVote) throw new ApiError(httpStatus.UNAUTHORIZED, 'You have not participated in this poll')
 
-  const numResponses = await PollResponse.countDocuments({ poll: pollId })
-  if (numResponses < poll.threshold) throw new ApiError(httpStatus.UNAUTHORIZED, 'Poll threshold has not been reached')
+  // const numResponses = await PollResponse.countDocuments({ poll: pollId })
+  // if (numResponses < poll.threshold) throw new ApiError(httpStatus.UNAUTHORIZED, 'Poll threshold has not been reached')
 
   // TODO filter data coming back
   const pollResponses = await PollResponse.find({ poll: pollId })

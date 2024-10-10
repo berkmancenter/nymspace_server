@@ -68,7 +68,7 @@ router.route('/').post(auth('createPoll'), pollsController.createPoll)
  *               $ref: '#/components/schemas/Poll'
  *
  */
-router.route('/').post(auth('votePoll'), pollsController.votePoll)
+router.route('/:pollId/vote').post(auth('votePoll'), pollsController.votePoll)
 
 /**
  * @swagger
@@ -131,6 +131,6 @@ router.route('/:pollId').get(auth('inspectPoll'), pollsController.inspectPoll)
  *                 type: object
  *                 $ref: '#/components/schemas/Poll'
  */
-router.route('/:pollId/responss').get(auth('getPollResponses'), pollsController.getPollResponses)
+router.route('/:pollId/responses').get(auth('getPollResponses'), pollsController.getPollResponses)
 
 module.exports = router

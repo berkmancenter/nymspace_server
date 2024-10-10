@@ -70,7 +70,7 @@ pollSchema.plugin(paginate)
 
 pollSchema.pre('validate', function (next) {
   const poll = this
-  poll.slug = slugify(poll.name)
+  poll.slug = slugify(poll.title)
   next()
 })
 

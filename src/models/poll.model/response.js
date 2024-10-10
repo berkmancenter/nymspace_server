@@ -3,11 +3,6 @@ const { toJSON, paginate } = require('../plugins')
 
 const pollResponseSchema = mongoose.Schema(
   {
-    text: {
-      type: String,
-      required: true,
-      trim: true
-    },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
@@ -35,6 +30,18 @@ const pollResponseSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 pollResponseSchema.plugin(toJSON)
 pollResponseSchema.plugin(paginate)
+
+pollResponseSchema.static('replaceObjectsWithIds', function (pollResponse) {
+  const pollResponseData = pollResponse.toObject()
+  pollResponseData.owner = pollResponseData.owner._id
+  pollResponseData.poll = pollResponseData.poll._id
+  pollResponseData.choice = pollResponseData.choice._id
+  return pollResponseData
+})
+
+pollResponseSchema.method('replaceObjectsWithIds', function () {
+  return pollResponseSchema.statics.replaceObjectsWithIds(this)
+})
 
 /**
  * @typedef pollResponse

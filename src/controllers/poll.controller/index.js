@@ -19,19 +19,19 @@ const listPolls = catchAsync(async (req, res) => {
 //   return res.status(httpStatus.OK).send(poll)
 // })
 
+// choice can be a choiceId or a new choice object
 const votePoll = catchAsync(async (req, res) => {
-  const poll = await pollService.findById(req.params.id)
-  const voteResponse = await pollService.votePoll(poll, req.body, req.user)
+  const voteResponse = await pollService.votePoll(req.params.pollId, req.body.choice, req.user)
   return res.status(httpStatus.OK).send(voteResponse)
 })
 
 const inspectPoll = catchAsync(async (req, res) => {
-  const poll = await pollService.inspectPoll(req.params.id, req.user)
+  const poll = await pollService.inspectPoll(req.params.pollId, req.user)
   return res.status(httpStatus.OK).send(poll)
 })
 
 const getPollResponses = catchAsync(async (req, res) => {
-  const pollResponses = await pollService.getPollResponse(req.params.id, req.user)
+  const pollResponses = await pollService.getPollResponses(req.params.pollId, req.user)
   return res.status(httpStatus.OK).send(pollResponses)
 })
 
