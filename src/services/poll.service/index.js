@@ -20,7 +20,12 @@ const findById = async (pollId) => {
 
 // TODO: Transform poll view for user?
 const getUserPollView = (poll, user) => {
-  logger.info('Get user poll view %s %s', poll._id, user._id)
+  logger.info('Get user poll view %s %s', poll?._id, user._id)
+  if (poll?.choices) {
+    for (const choice of poll.choices) {
+      if (choice.owner) delete choice.owner
+    }
+  }
   return poll
 }
 

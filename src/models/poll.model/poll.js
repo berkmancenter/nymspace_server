@@ -57,6 +57,11 @@ const pollSchema = mongoose.Schema(
       required: true,
       default: false
     },
+    choiceOwnerVisible: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
   },
   {

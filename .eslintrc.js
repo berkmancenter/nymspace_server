@@ -3,6 +3,9 @@ module.exports = {
     node: true,
     jest: true
   },
+  parserOptions: {
+    ecmaVersion: 'latest'
+  },
   extends: [
     'standard',
     'airbnb-base',
@@ -17,6 +20,8 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'consistent-return': 'off',
     'jest/expect-expect': 'off',
-    'security/detect-object-injection': 'off'
+    'security/detect-object-injection': 'off',
+    'no-plusplus': 'off',
+    'no-restricted-syntax': ['off', 'ForOfStatement']
   }
 }
