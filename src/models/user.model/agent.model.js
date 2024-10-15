@@ -8,9 +8,17 @@ const agentSchema = mongoose.Schema(
       type: String,
       trim: true,
       required: true
-    }
+    },
     // TODO: Extend with options, etc or
     // TODO: subclass with discriminators: https://mongoosejs.com/docs/discriminators.html
+    messageCount: {
+      type: Number,
+      default: 0
+    },
+    threads: {
+      type: [String],
+      default: []
+    }
   },
   {
     timestamps: true

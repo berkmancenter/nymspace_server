@@ -1,5 +1,6 @@
-const { createAgents } = require('./services/agent.service')
+const { createAgents, initializeAgents } = require('./services/agent.service')
 
 module.exports = async () => {
   await createAgents()
+  await initializeAgents()
 }
