@@ -28,7 +28,9 @@ const envVarsSchema = Joi.object()
     TRULY_RANDOM_PSEUDONYMS: Joi.string()
       .default('false')
       .description('true/false if pseudonyms are made truly random with UID'),
-    DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation')
+    DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
+    OPENAI_API_KEY: Joi.string().description('OpenAI key'),
+    LANGCHAIN_API_BASE_PATH: Joi.string().description('LangChain API base path')
   })
   .unknown()
 
@@ -74,6 +76,12 @@ module.exports = {
     authTokenSecret: envVars.AUTH_TOKEN_SECRET
   },
   enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
+  llms: {
+    basePath: envVars.LANGCHAIN_API_BASE_PATH,
+    openAI: {
+      key: envVars.OPENAI_API_KEY
+    }
+  },
   appHost: envVars.APP_HOST,
   trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
   DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION

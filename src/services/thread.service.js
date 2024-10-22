@@ -36,18 +36,34 @@ const createThread = async (threadBody, user) => {
     throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed.')
   }
 
-  // TODO: Replace this with user selection
-  const agent = await Agent.findOne()
-
   const thread = await Thread.create({
     name: threadBody.name,
     owner: user,
     topic,
-    agents: [agent]
+    // TODO remove this after testing
+    enableAgents: true,
+    agents: []
   })
 
+  // need to save to get id
+  await thread.save()
+
+  // TODO: Replace this with user selection
+  const agent = new Agent({
+    agentType: 'playfulPeriodic',
+    thread
+  })
+
+  // need to save to get id
+  await agent.save()
+  // initialize to set up timer, etc.
+  await agent.initialize()
+
+  // depopulate thread to prevent circular clone
+  agent.thread = thread._id
+  thread.agents.push(agent)
   topic.threads.push(thread.toObject())
-  topic.save()
+  await Promise.all([thread.save(), topic.save()])
 
   return thread
 }

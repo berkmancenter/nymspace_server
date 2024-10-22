@@ -5,7 +5,6 @@ const logger = require('../config/logger')
 const { Message } = require('../models')
 const { Thread } = require('../models')
 const { User } = require('../models')
-const agentService = require('./agent.service')
 const { AgentMessageActions } = require('../types/agent.types')
 const ApiError = require('../utils/ApiError')
 
@@ -17,7 +16,7 @@ const ApiError = require('../utils/ApiError')
  */
 const fetchThread = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread)
-  const thread = await Thread.findById(threadId)
+  const thread = await Thread.findById(threadId).populate('agents').populate('messages')
   if (thread.locked) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This thread is locked and cannot receive messages.')
   }
@@ -56,7 +55,7 @@ const createMessage = async (messageBody, user, thread) => {
 
   const message = await Message.create({
     body: messageBody.body,
-    thread,
+    thread: thread._id,
     owner: user,
     pseudonym: activePseudo.pseudonym,
     pseudonymId: activePseudo._id
@@ -67,44 +66,6 @@ const createMessage = async (messageBody, user, thread) => {
 
   const messages = await Message.find({ thread: thread._id })
   message.count = messages.length
-  return message
-}
-
-/**
- * Create a message
- * @param {Object} messageBody
- * @param {Thread} thread
- * @returns {Promise<Message>}
- */
-const agentProcess = async (message, user, thread) => {
-  // handle agent integrations
-  if (config.enableAgents && thread.enableAgents) {
-    const agentResponses = []
-
-    // handle agents in sequence
-    for (const agent of thread.agents) {
-      /* eslint-disable no-await-in-loop */
-      const agentResponse = await agentService.processMessage(message.body, user, thread, agent)
-
-      switch (agentResponse.action) {
-        case AgentMessageActions.REJECT:
-          // we use UNPROCESSABLE_ENTITY to indicate we need the user to try again
-          throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, agentResponse.suggestion)
-
-        case AgentMessageActions.ANNOTATE:
-          // TODO: handle annotation
-          logger.info('Handle annotation here!')
-          break
-
-        default:
-      }
-      agentResponses.push(agentResponse)
-    }
-
-    logger.info('Agent processing complete.')
-    logger.info(JSON.stringify(agentResponses, null, 2))
-  }
-
   return message
 }
 
@@ -168,10 +129,57 @@ const vote = async (messageId, direction, status, requestUser) => {
   return message
 }
 
+/**
+ * Handle all stages of processing a new message
+ * @param {Object} message
+ * @param {User} user
+ * @returns {Promise<[Message]>}
+ */
+const newMessageHandler = async (message, user) => {
+  const thread = await fetchThread(message, user)
+  const agentEvaluations = []
+
+  let userContributionVisible = true
+
+  if (config.enableAgents && thread.enableAgents) {
+    // process evaluations and check for any rejections
+    for (const agent of thread.agents) {
+      // use in memory thread for speed
+      agent.thread = thread
+      const agentEvaluation = await agent.evaluate(message)
+      if (!agentEvaluation) continue
+
+      if (agentEvaluation.action === AgentMessageActions.REJECT) {
+        logger.info(`Rejecting message: ${agentEvaluation.suggestion}`)
+        throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, agentEvaluation.suggestion)
+      }
+      agentEvaluations.push(agentEvaluation)
+      if (!agentEvaluation.userContributionVisible) userContributionVisible = false
+    }
+  }
+
+  // first, user message
+  const messages = []
+  const sentMessage = await createMessage(message, user, thread)
+  if (userContributionVisible) {
+    messages.push(sentMessage)
+  }
+
+  if (config.enableAgents && thread.enableAgents) {
+    // then any agent messages
+    for (const agent of thread.agents) {
+      const agentMessage = await agent.respond()
+      if (agentMessage && agent.agentEvaluation.agentContributionVisible) messages.push(agentMessage)
+    }
+  }
+
+  return messages
+}
+
 module.exports = {
   fetchThread,
-  agentProcess,
   createMessage,
   threadMessages,
-  vote
+  vote,
+  newMessageHandler
 }

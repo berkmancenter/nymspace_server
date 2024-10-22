@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const { toJSON, paginate } = require('../plugins')
 const { roles } = require('../../config/roles')
 const BaseUser = require('./baseUser.model')
+const pseudonymSchema = require('./schemas/pseudonym.schema')
 
 const validateEmail = (email) => {
   const re =
@@ -9,32 +10,6 @@ const validateEmail = (email) => {
     /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   return re.test(email)
 }
-
-const pseudonymSchema = new mongoose.Schema({
-  token: {
-    type: String,
-    required: true,
-    index: true
-  },
-  pseudonym: {
-    type: String,
-    required: true,
-    index: true
-  },
-  active: {
-    type: Boolean,
-    index: true
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-    index: true
-  },
-  threads: {
-    type: [String],
-    default: []
-  }
-})
 
 const userSchema = mongoose.Schema(
   {

@@ -3,6 +3,9 @@ module.exports = {
     node: true,
     jest: true
   },
+  parserOptions: {
+    ecmaVersion: 'latest'
+  },
   extends: [
     'standard',
     'airbnb-base',
@@ -19,6 +22,8 @@ module.exports = {
     'jest/expect-expect': 'off',
     'security/detect-object-injection': 'off',
     'no-plusplus': 'off',
+    'no-await-in-loop': 'off',
+    'no-continue': 'off',
     'no-restricted-syntax': ['off', 'ForOfStatement']
   }
 }

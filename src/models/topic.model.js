@@ -60,7 +60,7 @@ const topicSchema = mongoose.Schema(
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
+      ref: 'BaseUser',
       required: true,
       index: true
     },

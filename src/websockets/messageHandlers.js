@@ -20,18 +20,18 @@ module.exports = (io, socket) => {
     )
 
     try {
-      const thread = await messageService.fetchThread(data.message, data.user)
-      const processedMessagePayload = await messageService.agentProcess(data.message, data.user, thread)
-      const message = await messageService.createMessage(processedMessagePayload, data.user, thread)
-      message.owner = data.user._id
+      const newMessages = await messageService.newMessageHandler(data.message, data.user)
 
-      message.thread.messages = []
+      for (const message of newMessages) {
+        message.owner = data.user._id
+        message.thread.messages = []
 
-      io.in(thread._id.toString()).emit('message:new', {
-        ...message.toJSON(),
-        count: message.count,
-        request: data.request
-      })
+        io.in(message.thread._id.toString()).emit('message:new', {
+          ...message.toJSON(),
+          count: message.count,
+          request: data.request
+        })
+      }
     } catch (err) {
       logger.error('Error creating message via socket - %s %s', err.message, err.statusCode)
       // send error back to user

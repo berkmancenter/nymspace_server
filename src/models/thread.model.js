@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const slugify = require('slugify')
 const { toJSON, paginate } = require('./plugins')
+const config = require('../config/config')
 
 const threadSchema = mongoose.Schema(
   {
@@ -22,13 +23,12 @@ const threadSchema = mongoose.Schema(
     },
     enableAgents: {
       type: Boolean,
-      // TODO: Turn false once we have config set up
-      default: true,
+      default: false,
       index: true
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
+      ref: 'BaseUser',
       required: true,
       private: false,
       index: true
@@ -60,6 +60,10 @@ threadSchema.pre('validate', function (next) {
   const thread = this
   thread.slug = slugify(thread.name)
   next()
+})
+
+threadSchema.post('findOne', async function () {
+  if (config.enableAgents && this.enableAgents) await this.populate('agents')
 })
 
 /**

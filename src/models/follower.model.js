@@ -5,7 +5,7 @@ const schema = mongoose.Schema(
   {
     user: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
+      ref: 'BaseUser',
       required: true,
       index: true
     },

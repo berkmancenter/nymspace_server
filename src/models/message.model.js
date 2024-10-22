@@ -4,7 +4,7 @@ const { toJSON, paginate } = require('./plugins')
 const voteSchema = mongoose.Schema({
   owner: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: 'User',
+    ref: 'BaseUser',
     required: false
   }
 })
@@ -18,7 +18,7 @@ const messageSchema = mongoose.Schema(
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
+      ref: 'BaseUser',
       required: false,
       index: true
     },

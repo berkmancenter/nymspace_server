@@ -1,19 +1,22 @@
+// const mongoose = require('mongoose')
+
 /**
  * @enum {number}
  */
 const AgentMessageActions = {
   OK: 0,
   REJECT: 1,
-  ANNOTATE: 2
+  CONTRIBUTE: 2
 }
 
 module.exports.AgentMessageActions = AgentMessageActions
 
 /**
- * @typedef {Object} AgentResponse
- * @property {string} agent
- * @property {string} name
+ * @typedef {Object} AgentEvaluation
+ * @property {Message} userMessage
  * @property {AgentMessageAction} action
+ * @property {Boolean} agentContributionVisible
+ * @property {Boolean} userContributionVisible
  * @property {string} suggestion // back to submitter
- * @property {string} annotation // text to add from agent to the thread
+ * @property {string} contribution // text to add from agent to the thread
  */
