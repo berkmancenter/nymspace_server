@@ -27,6 +27,14 @@ const llm = new ChatOpenAI(
 )
 
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
+const REQUIRED_AGENT_EVALUATION_PROPS = [
+  'userMessage',
+  'action',
+  'agentContributionVisible',
+  'userContributionVisible',
+  'suggestion',
+  'contribution'
+]
 
 const agentSchema = mongoose.Schema(
   {
@@ -114,6 +122,16 @@ agentSchema.static('isWithinTokenLimit', function (promptText, tokenLimit) {
   return isWithinTokenLimit(promptText, tokenLimit)
 })
 
+// other helpers
+
+function validAgentEvaluation(agentEvaluation) {
+  for (const prop of REQUIRED_AGENT_EVALUATION_PROPS) {
+    if (!Object.hasOwn(agentEvaluation, prop)) throw new Error(`Agent evaluation missing required property ${prop}`)
+  }
+
+  return agentEvaluation
+}
+
 // methods
 
 agentSchema.method('initialize', async function () {
@@ -167,6 +185,7 @@ agentSchema.method('resetTimer', async function () {
 
 // this method is the same for periodic invocation or for evaluating a new message from a user
 // userMessage is optional current user message BEFORE it is added to the thread for evaluation
+// it should always set this.agentEvaluation in all conditions
 agentSchema.method('evaluate', async function (userMessage = null) {
   if (!this.populated('thread')) throw new Error(`Thread must be populated for agent ${this._id}`)
   if (!this.thread) throw new Error(`Missing thread for agent ${this._id}`)
@@ -203,7 +222,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     topic: this.thread.name
   })
 
-  const agentEvaluation = await agentTypes[this.agentType].evaluate.call(this)
+  const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
   // do after LLM processing, since it may take some time
   await this.resetTimer()
 
