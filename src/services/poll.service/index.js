@@ -91,11 +91,16 @@ const respondPoll = async (pollId, choiceData, user) => {
 }
 
 const inspectPoll = async (pollId, user) => {
-  const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId })])
+  const [poll, choices, responseCount] = await Promise.all([
+    Poll.findById(pollId),
+    PollChoice.find({ poll: pollId }),
+    PollResponse.countDocuments({ poll: pollId })
+  ])
   logger.info('Inspect poll %s %s', pollId, user._id)
 
   const pollData = poll.toObject()
   if (poll.choicesVisible) pollData.choices = choices.map((choice) => choice.toObject())
+  if (poll.responseCountVisible) pollData.responseCount = responseCount
 
   const userPollView = await getUserPollView(pollData, user)
   return userPollView

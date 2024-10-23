@@ -64,6 +64,11 @@ const pollSchema = mongoose.Schema(
       required: true,
       default: false
     },
+    responseCountVisible: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
     whenResponsesVisible: {
       type: String,
       required: true,
