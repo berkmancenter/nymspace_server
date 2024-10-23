@@ -40,28 +40,30 @@ const createThread = async (threadBody, user) => {
     name: threadBody.name,
     owner: user,
     topic,
-    // TODO remove this after testing
-    enableAgents: true,
+    enableAgents: !!threadBody.agentTypes.length,
     agents: []
   })
 
   // need to save to get id
   await thread.save()
 
-  // TODO: Replace this with user selection
-  const agent = new Agent({
-    agentType: 'playfulPeriodic',
-    thread
-  })
+  for (const agentType of threadBody.agentTypes) {
+    const agent = new Agent({
+      agentType,
+      thread
+    })
 
-  // need to save to get id
-  await agent.save()
-  // initialize to set up timer, etc.
-  await agent.initialize()
+    // need to save to get id
+    await agent.save()
 
-  // depopulate thread to prevent circular clone
-  agent.thread = thread._id
-  thread.agents.push(agent)
+    // initialize to set up timer, etc.
+    await agent.initialize()
+
+    // depopulate thread to prevent circular clone
+    agent.thread = thread._id
+    thread.agents.push(agent)
+  }
+
   topic.threads.push(thread.toObject())
   await Promise.all([thread.save(), topic.save()])
 

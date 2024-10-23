@@ -20,7 +20,7 @@ const fetchThread = async (messageBody, user) => {
   if (thread.locked) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This thread is locked and cannot receive messages.')
   }
-  const activePseudo = user.pseudonyms.find((x) => x.active)
+  const activePseudo = user.activePseudonym
   const pseudoForThread = user.pseudonyms.find((x) => x.threads.includes(threadId))
 
   if (pseudoForThread && activePseudo._id.toString() !== pseudoForThread._id.toString()) {
@@ -51,7 +51,7 @@ const fetchThread = async (messageBody, user) => {
  * @returns {Promise<Message>}
  */
 const createMessage = async (messageBody, user, thread) => {
-  const activePseudo = user.pseudonyms.find((x) => x.active)
+  const activePseudo = user.activePseudonym
 
   const message = await Message.create({
     body: messageBody.body,
@@ -64,8 +64,7 @@ const createMessage = async (messageBody, user, thread) => {
   thread.messages.push(message.toObject())
   await thread.save()
 
-  const messages = await Message.find({ thread: thread._id })
-  message.count = messages.length
+  message.count = thread.messages.length
   return message
 }
 
@@ -169,7 +168,10 @@ const newMessageHandler = async (message, user) => {
     // then any agent messages
     for (const agent of thread.agents) {
       const agentMessage = await agent.respond()
-      if (agentMessage && agent.agentEvaluation.agentContributionVisible) messages.push(agentMessage)
+      if (agentMessage && agent.agentEvaluation.agentContributionVisible) {
+        agentMessage.count = thread.messages.length
+        messages.push(agentMessage)
+      }
     }
   }
 

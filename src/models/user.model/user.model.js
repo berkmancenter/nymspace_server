@@ -57,6 +57,10 @@ const userSchema = mongoose.Schema(
 userSchema.plugin(toJSON)
 userSchema.plugin(paginate)
 
+userSchema.virtual('activePseudonym').get(function () {
+  return this.pseudonyms.find((x) => x.active)
+})
+
 userSchema.pre('validate', function (next) {
   const user = this
   user.role = 'user'

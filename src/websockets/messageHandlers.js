@@ -12,17 +12,18 @@ module.exports = (io, socket) => {
       return
     }
 
-    logger.info(
-      'Creating message %s via socket for userId %s. Message text = "%s"',
-      data.request,
-      data.user._id,
-      data.message.body
-    )
-
     try {
       const newMessages = await messageService.newMessageHandler(data.message, data.user)
 
       for (const message of newMessages) {
+        logger.info(
+          'Creating message %s via socket for userId %s, thread %s. Message text = "%s"',
+          data.request,
+          data.user._id,
+          message.thread._id.toString(),
+          message.body
+        )
+
         message.owner = data.user._id
         message.thread.messages = []
 

@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "pm2 start ecosystem.config.json",
-    "dev": "cross-env DEBUG=\"agenda:*\" NODE_ENV=development nodemon src/index.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "test": "jest -i --colors --verbose",
     "test:watch": "jest -i --watchAll",
     "coverage": "jest -i --coverage",
