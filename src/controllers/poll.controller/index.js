@@ -20,9 +20,9 @@ const listPolls = catchAsync(async (req, res) => {
 // })
 
 // choice can be a choiceId or a new choice object
-const votePoll = catchAsync(async (req, res) => {
-  const voteResponse = await pollService.votePoll(req.params.pollId, req.body.choice, req.user)
-  return res.status(httpStatus.OK).send(voteResponse)
+const respondPoll = catchAsync(async (req, res) => {
+  const pollResponse = await pollService.respondPoll(req.params.pollId, req.body.choice, req.user)
+  return res.status(httpStatus.OK).send(pollResponse)
 })
 
 const inspectPoll = catchAsync(async (req, res) => {
@@ -38,7 +38,7 @@ const getPollResponses = catchAsync(async (req, res) => {
 module.exports = {
   createPoll,
   listPolls,
-  votePoll,
+  respondPoll,
   inspectPoll,
   getPollResponses
 }

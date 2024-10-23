@@ -6,19 +6,15 @@ const pollChoiceSchema = mongoose.Schema(
     text: {
       type: String,
       required: true,
-      trim: true
-    },
-    owner: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
-      required: true,
-      private: false
+      trim: true,
+      index: true
     },
     poll: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Poll',
       required: true,
-      private: false
+      private: false,
+      index: true
     }
   },
   {

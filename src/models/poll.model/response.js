@@ -7,19 +7,22 @@ const pollResponseSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: false
+      private: false,
+      index: true
     },
     poll: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Poll',
       required: true,
-      private: false
+      private: false,
+      index: true
     },
     choice: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'PollChoice',
       required: true,
-      private: false
+      private: false,
+      index: true
     }
   },
   {

@@ -47,7 +47,7 @@ router.route('/').post(auth('createPoll'), pollsController.createPoll)
  * @swagger
  * /polls:
  *   put:
- *     description: Vote on a poll
+ *     description: Respond to a poll
  *     tags: [Poll]
  *     produces:
  *       - application/json
@@ -68,7 +68,7 @@ router.route('/').post(auth('createPoll'), pollsController.createPoll)
  *               $ref: '#/components/schemas/Poll'
  *
  */
-router.route('/:pollId/vote').post(auth('votePoll'), pollsController.votePoll)
+router.route('/:pollId/respond').post(auth('respondPoll'), pollsController.respondPoll)
 
 /**
  * @swagger

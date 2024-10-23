@@ -23,7 +23,7 @@ const allRoles = {
 
     // poll roles
     'createPoll',
-    'votePoll',
+    'respondPoll',
     'listPolls',
     'inspectPoll',
     'getPollResponses'

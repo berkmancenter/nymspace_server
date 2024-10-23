@@ -7,7 +7,8 @@ const pollSchema = mongoose.Schema(
     title: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      index: true
     },
     description: {
       type: String,
@@ -17,30 +18,36 @@ const pollSchema = mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      index: true
     },
     locked: {
       type: Boolean,
-      default: false
+      default: false,
+      index: true
     },
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
       required: true,
-      private: false
+      private: false,
+      index: true
     },
     threshold: {
       type: Number,
-      min: 0
+      min: 0,
+      index: true
     },
     expirationDate: {
       type: Date,
-      required: true
+      required: true,
+      index: true
     },
     topic: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Topic',
-      required: true
+      required: true,
+      index: true
     },
     multiSelect: {
       type: Boolean,
@@ -57,7 +64,13 @@ const pollSchema = mongoose.Schema(
       required: true,
       default: false
     },
-    choiceOwnerVisible: {
+    whenResponsesVisible: {
+      type: String,
+      required: true,
+      enum: ['thresholdAndExpiration', 'thresholdOnly', 'expirationOnly'],
+      default: 'thresholdAndExpiration'
+    },
+    responsesVisibleToNonParticipants: {
       type: Boolean,
       required: true,
       default: false
