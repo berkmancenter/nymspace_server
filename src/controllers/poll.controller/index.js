@@ -7,9 +7,31 @@ const createPoll = catchAsync(async (req, res) => {
   return res.status(httpStatus.CREATED).send(poll)
 })
 
-// TODO: Query and sorting params structure? Evaluate existing structure...
+// TODO: Query and sorting params structure? Evaluate existing structure. Set up query param parsing elsewhere
 const listPolls = catchAsync(async (req, res) => {
-  const polls = await pollService.listPolls(req.query, req.user)
+  let sortDir = -1
+
+  let sort = req.query._sort
+  if (sort) {
+    if (sort.charAt(0) === '-') {
+      sort = sort.substring(1)
+      sortDir = -1
+    } else {
+      sortDir = 1
+    }
+  }
+
+  if (sort) {
+    delete req.query._sort
+  } else {
+    sort = 'updatedAt'
+  }
+
+  for (const prop in req.query) {
+    if (['true', 'false'].includes(req.query[prop])) req.query[prop] = ('true' && true) || ('false' && false)
+  }
+
+  const polls = await pollService.listPolls(req.query, sort, sortDir, req.user)
   return res.status(httpStatus.OK).send(polls)
 })
 

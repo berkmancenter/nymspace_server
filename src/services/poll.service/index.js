@@ -29,14 +29,19 @@ const findById = async (pollId) => {
 
 // TODO: Transform poll view for user?
 const getUserPollView = (poll, user) => {
-  logger.info('Get user poll view %s %s', poll?._id, user._id)
-  return poll
+  // logger.info('Get user poll view %s %s', poll?._id, user._id)
+  const pollData = poll.toObject()
+
+  // how poll owner data from others
+  if (!user._id.equals(poll.owner._id)) delete pollData.owner
+
+  return pollData
 }
 
 // TODO: Query and sorting params structure? Evaluate existing structure...
-const listPolls = async (query, user) => {
-  const polls = await Poll.find(query)
-  logger.info('List polls %s %s', query, polls.length)
+const listPolls = async (query, sort, sortDir, user) => {
+  const polls = await Poll.find(query).sort({ [sort]: sortDir })
+  logger.info('List polls %s %s %s %s', query, sort, sortDir, polls.length)
   return polls.map((poll) => getUserPollView(poll, user))
 }
 
