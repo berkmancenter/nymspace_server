@@ -7,9 +7,10 @@
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": "^20"
+    "node": "^20",
+    "npm": "please-use-yarn",
+    "yarn": ">=1"
   },
-  "packageManager": "^yarn@1.22.0",
   "scripts": {
     "start": "pm2 start ecosystem.config.json",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
