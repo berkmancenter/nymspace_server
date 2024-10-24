@@ -38,6 +38,20 @@ const getUserPollView = (poll, user) => {
   return pollData
 }
 
+// TODO More transformation may be needed
+const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap) => {
+  // logger.info('Get user poll view %s %s', poll?._id, user._id)
+  const pollResponseData = pollResponse.toObject()
+
+  // TODO: Set this up as a poll option
+  if (!userChoiceMap[pollResponseData.choice._id.toString()]) return null
+
+  pollResponseData.owner = pollResponseData.owner.username
+  pollResponseData.choice = pollResponseData.choice.text
+
+  return pollResponseData
+}
+
 // TODO: Query and sorting params structure? Evaluate existing structure...
 const listPolls = async (query, sort, sortDir, user) => {
   const polls = await Poll.find(query).sort({ [sort]: sortDir })
@@ -67,7 +81,7 @@ const respondPoll = async (pollId, choiceData, user) => {
 
   // find existing choice or create a new one
   let choice = await PollChoice.findOne({ poll: poll._id, text: textRegex })
-  if (!poll.allowNewChoices && !choice) throw new Error('Only existing poll choices are allowed')
+  if (!poll.allowNewChoices && !choice) throw new ApiError(httpStatus.BAD_REQUEST, 'Only existing poll choices are allowed')
 
   if (!choice)
     choice = new PollChoice({
@@ -128,7 +142,18 @@ const getPollResponses = async (pollId, user) => {
   if (poll.whenResponsesVisible !== 'thresholdOnly' && nowTime < poll.expirationDate.getTime())
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has not been reached')
 
-  const pollResponses = await PollResponse.find({ poll: pollId })
+  // create a map of choices from this user
+  const userResponses = await PollResponse.find({ poll: pollId, owner: user._id })
+  const userChoiceMap = userResponses.reduce((map, response) => {
+    // eslint-disable-next-line
+    map[response.choice._id.toString()] = true
+    return map
+  }, {})
+
+  // this could be done more efficiently
+  const pollResponses = (await PollResponse.find({ poll: pollId }).populate('choice').populate('owner'))
+    .map((response) => getUserPollResponseView(poll, response, user, userChoiceMap))
+    .filter(Boolean)
   logger.info('get poll responses', pollId, user._id)
   return pollResponses
 }
