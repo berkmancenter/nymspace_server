@@ -119,7 +119,7 @@ function validAgentEvaluation(agentEvaluation) {
 agentSchema.method('initialize', async function () {
   if (!this._id) throw new Error('Cannot invoke initializeTimer without an _id')
 
-  if (!this.populated('thread')) await this.populate('thread')
+  if (!this.populated('thread')) await this.populate('thread').execPopulate()
 
   if (!this.thread) {
     logger.warn(`No thread found for agent ${this._id}. Deleting this agent as outdated`)
@@ -145,7 +145,7 @@ agentSchema.method('initialize', async function () {
   agenda.define(this.agendaJobName, async function (job) {
     logger.info(`Agenda activation ${this.agentType} ${this._id}`)
     const { agentId } = job.attrs.data
-    const agent = await mongoose.model('Agent').findOne(agentId).populate('thread')
+    const agent = await mongoose.model('Agent').findOne(agentId).populate('thread').execPopulate()
     if (!agent) {
       logger.warn(`Could not find agent ${agentId}`)
       return

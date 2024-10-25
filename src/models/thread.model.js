@@ -63,7 +63,7 @@ threadSchema.pre('validate', function (next) {
 })
 
 threadSchema.post('findOne', async function () {
-  if (config.enableAgents && this.enableAgents) await this.populate('agents')
+  if (config.enableAgents && this.enableAgents) await this.populate('agents').execPopulate()
 })
 
 /**
