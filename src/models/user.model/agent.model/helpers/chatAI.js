@@ -1,7 +1,8 @@
 const { ChatOpenAI } = require('@langchain/openai')
 const { PromptTemplate } = require('@langchain/core/prompts')
 const { StringOutputParser } = require('@langchain/core/output_parsers')
-const { isWithinTokenLimit } = require('gpt-tokenizer')
+// eslint-disable-next-line import/no-unresolved
+const { isWithinTokenLimit } = require('gpt-tokenizer/model/gpt-3.5-turbo')
 const config = require('../../../../config/config')
 
 const llm = new ChatOpenAI(
