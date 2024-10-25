@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const faker = require('faker')
 const Thread = require('../../src/models/thread.model')
-const { userOne, userTwo } = require('./user.fixture')
+const { userOne, userTwo, registeredUser } = require('./user.fixture')
 const { newPublicTopic, newPrivateTopic } = require('./topic.fixture')
 
 const publicTopic = newPublicTopic()
@@ -10,6 +10,7 @@ const privateTopic = newPrivateTopic()
 const nameSlug1 = faker.lorem.word().toLowerCase()
 const nameSlug2 = faker.lorem.word().toLowerCase()
 const nameSlug3 = faker.lorem.word().toLowerCase()
+const nameSlug4 = faker.lorem.word().toLowerCase()
 
 const threadOne = {
   _id: mongoose.Types.ObjectId(),
@@ -36,6 +37,16 @@ const threadThree = {
   topic: privateTopic._id
 }
 
+const threadAgentsEnabled = {
+  _id: mongoose.Types.ObjectId(),
+  name: nameSlug4,
+  owner: registeredUser._id,
+  topic: publicTopic._id,
+  enableAgents: true,
+  agents: [],
+  messages: []
+}
+
 const insertThreads = async (threads) => {
   await Thread.insertMany(threads)
 }
@@ -46,5 +57,6 @@ module.exports = {
   threadThree,
   insertThreads,
   publicTopic,
-  privateTopic
+  privateTopic,
+  threadAgentsEnabled
 }
