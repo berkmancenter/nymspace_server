@@ -1,9 +1,5 @@
 const Agenda = require('agenda')
 const mongoose = require('mongoose')
-const { ChatOpenAI } = require('@langchain/openai')
-const { PromptTemplate } = require('@langchain/core/prompts')
-const { StringOutputParser } = require('@langchain/core/output_parsers')
-const { isWithinTokenLimit } = require('gpt-tokenizer')
 const { toJSON, paginate } = require('../../plugins')
 const BaseUser = require('../baseUser.model')
 const { Message } = require('../..')
@@ -14,17 +10,8 @@ const config = require('../../../config/config')
 const logger = require('../../../config/logger')
 const { AgentMessageActions } = require('../../../types/agent.types')
 
-const agenda = new Agenda({ db: { address: config.mongoose.url } })
-
-const llm = new ChatOpenAI(
-  {
-    apiKey: config.llms.openAI.key
-    // can specify model here, default is gpt-3.5.-turbo
-  },
-  {
-    basePath: config.llms.basePath
-  }
-)
+let agenda
+let chatAI
 
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = [
@@ -117,11 +104,6 @@ agentSchema.virtual('agendaJobName').get(function () {
   return `agent${this._id}`
 })
 
-// statics
-agentSchema.static('isWithinTokenLimit', function (promptText, tokenLimit) {
-  return isWithinTokenLimit(promptText, tokenLimit)
-})
-
 // other helpers
 
 function validAgentEvaluation(agentEvaluation) {
@@ -138,11 +120,14 @@ agentSchema.method('initialize', async function () {
   if (!this._id) throw new Error('Cannot invoke initializeTimer without an _id')
 
   if (!this.populated('thread')) await this.populate('thread')
+
   if (!this.thread) {
     logger.warn(`No thread found for agent ${this._id}. Deleting this agent as outdated`)
     await mongoose.model('Agent').deleteOne({ _id: this._id })
     return
   }
+  // eslint-disable-next-line import/extensions
+  chatAI = await import('./helpers/chatAI.js')
 
   const agentType = agentTypes[this.agentType]
 
@@ -154,7 +139,7 @@ agentSchema.method('initialize', async function () {
     logger.info(`No timer to set for ${this.agentType} ${this._id}`)
     return
   }
-
+  agenda = new Agenda({ db: { address: config.mongoose.url } })
   // logger.info(`Setting timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
   await agenda.start()
   agenda.define(this.agendaJobName, async function (job) {
@@ -174,8 +159,8 @@ agentSchema.method('initialize', async function () {
   logger.info(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
 })
 
-agentSchema.method('isWithinTokenLimit', function (promptText) {
-  return this.constructor.isWithinTokenLimit(promptText, this.tokenLimit)
+agentSchema.method('isWithinTokenLimit', async function (promptText) {
+  return chatAI.isInTokenLimit(promptText, this.tokenLimit)
 })
 
 agentSchema.method('resetTimer', async function () {
@@ -210,17 +195,10 @@ agentSchema.method('evaluate', async function (userMessage = null) {
 
   this.userMessage = userMessage
 
-  // prepare prompt and response
-  const prompt = PromptTemplate.fromTemplate(this.template)
-  const answerChain = prompt.pipe(llm).pipe(new StringOutputParser())
-
   const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
 
   // save llmResponse as temporary property on this instance for processing
-  this.llmResponse = await answerChain.invoke({
-    convHistory,
-    topic: this.thread.name
-  })
+  this.llmResponse = await chatAI.getResponse(this.template, convHistory, this.thread.name)
 
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
   // do after LLM processing, since it may take some time

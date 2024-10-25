@@ -14,7 +14,7 @@
   "scripts": {
     "start": "pm2 start ecosystem.config.json",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
-    "test": "jest -i --colors --verbose",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js -i --colors --verbose",
     "test:watch": "jest -i --watchAll",
     "coverage": "jest -i --coverage",
     "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
@@ -95,4 +95,4 @@
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^5.0.10"
   }
-}
+  }
