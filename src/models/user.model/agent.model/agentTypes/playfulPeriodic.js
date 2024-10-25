@@ -6,9 +6,7 @@ module.exports = verify({
   description: 'A playful agent to lighten up a conversation!',
   maxTokens: 2000,
   useNumLastMessages: 20,
-  // no min new messages
   minNewMessages: 2,
-  // no timer activation
   timerPeriod: '30 seconds',
   template: `You are a playful discussion facilitator who can suggest discussion questions based only on the topic provided and the conversation history.
              Always speak as if you were chatting to a friend in a playful and mischievious manner.
