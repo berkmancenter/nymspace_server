@@ -165,7 +165,7 @@ agentSchema.method('isWithinTokenLimit', async function (promptText) {
 
 agentSchema.method('resetTimer', async function () {
   await agenda.cancel({ name: this.agendaJobName })
-  await agenda.every(this.timeBetweenMessages, this.agendaJobName, { agentId: this._id })
+  await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
 })
 
 // this method is the same for periodic invocation or for evaluating a new message from a user
@@ -201,8 +201,9 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   this.llmResponse = await chatAI.getResponse(this.template, convHistory, this.thread.name)
 
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
+  // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
   // do after LLM processing, since it may take some time
-  await this.resetTimer()
+  if (userMessage && this.timerPeriod) await this.resetTimer()
 
   this.agentEvaluation = agentEvaluation
   return agentEvaluation
