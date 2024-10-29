@@ -182,13 +182,13 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   // do not process if no new messages
   if (messageCount === this.lastActiveMessageCount) {
     logger.info(`No new messages to respond to ${this.agentType} ${this._id}`)
-    this.agentEvaluation = { action: AgentMessageActions.OK }
+    this.agentEvaluation = { action: AgentMessageActions.OK, userContributionVisible: true }
     return this.agentEvaluation
   }
 
   if (this.minNewMessages && messageCount - this.lastActiveMessageCount < this.minNewMessages) {
     logger.info('Not enough new messages for activation')
-    this.agentEvaluation = { action: AgentMessageActions.OK }
+    this.agentEvaluation = { action: AgentMessageActions.OK, userContributionVisible: true }
     return this.agentEvaluation
   }
 
