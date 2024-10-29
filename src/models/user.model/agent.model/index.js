@@ -140,17 +140,18 @@ agentSchema.method('initialize', async function () {
     return
   }
   agenda = new Agenda({ db: { address: config.mongoose.url } })
-  // logger.info(`Setting timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
+
   await agenda.start()
   agenda.define(this.agendaJobName, async function (job) {
-    logger.info(`Agenda activation ${this.agentType} ${this._id}`)
     const { agentId } = job.attrs.data
-    const agent = await mongoose.model('Agent').findOne(agentId).populate('thread').execPopulate()
+    logger.info(`Agenda activation ${agentId}`)
+    const agent = await mongoose.model('Agent').findOne(agentId).populate('thread').exec()
+
     if (!agent) {
       logger.warn(`Could not find agent ${agentId}`)
       return
     }
-
+    await agent.thread.populate('messages').execPopulate()
     await agent.evaluate()
     await agent.respond()
   })
