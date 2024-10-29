@@ -176,7 +176,9 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   if (!this.populated('thread')) throw new Error(`Thread must be populated for agent ${this._id}`)
   if (!this.thread) throw new Error(`Missing thread for agent ${this._id}`)
 
-  const messageCount = this.thread.messages.length + (userMessage ? 1 : 0)
+  const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
+  const messageCount = humanMsgs.length + (userMessage ? 1 : 0)
+
   // do not process if no new messages
   if (messageCount === this.lastActiveMessageCount) {
     logger.info(`No new messages to respond to ${this.agentType} ${this._id}`)
@@ -191,7 +193,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   }
 
   // update last activation message count
-  this.lastActiveMessageCount = this.thread.messages.length
+  this.lastActiveMessageCount = messageCount
   await this.save()
 
   this.userMessage = userMessage
