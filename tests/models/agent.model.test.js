@@ -96,7 +96,7 @@ describe('agent tests', () => {
       agent.thread = thread
       const evaluation = await agent.evaluate(msg1)
 
-      expect(evaluation).toEqual({ action: AgentMessageActions.OK })
+      expect(evaluation).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
       const response = await agent.respond()
       expect(response).toBe(undefined)
 
@@ -140,7 +140,7 @@ describe('agent tests', () => {
       // 2 user messages and one agent message processed at this point, but agent message should not count in calculation
       agent.thread = thread
       const evaluation3 = await agent.evaluate(msg3)
-      expect(evaluation3).toEqual({ action: AgentMessageActions.OK })
+      expect(evaluation3).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
       const response3 = await agent.respond()
       expect(response3).toBe(undefined)
       expect(agent.lastActiveMessageCount).toEqual(2)
@@ -175,7 +175,7 @@ describe('agent tests', () => {
       // period check with one message
       agent.thread = thread
       const evaluation = await agent.evaluate()
-      expect(evaluation).toEqual({ action: AgentMessageActions.OK })
+      expect(evaluation).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
       const response = await agent.respond()
       expect(response).toBe(undefined)
 
@@ -213,7 +213,7 @@ describe('agent tests', () => {
       // 2 user messages and one agent message processed at this point, but agent message should not count in calculation
       agent.thread = thread
       const evaluation3 = await agent.evaluate()
-      expect(evaluation3).toEqual({ action: AgentMessageActions.OK })
+      expect(evaluation3).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
       const response3 = await agent.respond()
       expect(response3).toBe(undefined)
       expect(agent.lastActiveMessageCount).toEqual(2)
@@ -223,6 +223,7 @@ describe('agent tests', () => {
       expect(mockResponse).toHaveBeenCalledTimes(1)
     })
   })
+
   describe('per message agent', () => {
     beforeEach(async () => {
       agent = new Agent({
