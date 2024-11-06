@@ -10,8 +10,7 @@ const config = require('../../../config/config')
 const logger = require('../../../config/logger')
 const { AgentMessageActions } = require('../../../types/agent.types')
 
-let agenda
-let chatAI
+const agenda = new Agenda({ db: { address: config.mongoose.url } })
 
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = [
@@ -126,8 +125,6 @@ agentSchema.method('initialize', async function () {
     await mongoose.model('Agent').deleteOne({ _id: this._id })
     return
   }
-  // eslint-disable-next-line import/extensions
-  chatAI = await import('./helpers/chatAI.js')
 
   const agentType = agentTypes[this.agentType]
 
@@ -139,7 +136,6 @@ agentSchema.method('initialize', async function () {
     logger.info(`No timer to set for ${this.agentType} ${this._id}`)
     return
   }
-  agenda = new Agenda({ db: { address: config.mongoose.url } })
 
   await agenda.start()
   agenda.define(this.agendaJobName, async function (job) {
@@ -161,7 +157,9 @@ agentSchema.method('initialize', async function () {
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
-  return chatAI.isInTokenLimit(promptText, this.tokenLimit)
+  // eslint-disable-next-line import/extensions
+  const llm = await import('./llm.js')
+  return llm.default.isInTokenLimit(promptText, this.tokenLimit)
 })
 
 agentSchema.method('resetTimer', async function () {
@@ -200,8 +198,11 @@ agentSchema.method('evaluate', async function (userMessage = null) {
 
   const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
 
+  // eslint-disable-next-line import/extensions
+  const llm = await import('./llm.js')
+
   // save llmResponse as temporary property on this instance for processing
-  this.llmResponse = await chatAI.getResponse(this.template, convHistory, this.thread.name)
+  this.llmResponse = await llm.default.getResponse(this.template, convHistory, this.thread.name)
 
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
   // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking

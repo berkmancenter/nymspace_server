@@ -22,6 +22,8 @@ let thread
 let msg1
 let msg2
 let msg3
+let mockResponse
+let mockTokenLimit
 
 describe('agent tests', () => {
   beforeEach(async () => {
@@ -56,6 +58,30 @@ describe('agent tests', () => {
       pseudonymId: registeredUser.pseudonyms[0]._id,
       pseudonym: registeredUser.pseudonyms[0].pseudonym
     })
+    mockResponse = jest.fn()
+    mockTokenLimit = jest.fn()
+
+    jest.unstable_mockModule('../../src/models/user.model/agent.model/llms/chatAI.js', () => {
+      const MockClass = jest.fn().mockImplementation(() => ({
+        getResponse: mockResponse,
+        isInTokenLimit: mockTokenLimit
+      }))
+
+      return {
+        ChatAI: MockClass
+      }
+    })
+    // eslint-disable-next-line import/extensions
+    const { ChatAI } = await import('../../src/models/user.model/agent.model/llms/chatAI.js')
+
+    jest.unstable_mockModule('../../src/models/user.model/agent.model/llm.js', () => ({
+      default: new ChatAI()
+    }))
+
+    // eslint-disable-next-line import/extensions
+    await import('../../src/models/user.model/agent.model/llm.js')
+
+    mockResponse.mockResolvedValue('A response')
   })
   afterEach(async () => {
     await Topic.deleteOne({ _id: publicTopic._id })
@@ -76,19 +102,6 @@ describe('agent tests', () => {
     })
 
     test('should generate an AI response when min messages received', async () => {
-      const mockResponse = jest.fn()
-      const mockTokenLimit = jest.fn()
-
-      jest.unstable_mockModule('../../src/models/user.model/agent.model/helpers/chatAI.js', () => ({
-        getResponse: mockResponse,
-        isInTokenLimit: mockTokenLimit
-      }))
-
-      // eslint-disable-next-line import/extensions
-      await import('../../src/models/user.model/agent.model/helpers/chatAI.js')
-
-      mockResponse.mockResolvedValue('A response')
-
       await agent.initialize()
       expect(startSpy).toHaveBeenCalled()
       expect(everySpy).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
@@ -150,19 +163,6 @@ describe('agent tests', () => {
     })
 
     test('should generate an AI response when min messages received since last periodic check', async () => {
-      const mockResponse = jest.fn()
-      const mockTokenLimit = jest.fn()
-
-      jest.unstable_mockModule('../../src/models/user.model/agent.model/helpers/chatAI.js', () => ({
-        getResponse: mockResponse,
-        isInTokenLimit: mockTokenLimit
-      }))
-
-      // eslint-disable-next-line import/extensions
-      await import('../../src/models/user.model/agent.model/helpers/chatAI.js')
-
-      mockResponse.mockResolvedValue('A response')
-
       await agent.initialize()
       expect(startSpy).toHaveBeenCalled()
       expect(everySpy).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
@@ -222,6 +222,16 @@ describe('agent tests', () => {
       expect(mockResponse).toHaveBeenCalledWith(agent.template, convHistory, thread.name)
       expect(mockResponse).toHaveBeenCalledTimes(1)
     })
+    test('should indicate if input text is within max token limit', async () => {
+      mockTokenLimit.mockResolvedValue(true)
+
+      await agent.initialize()
+      expect(startSpy).toHaveBeenCalled()
+      expect(everySpy).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
+
+      const inLimit = await agent.isWithinTokenLimit('Hello')
+      expect(inLimit).toBe(true)
+    })
   })
 
   describe('per message agent', () => {
@@ -234,19 +244,6 @@ describe('agent tests', () => {
     })
 
     test('should generate an AI response when each messages is received', async () => {
-      const mockResponse = jest.fn()
-      const mockTokenLimit = jest.fn()
-
-      jest.unstable_mockModule('../../src/models/user.model/agent.model/helpers/chatAI.js', () => ({
-        getResponse: mockResponse,
-        isInTokenLimit: mockTokenLimit
-      }))
-
-      // eslint-disable-next-line import/extensions
-      await import('../../src/models/user.model/agent.model/helpers/chatAI.js')
-
-      mockResponse.mockResolvedValue('A response')
-
       await agent.initialize()
 
       agent.thread = thread
