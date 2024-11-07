@@ -5,7 +5,6 @@ const PROPERTIES = [
   'minNewMessages',
   'useNumLastMessages',
   'timerPeriod',
-  'template',
   'initialize',
   'evaluate'
 ]
