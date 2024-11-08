@@ -28,8 +28,8 @@ const createPoll = async (pollBody, user) => {
   }
   delete pollData.topicId
 
-  if (pollData.whenResponsesVisible === 'thresholdOnly' && pollData.expirationDate) delete pollData.expirationDate
-  if (pollData.whenResponsesVisible === 'expirationOnly' && pollData.threshold) delete pollData.threshold
+  if (pollData.whenResultsVisible === 'thresholdOnly' && pollData.expirationDate) delete pollData.expirationDate
+  if (pollData.whenResultsVisible === 'expirationOnly' && pollData.threshold) delete pollData.threshold
 
   const poll = await Poll.create(pollData)
 
@@ -95,11 +95,11 @@ const respondPoll = async (pollId, choiceData, user) => {
 
   // cannot respond to an expired poll
   const nowTime = Date.now()
-  if (poll.whenResponsesVisible !== 'thresholdOnly' && nowTime > poll.expirationDate.getTime())
+  if (poll.whenResultsVisible !== 'thresholdOnly' && nowTime > poll.expirationDate.getTime())
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has been reached. No more responses are allowed.')
 
   // cannot respond to threshold only poll that has been reached
-  if (poll.whenResponsesVisible === 'thresholdOnly') {
+  if (poll.whenResultsVisible === 'thresholdOnly') {
     const numResponses = await PollResponse.countDocuments({ poll: pollId })
     if (numResponses >= poll.threshold)
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Threshold has been reached. No more responses are allowed.')
@@ -168,15 +168,17 @@ const getPollResponses = async (pollId, user) => {
   const poll = await Poll.findById(pollId)
   if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
 
+  if (!poll.responsesVisible) throw new ApiError(httpStatus.BAD_REQUEST, 'Responses are not visible for this poll')
+
   const myResponse = await PollResponse.findOne({ poll: pollId, owner: user._id })
   if (!poll.responsesVisibleToNonParticipants && !myResponse)
     throw new ApiError(httpStatus.UNAUTHORIZED, 'You have not participated in this poll')
 
   const numResponses = await PollResponse.countDocuments({ poll: pollId })
-  if (poll.whenResponsesVisible !== 'expirationOnly' && numResponses < poll.threshold)
+  if (poll.whenResultsVisible !== 'expirationOnly' && numResponses < poll.threshold)
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Poll threshold has not been reached')
 
-  if (poll.whenResponsesVisible !== 'thresholdOnly' && nowTime < poll.expirationDate.getTime())
+  if (poll.whenResultsVisible !== 'thresholdOnly' && nowTime < poll.expirationDate.getTime())
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has not been reached')
 
   // create a map of choices from this user
