@@ -147,16 +147,30 @@ const respondPoll = async (pollId, choiceData, user) => {
 }
 
 const inspectPoll = async (pollId, user) => {
-  const [poll, choices, responseCount] = await Promise.all([
-    Poll.findById(pollId),
-    PollChoice.find({ poll: pollId }),
-    PollResponse.countDocuments({ poll: pollId })
-  ])
+  const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId })])
+
+  let responseCounts
+  if (poll.responseCountVisible) {
+    responseCounts = await PollResponse.aggregate([
+      { $match: { poll: new mongoose.Types.ObjectId(pollId) } },
+      {
+        $lookup: {
+          from: 'pollchoices',
+          localField: 'choice',
+          foreignField: '_id',
+          as: 'choice'
+        }
+      },
+      { $addFields: { choice: { $arrayElemAt: ['$choice', 0] } } },
+      { $addFields: { choice: '$choice.text' } },
+      { $group: { _id: '$choice', count: { $sum: 1 } } }
+    ])
+  }
   logger.info('Inspect poll %s %s', pollId, user._id)
 
   const pollData = poll.toObject()
   if (poll.choicesVisible) pollData.choices = choices.map((choice) => choice.toObject())
-  if (poll.responseCountVisible) pollData.responseCount = responseCount
+  if (poll.responseCountVisible) pollData.responseCounts = responseCounts
 
   const userPollView = await getUserPollView(pollData, user)
   return userPollView
