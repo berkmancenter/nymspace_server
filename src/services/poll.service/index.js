@@ -105,8 +105,6 @@ const respondPoll = async (pollId, choiceData, user) => {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Threshold has been reached. No more responses are allowed.')
   }
 
-  const existingResponse = await PollResponse.findOne({ poll: poll._id, owner: user._id })
-
   const text = choiceData.text.trim()
   if (!text) throw new ApiError(httpStatus.BAD_REQUEST, 'Provided choice is missing the required text field')
 
@@ -137,8 +135,22 @@ const respondPoll = async (pollId, choiceData, user) => {
   // check for existing response or create a new one
   const response = (await PollResponse.findOne(pollResponseData)) || new PollResponse(pollResponseData)
 
-  if (!poll.multiSelect && existingResponse && !existingResponse.choice._id.equals(choice._id))
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Only one response is allowed for this poll')
+  // can remove an existing choice if before expiration
+  if (choiceData.remove && !response.isModified()) {
+    await PollResponse.findByIdAndRemove({ _id: response._id })
+    const responseData = response.replaceObjectsWithIds()
+    responseData.removed = true
+    return responseData
+  }
+
+  if (!poll.multiSelect) {
+    const existingOtherResponse = await PollResponse.findOne({
+      poll: poll._id,
+      owner: user._id,
+      choice: { $ne: choice._id }
+    })
+    if (existingOtherResponse) throw new ApiError(httpStatus.BAD_REQUEST, 'Only one response is allowed for this poll')
+  }
 
   if (response.isModified()) await response.save()
 
