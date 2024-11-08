@@ -69,8 +69,7 @@ const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap) => {
   // logger.info('Get user poll view %s %s', poll?._id, user._id)
   const pollResponseData = pollResponse.toObject()
 
-  // TODO: Set this up as a poll option
-  if (!userChoiceMap[pollResponseData.choice._id.toString()]) return null
+  if (poll.onlyOwnChoicesVisible && !userChoiceMap[pollResponseData.choice._id.toString()]) return null
 
   pollResponseData.owner = pollResponseData.owner.username
   pollResponseData.choice = pollResponseData.choice.text

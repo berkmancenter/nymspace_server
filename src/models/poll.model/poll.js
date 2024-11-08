@@ -68,6 +68,11 @@ const pollSchema = mongoose.Schema(
       required: true,
       default: false
     },
+    onlyOwnChoicesVisible: {
+      type: Boolean,
+      required: true,
+      default: true
+    },
     whenResponsesVisible: {
       type: String,
       required: true,
