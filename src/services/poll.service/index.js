@@ -18,6 +18,9 @@ const createPoll = async (pollBody, user) => {
     throw new ApiError(httpStatus.FORBIDDEN, 'Poll creation not allowed.')
   }
 
+  let choices
+  if (pollBody.choices) choices = pollBody.choices
+
   const pollData = {
     ...pollBody,
     owner: user._id,
@@ -25,8 +28,8 @@ const createPoll = async (pollBody, user) => {
   }
   delete pollData.topicId
 
-  let choices
-  if (pollData.choices) choices = pollData.choices
+  if (pollData.whenResponsesVisible === 'thresholdOnly' && pollData.expirationDate) delete pollData.expirationDate
+  if (pollData.whenResponsesVisible === 'expirationOnly' && pollData.threshold) delete pollData.threshold
 
   const poll = await Poll.create(pollData)
 
@@ -51,8 +54,9 @@ const findById = async (pollId) => {
 
 // TODO: Transform poll view for user?
 const getUserPollView = (poll, user) => {
+  if (!poll) return null
   // logger.info('Get user poll view %s %s', poll?._id, user._id)
-  const pollData = poll.toObject()
+  const pollData = poll?.toObject ? poll.toObject() : poll
 
   // how poll owner data from others
   if (!user._id.equals(poll.owner._id)) delete pollData.owner
@@ -89,6 +93,18 @@ const listPolls = async (query, sort, sortDir, user) => {
 const respondPoll = async (pollId, choiceData, user) => {
   const poll = await Poll.findById(pollId)
   if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+
+  // cannot respond to an expired poll
+  const nowTime = Date.now()
+  if (poll.whenResponsesVisible !== 'thresholdOnly' && nowTime > poll.expirationDate.getTime())
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has been reached. No more responses are allowed.')
+
+  // cannot respond to threshold only poll that has been reached
+  if (poll.whenResponsesVisible === 'thresholdOnly') {
+    const numResponses = await PollResponse.countDocuments({ poll: pollId })
+    if (numResponses >= poll.threshold)
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Threshold has been reached. No more responses are allowed.')
+  }
 
   const existingResponse = await PollResponse.findOne({ poll: poll._id, owner: user._id })
 

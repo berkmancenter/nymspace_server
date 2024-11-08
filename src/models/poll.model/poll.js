@@ -40,7 +40,6 @@ const pollSchema = mongoose.Schema(
     },
     expirationDate: {
       type: Date,
-      required: true,
       index: true
     },
     topic: {
