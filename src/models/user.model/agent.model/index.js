@@ -174,8 +174,8 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   if (!this.populated('thread')) throw new Error(`Thread must be populated for agent ${this._id}`)
   if (!this.thread) throw new Error(`Missing thread for agent ${this._id}`)
 
-  const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
-  const messageCount = humanMsgs.length + (userMessage ? 1 : 0)
+  const humanMsgCount = this.thread.messages.reduce((count, msg) => count + (msg.fromAgent ? 0 : 1), 0)
+  const messageCount = humanMsgCount + (userMessage ? 1 : 0)
 
   // do not process if no new messages
   if (messageCount === this.lastActiveMessageCount) {
@@ -190,24 +190,26 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     return this.agentEvaluation
   }
 
-  // update last activation message count
-  this.lastActiveMessageCount = messageCount
-  await this.save()
-
   this.userMessage = userMessage
 
-  const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
+  this.convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
 
   // eslint-disable-next-line import/extensions
   const llm = await import('./llm.js')
 
   // save llmResponse as temporary property on this instance for processing
-  this.llmResponse = await llm.default.getResponse(this.template, convHistory, this.thread.name)
+  this.llmResponse = await llm.default.getResponse(this.template, this.convHistory, this.thread.name)
 
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
   // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
   // do after LLM processing, since it may take some time
   if (userMessage && this.timerPeriod) await this.resetTimer()
+
+  // update last activation message count
+  if (agentEvaluation.action !== AgentMessageActions.REJECT) {
+    this.lastActiveMessageCount = messageCount
+    await this.save()
+  }
 
   this.agentEvaluation = agentEvaluation
   return agentEvaluation
