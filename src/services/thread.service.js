@@ -12,8 +12,8 @@ const returnFields = 'name slug locked owner'
  * @returns {Array}
  */
 const addMessageCount = (threads) => {
-  return threads.map((t) => {
-    t = t.toObject()
+  return threads.map((thread) => {
+    const t = thread.toObject()
     t.messageCount = t.messages ? t.messages.length : 0
     delete t.messages
     // Replace _id with id since toJSON plugin will not be applied
@@ -29,6 +29,8 @@ const addMessageCount = (threads) => {
  * @returns {Promise<Thread>}
  */
 const createThread = async (threadBody, user) => {
+  if (!threadBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
+
   const topicId = mongoose.Types.ObjectId(threadBody.topicId)
   const topic = await Topic.findById(topicId)
 
@@ -43,7 +45,7 @@ const createThread = async (threadBody, user) => {
   })
 
   topic.threads.push(thread.toObject())
-  topic.save()
+  await topic.save()
 
   return thread
 }
@@ -83,6 +85,7 @@ const userThreads = async (user) => {
   threads = addMessageCount(threads)
   threads.forEach((thread) => {
     if (followedThreadsIds.map((f) => f.toString()).includes(thread.id)) {
+      // eslint-disable-next-line
       thread.followed = true
     }
   })

@@ -1,22 +1,44 @@
 const escapeStringRegexPromise = import('escape-string-regexp')
+const mongoose = require('mongoose')
 const httpStatus = require('http-status')
 const logger = require('../../config/logger')
-const { Poll, PollChoice, PollResponse } = require('../../models')
+const { Topic, Poll, PollChoice, PollResponse } = require('../../models')
 const ApiError = require('../../utils/ApiError')
 
-const createPoll = async (pollData, user) => {
+const createPoll = async (pollBody, user) => {
+  if (!pollBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
+
+  const topicId = mongoose.Types.ObjectId(pollBody.topicId)
+  const topic = await Topic.findById(topicId)
+
+  // TODO: Confirm if we want to separately allow control of thread and poll creation or not
+  // For this MVP we are using threadCreationAllowed, but it should probably be renamed
+  // spaceCreationAllowed or separated into two options for clarity
+  if (!topic.threadCreationAllowed && user._id.toString() !== topic.owner.toString()) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Poll creation not allowed.')
+  }
+
+  const pollData = {
+    ...pollBody,
+    owner: user._id,
+    topic
+  }
+  delete pollData.topicId
+
   let choices
   if (pollData.choices) choices = pollData.choices
 
-  const poll = new Poll({
-    ...pollData,
-    owner: user._id
-  })
-  await poll.save()
+  const poll = await Poll.create(pollData)
 
   if (choices) {
     await PollChoice.create(choices.map((c) => ({ ...c, poll })))
   }
+
+  // NOTE! We specifically do NOT save polls in the topic objects because
+  // it is important that poll owners not be exposed (in contrast with threads)
+  // WEe can still look up polls for a topic with a query if needed
+  // NO: topic.polls.push(poll.toObject())
+  // NO: await topic.save()
 
   logger.info('Created poll %s %s %s', poll._id, poll.title, choices?.length)
   return poll
