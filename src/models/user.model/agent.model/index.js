@@ -128,6 +128,8 @@ agentSchema.method('initialize', async function () {
 
   const agentType = agentTypes[this.agentType]
 
+  if (!agentType) throw new Error(`No such agentType: ${this.agentType} for agent ${this._id}`)
+
   // see if this agent type has specific other initialization required
   await agentType.initialize.call(this)
 
