@@ -6,7 +6,8 @@ const PROPERTIES = [
   'useNumLastMessages',
   'timerPeriod',
   'initialize',
-  'evaluate'
+  'evaluate',
+  'isWithinTokenLimit'
 ]
 
 module.exports = function (agentType) {
