@@ -8,7 +8,7 @@ module.exports = (messages, useNumLastMessages = 10, userMessage) => {
       return `${message.pseudonym}: ${message.body}`
     })
 
-  if (userMessage) formattedMessages.push(`${userMessage.pseudonym}: ${userMessage.body}`)
+  if (userMessage) formattedMessages.push(`${userMessage.user}: ${userMessage.body}`)
 
   return formattedMessages
 }
