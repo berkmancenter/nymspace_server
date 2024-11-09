@@ -4,7 +4,6 @@ const { toJSON, paginate } = require('../../plugins')
 const BaseUser = require('../baseUser.model')
 const { Message } = require('../..')
 const pseudonymSchema = require('../schemas/pseudonym.schema')
-const formatConvHistory = require('./helpers/formatConvHistory')
 const agentTypes = require('./agentTypes')
 const config = require('../../../config/config')
 const logger = require('../../../config/logger')
@@ -95,10 +94,6 @@ agentSchema.virtual('useNumLastMessages').get(function () {
   return agentTypes[this.agentType].useNumLastMessages
 })
 
-agentSchema.virtual('template').get(function () {
-  return agentTypes[this.agentType].template
-})
-
 agentSchema.virtual('agendaJobName').get(function () {
   return `agent${this._id}`
 })
@@ -159,9 +154,7 @@ agentSchema.method('initialize', async function () {
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
-  // eslint-disable-next-line import/extensions
-  const llm = await import('./llm.js')
-  return llm.default.isInTokenLimit(promptText, this.tokenLimit)
+  await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
 })
 
 agentSchema.method('resetTimer', async function () {
@@ -193,14 +186,6 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   }
 
   this.userMessage = userMessage
-
-  this.convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
-
-  // eslint-disable-next-line import/extensions
-  const llm = await import('./llm.js')
-
-  // save llmResponse as temporary property on this instance for processing
-  this.llmResponse = await llm.default.getResponse(this.template, this.convHistory, this.thread.name)
 
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
   // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
