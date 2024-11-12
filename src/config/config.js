@@ -30,7 +30,8 @@ const envVarsSchema = Joi.object()
       .description('true/false if pseudonyms are made truly random with UID'),
     DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
     OPENAI_API_KEY: Joi.string().description('OpenAI key'),
-    LANGCHAIN_API_BASE_PATH: Joi.string().description('LangChain API base path')
+    LANGCHAIN_API_BASE_PATH: Joi.string().description('LangChain API base path'),
+    PERSPECTIVE_API_KEY: Joi.string().description('Perspective API key')
   })
   .unknown()
 
@@ -80,6 +81,9 @@ module.exports = {
     basePath: envVars.LANGCHAIN_API_BASE_PATH,
     openAI: {
       key: envVars.OPENAI_API_KEY
+    },
+    perspectiveAPI: {
+      key: envVars.PERSPECTIVE_API_KEY
     }
   },
   appHost: envVars.APP_HOST,
