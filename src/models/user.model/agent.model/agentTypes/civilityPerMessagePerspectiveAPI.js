@@ -1,6 +1,4 @@
 const { google } = require('googleapis')
-// eslint-disable-next-line import/no-unresolved
-const { isWithinTokenLimit } = require('gpt-tokenizer/model/gpt-3.5-turbo')
 const { AgentMessageActions } = require('../../../../types/agent.types')
 const verify = require('./verify')
 const config = require('../../../../config/config')
@@ -64,7 +62,9 @@ module.exports = verify({
 
     return this.agentEvaluation
   },
-  async isWithinTokenLimit(promptText) {
-    return isWithinTokenLimit(promptText, this.tokenLimit)
+  async isWithinTokenLimit() {
+    // Is there a token limit for Perspective API? Assuming this is not a problem for this agent
+    // Ref: https://developers.perspectiveapi.com/s/about-the-api-methods?language=en_US
+    return true
   }
 })
