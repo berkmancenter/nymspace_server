@@ -32,8 +32,8 @@ const template = `You are a facilitator in a text-based chat. You consider one m
              Answer:`
 
 module.exports = verify({
-  name: 'Civility Agent (Per Message)',
-  description: 'A basic civility agent to prevent personal or identity based attacks',
+  name: 'Civility Agent using OpenAI (Per Message)',
+  description: 'A basic civility agent using OpenAI to prevent personal or identity based attacks',
   maxTokens: 2000,
   // don't include any history
   useNumLastMessages: 0,
