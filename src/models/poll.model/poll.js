@@ -12,7 +12,7 @@ const pollSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
+      required: false,
       trim: true
     },
     slug: {
