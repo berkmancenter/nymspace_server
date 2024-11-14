@@ -138,7 +138,7 @@ agentSchema.method('initialize', async function () {
   agenda.define(this.agendaJobName, async function (job) {
     const { agentId } = job.attrs.data
     logger.info(`Agenda activation ${agentId}`)
-    const agent = await mongoose.model('Agent').findOne(agentId).populate('thread').exec()
+    const agent = await mongoose.model('Agent').findOne({ _id: agentId }).populate('thread').exec()
 
     if (!agent) {
       logger.warn(`Could not find agent ${agentId}`)
