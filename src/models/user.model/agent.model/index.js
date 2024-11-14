@@ -179,7 +179,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     return this.agentEvaluation
   }
 
-  if (this.minNewMessages && messageCount - this.lastActiveMessageCount < this.minNewMessages) {
+  if (userMessage && this.minNewMessages && messageCount - this.lastActiveMessageCount < this.minNewMessages) {
     logger.info('Not enough new messages for activation')
     this.agentEvaluation = { action: AgentMessageActions.OK, userContributionVisible: true }
     return this.agentEvaluation
