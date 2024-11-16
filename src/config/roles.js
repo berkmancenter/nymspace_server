@@ -26,7 +26,8 @@ const allRoles = {
     'respondPoll',
     'listPolls',
     'inspectPoll',
-    'getPollResponses'
+    'getPollResponses',
+    'getPollResponseCounts'
   ],
   admin: ['getUsers', 'manageUsers']
 }

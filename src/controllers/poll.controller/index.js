@@ -57,10 +57,16 @@ const getPollResponses = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send(pollResponses)
 })
 
+const getPollResponseCounts = catchAsync(async (req, res) => {
+  const pollResponseCounts = await pollService.getPollResponseCounts(req.params.pollId, req.user)
+  return res.status(httpStatus.OK).send(pollResponseCounts)
+})
+
 module.exports = {
   createPoll,
   listPolls,
   respondPoll,
   inspectPoll,
-  getPollResponses
+  getPollResponses,
+  getPollResponseCounts
 }

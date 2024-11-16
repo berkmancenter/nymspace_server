@@ -4,6 +4,7 @@ const httpStatus = require('http-status')
 const logger = require('../../config/logger')
 const { Topic, Poll, PollChoice, PollResponse } = require('../../models')
 const ApiError = require('../../utils/ApiError')
+const { WHEN_RESULTS_VISIBLE } = require('../../models/poll.model/constants')
 
 const createPoll = async (pollBody, user) => {
   if (!pollBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
@@ -28,8 +29,31 @@ const createPoll = async (pollBody, user) => {
   }
   delete pollData.topicId
 
-  if (pollData.whenResultsVisible === 'thresholdOnly' && pollData.expirationDate) delete pollData.expirationDate
-  if (pollData.whenResultsVisible === 'expirationOnly' && pollData.threshold) delete pollData.threshold
+  if (
+    [WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.ALWAYS].includes(pollData.whenResultsVisible) &&
+    pollData.expirationDate
+  )
+    delete pollData.expirationDate
+  if (
+    [WHEN_RESULTS_VISIBLE.EXPIRATION_ONLY, WHEN_RESULTS_VISIBLE.ALWAYS].includes(pollData.whenResultsVisible) &&
+    pollData.threshold
+  )
+    delete pollData.threshold
+
+  if (
+    [WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      pollData.whenResultsVisible
+    ) &&
+    !pollData.threshold
+  )
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide threshold for this type of poll')
+  if (
+    [WHEN_RESULTS_VISIBLE.EXPIRATION_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      pollData.whenResultsVisible
+    ) &&
+    !pollData.expirationDate
+  )
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide expirationDate for this type of poll')
 
   const poll = await Poll.create(pollData)
 
@@ -65,11 +89,20 @@ const getUserPollView = (poll, user) => {
 }
 
 // TODO More transformation may be needed
-const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap) => {
+const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap, responseCountMap) => {
   // logger.info('Get user poll view %s %s', poll?._id, user._id)
   const pollResponseData = pollResponse.toObject()
+  const choiceId = pollResponseData.choice._id.toString()
 
-  if (poll.onlyOwnChoicesVisible && !userChoiceMap[pollResponseData.choice._id.toString()]) return null
+  // check threshold and own choices filters
+  if (
+    ([WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      poll.whenResultsVisible
+    ) &&
+      responseCountMap[choiceId] < poll.threshold) ||
+    (poll.onlyOwnChoicesVisible && !userChoiceMap[choiceId])
+  )
+    return null
 
   pollResponseData.owner = pollResponseData.owner.username
   pollResponseData.choice = pollResponseData.choice.text
@@ -95,15 +128,13 @@ const respondPoll = async (pollId, choiceData, user) => {
 
   // cannot respond to an expired poll
   const nowTime = Date.now()
-  if (poll.whenResultsVisible !== 'thresholdOnly' && nowTime > poll.expirationDate.getTime())
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has been reached. No more responses are allowed.')
-
-  // cannot respond to threshold only poll that has been reached
-  if (poll.whenResultsVisible === 'thresholdOnly') {
-    const numResponses = await PollResponse.countDocuments({ poll: pollId })
-    if (numResponses >= poll.threshold)
-      throw new ApiError(httpStatus.UNAUTHORIZED, 'Threshold has been reached. No more responses are allowed.')
-  }
+  if (
+    [WHEN_RESULTS_VISIBLE.EXPIRATION_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      poll.whenResultsVisible
+    ) &&
+    nowTime > poll.expirationDate.getTime()
+  )
+    throw new ApiError(httpStatus.FORBIDDEN, 'Expiration date has been reached. No more responses are allowed.')
 
   const text = choiceData.text.trim()
   if (!text) throw new ApiError(httpStatus.BAD_REQUEST, 'Provided choice is missing the required text field')
@@ -125,6 +156,13 @@ const respondPoll = async (pollId, choiceData, user) => {
     })
 
   if (choice.isModified()) await choice.save()
+
+  // cannot respond to threshold only poll choice that has been reached
+  if (poll.whenResultsVisible === WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY) {
+    const numResponses = await PollResponse.countDocuments({ poll: pollId, choice: choice._id })
+    if (numResponses >= poll.threshold)
+      throw new ApiError(httpStatus.FORBIDDEN, 'Threshold has been reached. No more responses are allowed.')
+  }
 
   const pollResponseData = {
     owner: user,
@@ -161,66 +199,104 @@ const respondPoll = async (pollId, choiceData, user) => {
 const inspectPoll = async (pollId, user) => {
   const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId })])
 
-  let responseCounts
-  if (poll.responseCountVisible) {
-    responseCounts = await PollResponse.aggregate([
-      { $match: { poll: new mongoose.Types.ObjectId(pollId) } },
-      {
-        $lookup: {
-          from: 'pollchoices',
-          localField: 'choice',
-          foreignField: '_id',
-          as: 'choice'
-        }
-      },
-      { $addFields: { choice: { $arrayElemAt: ['$choice', 0] } } },
-      { $addFields: { choice: '$choice.text' } },
-      { $group: { _id: '$choice', count: { $sum: 1 } } }
-    ])
-  }
   logger.info('Inspect poll %s %s', pollId, user._id)
 
   const pollData = poll.toObject()
   if (poll.choicesVisible) pollData.choices = choices.map((choice) => choice.toObject())
-  if (poll.responseCountVisible) pollData.responseCounts = responseCounts
 
   const userPollView = await getUserPollView(pollData, user)
   return userPollView
 }
 
-const getPollResponses = async (pollId, user) => {
-  const nowTime = Date.now()
-
-  const poll = await Poll.findById(pollId)
+// this collects all visible poll responses, based on the poll options and user
+// returns both visible poll responses as well as visible poll counts when allowed by our poll logic
+const collectVisiblePollResponses = async (poll, user) => {
   if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
 
-  if (!poll.responsesVisible) throw new ApiError(httpStatus.BAD_REQUEST, 'Responses are not visible for this poll')
-
-  const myResponse = await PollResponse.findOne({ poll: pollId, owner: user._id })
+  const nowTime = Date.now()
+  const myResponse = await PollResponse.findOne({ poll: poll._id, owner: user._id })
   if (!poll.responsesVisibleToNonParticipants && !myResponse)
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'You have not participated in this poll')
+    throw new ApiError(httpStatus.FORBIDDEN, 'You have not participated in this poll')
 
-  const numResponses = await PollResponse.countDocuments({ poll: pollId })
-  if (poll.whenResultsVisible !== 'expirationOnly' && numResponses < poll.threshold)
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Poll threshold has not been reached')
-
-  if (poll.whenResultsVisible !== 'thresholdOnly' && nowTime < poll.expirationDate.getTime())
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Expiration date has not been reached')
+  if (
+    [WHEN_RESULTS_VISIBLE.EXPIRATION_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      poll.whenResultsVisible
+    ) &&
+    nowTime < poll.expirationDate.getTime()
+  )
+    throw new ApiError(httpStatus.FORBIDDEN, 'Expiration date has not been reached')
 
   // create a map of choices from this user
-  const userResponses = await PollResponse.find({ poll: pollId, owner: user._id })
+  const userResponses = await PollResponse.find({ poll: poll._id, owner: user._id })
   const userChoiceMap = userResponses.reduce((map, response) => {
     // eslint-disable-next-line
     map[response.choice._id.toString()] = true
     return map
   }, {})
 
-  // this could be done more efficiently
-  const pollResponses = (await PollResponse.find({ poll: pollId }).populate('choice').populate('owner'))
-    .map((response) => getUserPollResponseView(poll, response, user, userChoiceMap))
+  const allPollResponses = await PollResponse.find({ poll: poll._id }).populate('choice').populate('owner')
+
+  // create a map of response counts
+  const responseCountMap = {}
+
+  for (const response of allPollResponses) {
+    const choiceId = response.choice._id.toString()
+    if (responseCountMap[choiceId] === undefined) responseCountMap[choiceId] = 1
+    else responseCountMap[choiceId]++
+  }
+
+  const reachedThreshold =
+    !poll.threshold || Object.keys(responseCountMap).some((choiceId) => responseCountMap[choiceId] >= poll.threshold)
+
+  // now we need to delete those that should not be visible for this user
+  for (const choiceId of Object.keys(responseCountMap)) {
+    if (!poll.onlyOwnChoicesVisible || userChoiceMap[choiceId]) delete responseCountMap[choiceId]
+  }
+
+  const pollResponses = allPollResponses
+    .map((response) => getUserPollResponseView(poll, response, user, userChoiceMap, responseCountMap))
     .filter(Boolean)
-  logger.info('get poll responses', pollId, user._id)
+
+  logger.info('collectVisiblePollResponses', poll._id, user._id)
+  return { pollResponses, responseCountMap, reachedThreshold }
+}
+
+const getPollResponses = async (pollId, user) => {
+  if (!pollId) throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide poll id')
+
+  const poll = await Poll.findById(pollId)
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+
+  if (!poll.responsesVisible) throw new ApiError(httpStatus.FORBIDDEN, 'Responses are not visible for this poll')
+
+  const { pollResponses, reachedThreshold } = await collectVisiblePollResponses(poll, user)
+
+  if (
+    [WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(poll.whenResultsVisible) &&
+    !reachedThreshold
+  )
+    throw new ApiError(httpStatus.FORBIDDEN, 'Threshold has not been reached')
+
   return pollResponses
+}
+
+const getPollResponseCounts = async (pollId, user) => {
+  if (!pollId) throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide poll id')
+
+  const poll = await Poll.findById(pollId)
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+
+  if (!poll.responseCountsVisible) throw new ApiError(httpStatus.FORBIDDEN, 'Response counts are not visible for this poll')
+
+  const { responseCountMap, reachedThreshold } = await collectVisiblePollResponses(poll, user)
+
+  if (
+    [WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(poll.whenResultsVisible) &&
+    !reachedThreshold
+  )
+    throw new ApiError(httpStatus.FORBIDDEN, 'Threshold has not been reached')
+
+  return responseCountMap
 }
 
 module.exports = {
@@ -231,5 +307,6 @@ module.exports = {
   respondPoll,
   inspectPoll,
   getPollResponses,
+  getPollResponseCounts,
   getUserPollView
 }
