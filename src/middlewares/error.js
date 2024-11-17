@@ -5,7 +5,7 @@ const logger = require('../config/logger')
 const ApiError = require('../utils/ApiError')
 
 const errorConverter = (err, req, res, next) => {
-  let error = err
+  let error = err.originalError || err
   if (!(error instanceof ApiError)) {
     const statusCode =
       error.statusCode || error instanceof mongoose.Error ? httpStatus.BAD_REQUEST : httpStatus.INTERNAL_SERVER_ERROR

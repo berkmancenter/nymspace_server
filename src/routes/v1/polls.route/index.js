@@ -116,7 +116,28 @@ router.route('/:pollId').get(auth('inspectPoll'), pollsController.inspectPoll)
  * @swagger
  * /polls/{pollId}/responses:
  *   get:
- *     description: Returns all polls
+ *     description: Returns all poll responses
+ *     tags: [Poll]
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: Poll response array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/components/schemas/PollResponse'
+ */
+router.route('/:pollId/responses').get(auth('getPollResponses'), pollsController.getPollResponses)
+
+/**
+ * @swagger
+ * /polls/{pollId}/responses:
+ *   get:
+ *     description: Returns all poll response counts
  *     tags: [Poll]
  *     produces:
  *      - application/json
@@ -129,8 +150,8 @@ router.route('/:pollId').get(auth('inspectPoll'), pollsController.inspectPoll)
  *               type: array
  *               items:
  *                 type: object
- *                 $ref: '#/components/schemas/Poll'
+
  */
-router.route('/:pollId/responses').get(auth('getPollResponses'), pollsController.getPollResponses)
+router.route('/:pollId/responseCounts').get(auth('getPollResponseCounts'), pollsController.getPollResponseCounts)
 
 module.exports = router

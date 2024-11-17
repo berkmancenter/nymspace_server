@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const slugify = require('slugify')
 const { toJSON, paginate } = require('../plugins')
+const { WHEN_RESULTS_VISIBLE } = require('./constants')
 
 const pollSchema = mongoose.Schema(
   {
@@ -63,7 +64,7 @@ const pollSchema = mongoose.Schema(
       required: true,
       default: false
     },
-    responseCountVisible: {
+    responseCountsVisible: {
       type: Boolean,
       required: true,
       default: false
@@ -76,8 +77,13 @@ const pollSchema = mongoose.Schema(
     whenResultsVisible: {
       type: String,
       required: true,
-      enum: ['thresholdAndExpiration', 'thresholdOnly', 'expirationOnly'],
-      default: 'thresholdAndExpiration'
+      enum: [
+        WHEN_RESULTS_VISIBLE.ALWAYS,
+        WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY,
+        WHEN_RESULTS_VISIBLE.EXPIRATION_ONLY,
+        WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION
+      ],
+      default: WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION
     },
     responsesVisibleToNonParticipants: {
       type: Boolean,
