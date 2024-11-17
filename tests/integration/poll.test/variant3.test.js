@@ -1,3 +1,7 @@
+// FYI, mongoose does not work well with jest.useFakeTimers()
+// so we avoid it
+// ref: https://mongoosejs.com/docs/5.x/docs/jest.html
+
 const mongoose = require('mongoose')
 const request = require('supertest')
 const httpStatus = require('http-status')
@@ -10,18 +14,20 @@ const {
   registeredUserAccessToken
 } = require('../../fixtures/token.fixture')
 const { insertTopics } = require('../../fixtures/topic.fixture')
-const { pollTwoBody, privateTopic, getPollChoices } = require('../../fixtures/poll.fixture')
+const { pollThreeBody, privateTopic, getPollChoices } = require('../../fixtures/poll.fixture')
 const config = require('../../../src/config/config')
+const sleep = require('../../../src/utils/sleep')
 
 // allow more time
 jest.setTimeout(10000)
 
 const BASE_API = '/v1/polls'
+const EXPIRATION_MS = 2000
 
 const CHOICE1_TEXT = 'Choice 1'
 const CHOICE2_TEXT = 'Choice 2'
 
-describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
+describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
   // we keep our database between tests and perform a sequence of tests that should be evaluated in order
   beforeAll(async () => {
     // TODO: Why is the single test file being run multiple times? This is messing with our DB state
@@ -42,8 +48,16 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
   let pollId
   let pollData
 
+  // now
+  const startDate = new Date()
+  // expirationDate is 5 seconds after now
+  const expirationDate = new Date(startDate.getTime())
+  expirationDate.setSeconds(expirationDate.getSeconds() + Math.floor(EXPIRATION_MS / 1000))
+
   test('Create a poll', async () => {
-    const body = { ...pollTwoBody }
+    const body = { ...pollThreeBody }
+    body.expirationDate = expirationDate.toISOString()
+
     const resp = await request(app)
       .post(BASE_API)
       .set('Authorization', `Bearer ${userOneAccessToken}`)
@@ -59,7 +73,7 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     delete pollData.choices
 
     expect(resp.body).toMatchObject(pollData)
-    expect(resp.body.topic.id).toMatch(pollTwoBody.topicId)
+    expect(resp.body.topic.id).toMatch(pollThreeBody.topicId)
     expect(resp.body.owner).toMatch(userOne._id.toString())
   })
 
@@ -79,13 +93,13 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     expect(resp.body.message.includes('Error: Only existing poll choices are allowed')).toBe(true)
   })
 
-  test('User 1 checks responses before participating', async () => {
+  test('User 1 checks response counts before participating', async () => {
     const resp = await request(app)
-      .get(`${BASE_API}/${pollId}/responses`)
+      .get(`${BASE_API}/${pollId}/responseCounts`)
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: You have not participated in this poll')).toBe(true)
+    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
   })
 
   test('User 1 responds to poll choice 1', async () => {
@@ -150,13 +164,13 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     expect(resp.body).toMatchObject(expectedResp)
   })
 
-  test('User 2 checks responses before threshold has been reached', async () => {
+  test('User 2 checks response counts before expiration has been reached', async () => {
     const resp = await request(app)
-      .get(`${BASE_API}/${pollId}/responses`)
+      .get(`${BASE_API}/${pollId}/responseCounts`)
       .set('Authorization', `Bearer ${userTwoAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Threshold has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
   })
 
   test('User 1 responds to poll choice 2', async () => {
@@ -200,30 +214,26 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     expect(resp.body).toMatchObject(expectedResp)
   })
 
-  test('User 1 checks responses after poll threshold is reached', async () => {
+  test('User 1 checks responses after poll expiration is reached', async () => {
+    await sleep(EXPIRATION_MS)
+
     const resp = await request(app)
       .get(`${BASE_API}/${pollId}/responses`)
       .set('Authorization', `Bearer ${userOneAccessToken}`)
-      .expect(httpStatus.OK)
+      .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.length).toBe(2)
-    expect(resp.body[0].owner).toBe(userOne.username)
-    expect(resp.body[0].choice).toBe(CHOICE1_TEXT)
-    expect(resp.body[1].owner).toBe(admin.username)
-    expect(resp.body[1].choice).toBe(CHOICE1_TEXT)
+    expect(resp.body.message.includes('Error: Responses are not visible for this poll')).toBe(true)
   })
 
-  test('User 2 checks responses after threshold is reached', async () => {
+  test('User 2 checks response counts after expiration is reached', async () => {
     const resp = await request(app)
-      .get(`${BASE_API}/${pollId}/responses`)
+      .get(`${BASE_API}/${pollId}/responseCounts`)
       .set('Authorization', `Bearer ${userTwoAccessToken}`)
       .expect(httpStatus.OK)
 
-    expect(resp.body.length).toBe(2)
-    expect(resp.body[0].owner).toBe(userOne.username)
-    expect(resp.body[0].choice).toBe(CHOICE1_TEXT)
-    expect(resp.body[1].owner).toBe(admin.username)
-    expect(resp.body[1].choice).toBe(CHOICE1_TEXT)
+    expect(Object.keys(resp.body).length).toBe(2)
+    expect(resp.body[CHOICE1_TEXT]).toBe(2)
+    expect(resp.body[CHOICE2_TEXT]).toBe(1)
   })
 
   test('User 2 inspects poll', async () => {
@@ -235,21 +245,14 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     expect(resp.body).toMatchObject(pollData)
   })
 
-  test('User 1 checks response counts after poll is closed', async () => {
+  test('Non-participating user checks response counts after poll is closed', async () => {
     const resp = await request(app)
       .get(`${BASE_API}/${pollId}/responseCounts`)
-      .set('Authorization', `Bearer ${userOneAccessToken}`)
-      .expect(httpStatus.FORBIDDEN)
-
-    expect(resp.body.message.includes('Error: Response counts are not visible for this poll')).toBe(true)
-  })
-
-  test('Non-participating user checks responses after poll is closed', async () => {
-    const resp = await request(app)
-      .get(`${BASE_API}/${pollId}/responses`)
       .set('Authorization', `Bearer ${registeredUserAccessToken}`)
-      .expect(httpStatus.FORBIDDEN)
+      .expect(httpStatus.OK)
 
-    expect(resp.body.message.includes('Error: You have not participated in this poll')).toBe(true)
+    expect(Object.keys(resp.body).length).toBe(2)
+    expect(resp.body[CHOICE1_TEXT]).toBe(2)
+    expect(resp.body[CHOICE2_TEXT]).toBe(1)
   })
 })

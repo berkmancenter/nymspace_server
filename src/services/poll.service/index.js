@@ -76,7 +76,6 @@ const findById = async (pollId) => {
   return poll
 }
 
-// TODO: Transform poll view for user?
 const getUserPollView = (poll, user) => {
   if (!poll) return null
   // logger.info('Get user poll view %s %s', poll?._id, user._id)
@@ -86,28 +85,6 @@ const getUserPollView = (poll, user) => {
   if (!user._id.equals(poll.owner._id)) delete pollData.owner
 
   return pollData
-}
-
-// TODO More transformation may be needed
-const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap, responseCountMap) => {
-  // logger.info('Get user poll view %s %s', poll?._id, user._id)
-  const pollResponseData = pollResponse.toObject()
-  const choiceId = pollResponseData.choice._id.toString()
-
-  // check threshold and own choices filters
-  if (
-    ([WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
-      poll.whenResultsVisible
-    ) &&
-      responseCountMap[choiceId] < poll.threshold) ||
-    (poll.onlyOwnChoicesVisible && !userChoiceMap[choiceId])
-  )
-    return null
-
-  pollResponseData.owner = pollResponseData.owner.username
-  pollResponseData.choice = pollResponseData.choice.text
-
-  return pollResponseData
 }
 
 // TODO: Query and sorting params structure? Evaluate existing structure...
@@ -197,7 +174,7 @@ const respondPoll = async (pollId, choiceData, user) => {
 }
 
 const inspectPoll = async (pollId, user) => {
-  const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId })])
+  const [poll, choices] = await Promise.all([Poll.findById(pollId), PollChoice.find({ poll: pollId }).sort({ text: 1 })])
 
   logger.info('Inspect poll %s %s', pollId, user._id)
 
@@ -206,6 +183,27 @@ const inspectPoll = async (pollId, user) => {
 
   const userPollView = await getUserPollView(pollData, user)
   return userPollView
+}
+
+const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap, allResponseCountMap) => {
+  // logger.info('Get user poll view %s %s', poll?._id, user._id)
+  const pollResponseData = pollResponse.toObject()
+  const choiceId = pollResponseData.choice._id.toString()
+
+  // check threshold and own choices filters
+  if (
+    ([WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(
+      poll.whenResultsVisible
+    ) &&
+      allResponseCountMap[choiceId] < poll.threshold) ||
+    (poll.onlyOwnChoicesVisible && !userChoiceMap[choiceId])
+  )
+    return null
+
+  pollResponseData.owner = pollResponseData.owner.username
+  pollResponseData.choice = pollResponseData.choice.text
+
+  return pollResponseData
 }
 
 // this collects all visible poll responses, based on the poll options and user
@@ -236,29 +234,38 @@ const collectVisiblePollResponses = async (poll, user) => {
 
   const allPollResponses = await PollResponse.find({ poll: poll._id }).populate('choice').populate('owner')
 
-  // create a map of response counts
-  const responseCountMap = {}
+  // create maps of response counts
+  const choiceMap = {}
+  const allResponseCountMap = {}
+  const userResponseCountMap = {}
 
+  // all response counts, for internal processing reasons
   for (const response of allPollResponses) {
     const choiceId = response.choice._id.toString()
-    if (responseCountMap[choiceId] === undefined) responseCountMap[choiceId] = 1
-    else responseCountMap[choiceId]++
+    choiceMap[choiceId] = response.choice.text
+    if (allResponseCountMap[choiceId] === undefined) allResponseCountMap[choiceId] = 1
+    else allResponseCountMap[choiceId]++
+  }
+
+  // create a map of visible response counts for this user
+  for (const choiceId of Object.keys(allResponseCountMap)) {
+    if (
+      allResponseCountMap[choiceId] &&
+      (!poll.onlyOwnChoicesVisible || userChoiceMap[choiceId]) &&
+      (!poll.threshold || allResponseCountMap[choiceId] >= poll.threshold)
+    )
+      userResponseCountMap[choiceMap[choiceId]] = allResponseCountMap[choiceId]
   }
 
   const reachedThreshold =
-    !poll.threshold || Object.keys(responseCountMap).some((choiceId) => responseCountMap[choiceId] >= poll.threshold)
-
-  // now we need to delete those that should not be visible for this user
-  for (const choiceId of Object.keys(responseCountMap)) {
-    if (!poll.onlyOwnChoicesVisible || userChoiceMap[choiceId]) delete responseCountMap[choiceId]
-  }
+    !poll.threshold || Object.keys(allResponseCountMap).some((choiceId) => allResponseCountMap[choiceId] >= poll.threshold)
 
   const pollResponses = allPollResponses
-    .map((response) => getUserPollResponseView(poll, response, user, userChoiceMap, responseCountMap))
+    .map((response) => getUserPollResponseView(poll, response, user, userChoiceMap, allResponseCountMap))
     .filter(Boolean)
 
   logger.info('collectVisiblePollResponses', poll._id, user._id)
-  return { pollResponses, responseCountMap, reachedThreshold }
+  return { pollResponses, allResponseCountMap, userResponseCountMap, reachedThreshold }
 }
 
 const getPollResponses = async (pollId, user) => {
@@ -288,7 +295,7 @@ const getPollResponseCounts = async (pollId, user) => {
 
   if (!poll.responseCountsVisible) throw new ApiError(httpStatus.FORBIDDEN, 'Response counts are not visible for this poll')
 
-  const { responseCountMap, reachedThreshold } = await collectVisiblePollResponses(poll, user)
+  const { userResponseCountMap, reachedThreshold } = await collectVisiblePollResponses(poll, user)
 
   if (
     [WHEN_RESULTS_VISIBLE.THRESHOLD_ONLY, WHEN_RESULTS_VISIBLE.THRESHOLD_AND_EXPIRATION].includes(poll.whenResultsVisible) &&
@@ -296,7 +303,7 @@ const getPollResponseCounts = async (pollId, user) => {
   )
     throw new ApiError(httpStatus.FORBIDDEN, 'Threshold has not been reached')
 
-  return responseCountMap
+  return userResponseCountMap
 }
 
 module.exports = {

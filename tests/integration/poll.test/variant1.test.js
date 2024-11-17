@@ -42,6 +42,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
 
   let pollId
   let pollData
+  let user1PollResponse1
+  let adminPollResponse2
 
   // now
   const startDate = new Date()
@@ -92,6 +94,26 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       owner: userOne._id.toString()
     }
 
+    user1PollResponse1 = expectedResp
+
+    expect(resp.body).toMatchObject(expectedResp)
+  })
+
+  test('User 1 responds to poll choice 1 again', async () => {
+    const body = {
+      choice: {
+        text: CHOICE1_TEXT
+      }
+    }
+
+    const resp = await request(app)
+      .post(`${BASE_API}/${pollId}/respond`)
+      .set('Authorization', `Bearer ${userOneAccessToken}`)
+      .send(body)
+      .expect(httpStatus.OK)
+
+    const expectedResp = user1PollResponse1
+
     expect(resp.body).toMatchObject(expectedResp)
   })
 
@@ -106,12 +128,57 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
   })
 
   test('User 1 checks responses before poll is closed', async () => {
-    const user1ResponsesResp = await request(app)
+    const resp = await request(app)
       .get(`${BASE_API}/${pollId}/responses`)
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(user1ResponsesResp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
+  })
+
+  test('Admin responds to poll choice 2', async () => {
+    const body = {
+      choice: {
+        text: CHOICE2_TEXT
+      }
+    }
+
+    const resp = await request(app)
+      .post(`${BASE_API}/${pollId}/respond`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(body)
+      .expect(httpStatus.OK)
+
+    const pollChoices = await getPollChoices(pollId)
+    const pollChoice = pollChoices.find((c) => c.text === CHOICE2_TEXT)
+
+    const expectedResp = {
+      poll: pollId,
+      choice: pollChoice._id.toString(),
+      owner: admin._id.toString()
+    }
+
+    adminPollResponse2 = expectedResp
+
+    expect(resp.body).toMatchObject(expectedResp)
+  })
+
+  test('Admin removes response to poll choice 2', async () => {
+    const body = {
+      choice: {
+        text: CHOICE2_TEXT,
+        remove: true
+      }
+    }
+
+    const resp = await request(app)
+      .post(`${BASE_API}/${pollId}/respond`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send(body)
+      .expect(httpStatus.OK)
+
+    const expectedResp = { ...adminPollResponse2, removed: true }
+    expect(resp.body).toMatchObject(expectedResp)
   })
 
   test('User 2 responds to poll choice 2', async () => {
@@ -209,6 +276,23 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     expect(resp.body.message.includes('Error: Expiration date has been reached. No more responses are allowed.')).toBe(true)
   })
 
+  test('User 1 tries to remove response to poll after it is closed', async () => {
+    const body = {
+      choice: {
+        text: CHOICE1_TEXT,
+        remove: true
+      }
+    }
+
+    const resp = await request(app)
+      .post(`${BASE_API}/${pollId}/respond`)
+      .set('Authorization', `Bearer ${userTwoAccessToken}`)
+      .send(body)
+      .expect(httpStatus.FORBIDDEN)
+
+    expect(resp.body.message.includes('Error: Expiration date has been reached. No more responses are allowed.')).toBe(true)
+  })
+
   test('User 2 inspects poll', async () => {
     const resp = await request(app)
       .get(`${BASE_API}/${pollId}`)
@@ -227,7 +311,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     expect(resp.body.message.includes('Error: Response counts are not visible for this poll')).toBe(true)
   })
 
-  test('Admin checks responses after poll is closed', async () => {
+  test('Non-participating user checks responses after poll is closed', async () => {
     const resp = await request(app)
       .get(`${BASE_API}/${pollId}/responses`)
       .set('Authorization', `Bearer ${adminAccessToken}`)
