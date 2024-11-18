@@ -40,7 +40,7 @@ if (cluster.isMaster) {
   // child process' socket io instance
   process.on('message', function (message) {
     if (message.thread) {
-      socketIO.emit(message.thread, message.event, message.message)
+      io.emit(message.thread, message.event, message.message)
     }
   })
 }
