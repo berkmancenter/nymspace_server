@@ -35,7 +35,7 @@ Answer:`
 const consensusTemplate = `Given the following summary of various comments from a deliberation platform, generate one original comment that is likely to get consensus.
 I am including your prior consensus proposals. Make sure your original comment is unique from these prior proposals.
 Present your comment to the group for discussion along with a more concise summary of the discussion thus far.
-Limit your summary to one paragraph. Use a conversational tone. Present the summary first. Do not identify the summary and comment with labels.
+Limit your summary and comment to one paragraph. Use a conversational tone. Present the summary first. Do not identify the summary and comment with labels.
 Summary: {summary}
 Prior Consensus Proposals: {proposals}
 Answer: `
