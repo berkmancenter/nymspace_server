@@ -36,7 +36,6 @@
     "@socket.io/sticky": "^1.0.4",
     "agenda": "^5.0.0",
     "bcryptjs": "^2.4.3",
-    "chai": "^5.1.2",
     "change-case": "^5.4.4",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
@@ -74,6 +73,7 @@
   "devDependencies": {
     "audit-ci": "^7.1.0",
     "chai": "^5.1.2",
+    "chai-subset": "^1.6.0",
     "coveralls": "^3.0.7",
     "eslint": "^7.0.0",
     "eslint-config-airbnb-base": "^14.0.0",

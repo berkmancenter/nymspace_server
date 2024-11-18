@@ -37,22 +37,26 @@ module.exports = verify({
     return true
   },
   async evaluate() {
-    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, this.userMessage)
-    const topic = this.thread.name
-    const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
-
-    this.agentEvaluation = {
+    return {
       userMessage: this.userMessage,
       action: AgentMessageActions.CONTRIBUTE,
-      agentContributionVisible: true,
       userContributionVisible: true,
-      suggestion: undefined,
-      contribution: llmResponse
+      suggestion: undefined
     }
-
-    return this.agentEvaluation
   },
   async isWithinTokenLimit(promptText) {
     return isWithinTokenLimit(promptText, this.tokenLimit)
+  },
+  async respond(userMessage) {
+    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
+    const topic = this.thread.name
+    const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
+
+    const agentResponse = {
+      visible: true,
+      message: llmResponse
+    }
+
+    return [agentResponse]
   }
 })

@@ -50,8 +50,16 @@ module.exports = verify({
     return true
   },
   async evaluate() {
+    return {
+      userMessage: this.userMessage,
+      action: AgentMessageActions.CONTRIBUTE,
+      userContributionVisible: true,
+      suggestion: undefined
+    }
+  },
+  async respond(userMessage) {
     const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
-    const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages, this.userMessage)
+    const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages, userMessage)
 
     const summaryMessages = this.thread.messages.filter((msg) => msg.fromAgent && !msg.visible)
     const summaries = summaryMessages.map((message) => {
@@ -92,16 +100,12 @@ module.exports = verify({
 
     const llmResponse = await chain.invoke({ topic: this.thread.name, convHistory, summaries })
 
-    this.agentEvaluation = {
-      userMessage: this.userMessage,
-      action: AgentMessageActions.CONTRIBUTE,
-      agentContributionVisible: true,
-      userContributionVisible: true,
-      suggestion: undefined,
-      contribution: llmResponse
+    const agentResponse = {
+      visible: true,
+      message: llmResponse
     }
 
-    return this.agentEvaluation
+    return [agentResponse]
   },
   async isWithinTokenLimit(promptText) {
     return isWithinTokenLimit(promptText, this.tokenLimit)

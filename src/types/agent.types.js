@@ -20,3 +20,9 @@ module.exports.AgentMessageActions = AgentMessageActions
  * @property {string} suggestion // back to submitter
  * @property {string} contribution // text to add from agent to the thread
  */
+
+/**
+ * @typedef {Object} AgentResponse
+ * @property {Boolean} visible
+ * @property {string} message
+ */

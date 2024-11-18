@@ -1,5 +1,6 @@
 const Agenda = require('agenda')
 const mongoose = require('mongoose')
+const socketIO = require('../../../websockets/socketIO')
 const { toJSON, paginate } = require('../../plugins')
 const BaseUser = require('../baseUser.model')
 const { Message } = require('../..')
@@ -10,16 +11,9 @@ const logger = require('../../../config/logger')
 const { AgentMessageActions } = require('../../../types/agent.types')
 
 const agenda = new Agenda({ db: { address: config.mongoose.url } })
-
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
-const REQUIRED_AGENT_EVALUATION_PROPS = [
-  'userMessage',
-  'action',
-  'agentContributionVisible',
-  'userContributionVisible',
-  'suggestion',
-  'contribution'
-]
+const REQUIRED_AGENT_EVALUATION_PROPS = ['userMessage', 'action', 'userContributionVisible', 'suggestion']
+const REQUIRED_AGENT_RESPONSE_PROPS = ['visible', 'message']
 
 const agentSchema = mongoose.Schema(
   {
@@ -108,6 +102,14 @@ function validAgentEvaluation(agentEvaluation) {
   return agentEvaluation
 }
 
+function validAgentResponse(agentResponse) {
+  for (const prop of REQUIRED_AGENT_RESPONSE_PROPS) {
+    if (!Object.hasOwn(agentResponse, prop)) throw new Error(`Agent response missing required property ${prop}`)
+  }
+
+  return agentResponse
+}
+
 // methods
 
 agentSchema.method('initialize', async function () {
@@ -175,14 +177,12 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   // do not process if no new messages
   if (messageCount === this.lastActiveMessageCount) {
     logger.info(`No new messages to respond to ${this.agentType} ${this._id}`)
-    this.agentEvaluation = { action: AgentMessageActions.OK, userContributionVisible: true }
-    return this.agentEvaluation
+    return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
 
   if (userMessage && this.minNewMessages && messageCount - this.lastActiveMessageCount < this.minNewMessages) {
     logger.info('Not enough new messages for activation')
-    this.agentEvaluation = { action: AgentMessageActions.OK, userContributionVisible: true }
-    return this.agentEvaluation
+    return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
 
   this.userMessage = userMessage
@@ -192,37 +192,45 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   // do after LLM processing, since it may take some time
   if (userMessage && this.timerPeriod) await this.resetTimer()
 
+  if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
+    // get agent responses async to free user to continue entering messages
+    agentTypes[this.agentType].respond
+      .call(this, userMessage)
+      .then(async (responses) => {
+        for (const agentResponse of responses) {
+          const response = validAgentResponse(agentResponse)
+          const agentMessage = new Message({
+            fromAgent: true,
+            visible: response.visible,
+            body: response.message,
+            thread: this.thread._id,
+            pseudonym: this.name,
+            pseudonymId: this.pseudonyms[0]._id,
+            owner: this._id
+          })
+
+          agentMessage.save()
+          this.thread.messages.push(agentMessage.toObject())
+          await this.thread.save()
+          agentMessage.count = this.thread.messages.length
+          const io = socketIO.connection()
+          io.emit(agentMessage.thread._id.toString(), 'message:new', {
+            ...agentMessage.toJSON(),
+            count: agentMessage.count
+          })
+        }
+      })
+      .catch((err) => {
+        logger.error(`Error processing agent response: ${err}`)
+      })
+  }
+
   // update last activation message count
   if (agentEvaluation.action !== AgentMessageActions.REJECT) {
     this.lastActiveMessageCount = messageCount
     await this.save()
   }
-
-  this.agentEvaluation = agentEvaluation
   return agentEvaluation
-})
-
-agentSchema.method('respond', async function () {
-  if (!this.agentEvaluation) throw new Error('Cannot respond without an agent evaluation being performed first')
-  const { agentEvaluation } = this
-
-  if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
-    const agentMessage = new Message({
-      fromAgent: true,
-      visible: agentEvaluation.agentContributionVisible,
-      body: agentEvaluation.contribution,
-      thread: this.thread._id,
-      pseudonym: this.name,
-      pseudonymId: this.pseudonyms[0]._id,
-      owner: this._id
-    })
-
-    agentMessage.save()
-    this.thread.messages.push(agentMessage.toObject())
-    await this.thread.save()
-
-    return agentMessage
-  }
 })
 
 // middleware
