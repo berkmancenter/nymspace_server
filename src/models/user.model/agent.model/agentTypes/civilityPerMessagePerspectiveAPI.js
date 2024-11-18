@@ -21,11 +21,11 @@ module.exports = verify({
   async initialize() {
     return true
   },
-  async evaluate() {
+  async evaluate(userMessage) {
     const googleClient = await google.discoverAPI(PERSPECTIVE_API_URL)
     const analyzeRequest = {
       comment: {
-        text: this.userMessage.body
+        text: userMessage.body
       },
       requestedAttributes: {
         TOXICITY: {},
@@ -52,11 +52,11 @@ module.exports = verify({
     const action = summaryScores.TOXICITY < TOXICITY_THRESHOLD ? AgentMessageActions.OK : AgentMessageActions.REJECT
 
     this.agentEvaluation = {
-      userMessage: this.userMessage,
+      userMessage,
       action,
       agentContributionVisible: false,
       userContributionVisible: true,
-      suggestion: `@${this.userMessage.user}: Please rephrase your comment to be more civil.`,
+      suggestion: `@${userMessage.user}: Please rephrase your comment to be more civil.`,
       contribution: undefined
     }
 

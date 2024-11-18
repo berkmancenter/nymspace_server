@@ -164,17 +164,6 @@ const newMessageHandler = async (message, user) => {
     messages.push(sentMessage)
   }
 
-  if (config.enableAgents && thread.enableAgents) {
-    // then any agent messages
-    for (const agent of thread.agents) {
-      const agentMessage = await agent.respond()
-      if (agentMessage && agent.agentEvaluation.agentContributionVisible) {
-        agentMessage.count = thread.messages.length
-        messages.push(agentMessage)
-      }
-    }
-  }
-
   return messages
 }
 

@@ -34,25 +34,30 @@ module.exports = verify({
   async initialize() {
     return true
   },
-  async evaluate() {
-    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, this.userMessage)
-    const topic = this.thread.name
-    const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
-
-    this.agentEvaluation = {
-      userMessage: this.userMessage,
+  async evaluate(userMessage) {
+    return {
+      userMessage,
       action: AgentMessageActions.CONTRIBUTE,
-      agentContributionVisible: true,
       userContributionVisible: true,
-      suggestion: undefined,
-      contribution: llmResponse
+      suggestion: undefined
     }
-
-    return this.agentEvaluation
   },
 
   // eslint-disable-next-line class-methods-use-this
   async isWithinTokenLimit(promptText) {
     return isWithinTokenLimit(promptText, this.tokenLimit)
+  },
+
+  async respond(userMessage) {
+    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
+    const topic = this.thread.name
+    const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
+
+    const agentResponse = {
+      visible: true,
+      message: llmResponse
+    }
+
+    return [agentResponse]
   }
 })
