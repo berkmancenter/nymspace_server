@@ -34,9 +34,9 @@ module.exports = verify({
   async initialize() {
     return true
   },
-  async evaluate() {
+  async evaluate(userMessage) {
     return {
-      userMessage: this.userMessage,
+      userMessage,
       action: AgentMessageActions.CONTRIBUTE,
       userContributionVisible: true,
       suggestion: undefined

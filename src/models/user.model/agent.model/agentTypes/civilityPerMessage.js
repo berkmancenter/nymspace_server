@@ -45,15 +45,15 @@ module.exports = verify({
   async initialize() {
     return true
   },
-  async evaluate() {
-    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, this.userMessage)
+  async evaluate(userMessage) {
+    const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
     const topic = this.thread.name
     const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
 
     const action = llmResponse === 'OK' ? AgentMessageActions.OK : AgentMessageActions.REJECT
 
     this.agentEvaluation = {
-      userMessage: this.userMessage,
+      userMessage,
       action,
       agentContributionVisible: false,
       userContributionVisible: true,

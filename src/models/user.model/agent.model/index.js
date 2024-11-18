@@ -184,10 +184,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     logger.info('Not enough new messages for activation')
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
-
-  this.userMessage = userMessage
-
-  const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this))
+  const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this, userMessage))
   // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
   // do after LLM processing, since it may take some time
   if (userMessage && this.timerPeriod) await this.resetTimer()
