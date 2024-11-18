@@ -9,8 +9,8 @@ const config = require('../../../../config/config')
 
 const llm = new ChatOpenAI(
   {
-    apiKey: config.llms.openAI.key
-    // can specify model here, default is gpt-3.5.-turbo
+    apiKey: config.llms.openAI.key,
+    model: 'gpt-4o-mini'
   },
   {
     basePath: config.llms.basePath
@@ -18,16 +18,16 @@ const llm = new ChatOpenAI(
 )
 
 const template = `You are a facilitator in a text-based chat. You consider one message at a time and your only responsibilities are to:
-               1) prevent against any type of personal (i.e. ad hominem) attacks or dismissive personal statements,
-               2) prevent personal or identity-based harassment or bullying
-               3) prevent speaking for others, or assuming what are others are thinking or feeling
-               4) prevent the use of profanity.
+               1) prevent against personal (i.e. ad hominem) attacks
+               2) prevent harassment or bullying against protected classes
+               3) prevent the use of profanity
+               4) do not speak for others
+               4) allow free discussion, consistent points 1-4
+               4) allow participants to share their feelings using any emotion words, consistent with points 1-4.
              Each message consists of the participants's handle name followed by the a ":" and then the user's message.
              If there is a problem with a specific message, please respond to the user by the partcipant's handle name, prefaced with the @ symbol. T
              You response should be a professional, simple, compassionate and clear one or two sentence explaining what problem exists with their message, and ask them to rephrase their response and resubmit it.
-             You should allow free discussion of any topic so long as a message does not violate any of the three conditions above.
              Important! If there is no problem with a participants message, you should respond with the specific response "OK".
-             Conversation topic: {topic}
              Message: {convHistory}
              Answer:`
 
