@@ -1,11 +1,13 @@
-const { ChatOpenAI } = require('@langchain/openai')
+import { ChatOpenAI } from '@langchain/openai'
 // eslint-disable-next-line import/no-unresolved
-const { isWithinTokenLimit } = require('gpt-tokenizer/model/gpt-3.5-turbo')
-const { AgentMessageActions } = require('../../../../types/agent.types')
-const verify = require('./verify')
-const formatConvHistory = require('../helpers/formatConvHistory')
-const { getSinglePromptResponse } = require('../helpers/llmChain')
-const config = require('../../../../config/config')
+import { isWithinTokenLimit } from 'gpt-tokenizer/esm/model/gpt-4o-mini'
+import { AgentMessageActions } from '../../../../types/agent.types.js'
+import verify from './verify.mjs'
+import formatConvHistory from '../helpers/formatConvHistory.mjs'
+import llmChain from '../helpers/llmChain.mjs'
+import config from '../../../../config/config.js'
+
+const { getSinglePromptResponse } = llmChain
 
 const llm = new ChatOpenAI(
   {
@@ -31,7 +33,7 @@ const template = `You are a facilitator in a text-based chat. You consider one m
              Message: {convHistory}
              Answer:`
 
-module.exports = verify({
+export default verify({
   name: 'Civility Agent using OpenAI (Per Message)',
   description: 'A basic civility agent using OpenAI to prevent personal or identity based attacks',
   maxTokens: 2000,

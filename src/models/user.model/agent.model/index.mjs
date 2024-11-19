@@ -1,14 +1,15 @@
-const Agenda = require('agenda')
-const mongoose = require('mongoose')
-const socketIO = require('../../../websockets/socketIO')
-const { toJSON, paginate } = require('../../plugins')
-const BaseUser = require('../baseUser.model')
-const { Message } = require('../..')
-const pseudonymSchema = require('../schemas/pseudonym.schema')
-const agentTypes = require('./agentTypes')
-const config = require('../../../config/config')
-const logger = require('../../../config/logger')
-const { AgentMessageActions } = require('../../../types/agent.types')
+// NOTE! Our agent model is in ESM to support using esm module imports that we need
+import Agenda from 'agenda'
+import mongoose from 'mongoose'
+import socketIO from '../../../websockets/socketIO.js'
+import { toJSON, paginate } from '../../plugins/index.js'
+import BaseUser from '../baseUser.model.js'
+import Message from '../../message.model.js'
+import pseudonymSchema from '../schemas/pseudonym.schema.js'
+import agentTypes from './agentTypes/index.mjs'
+import config from '../../../config/config.js'
+import logger from '../../../config/logger.js'
+import { AgentMessageActions } from '../../../types/agent.types.js'
 
 const agenda = new Agenda({ db: { address: config.mongoose.url } })
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
@@ -255,4 +256,4 @@ agentSchema.pre('validate', function () {
  */
 const Agent = BaseUser.discriminator('Agent', agentSchema)
 
-module.exports = Agent
+export default Agent

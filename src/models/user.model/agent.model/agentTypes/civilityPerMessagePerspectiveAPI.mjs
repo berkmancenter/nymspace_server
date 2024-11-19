@@ -1,12 +1,12 @@
-const { google } = require('googleapis')
-const { AgentMessageActions } = require('../../../../types/agent.types')
-const verify = require('./verify')
-const config = require('../../../../config/config')
+import { google } from 'googleapis'
+import { AgentMessageActions } from '../../../../types/agent.types.js'
+import verify from './verify.mjs'
+import config from '../../../../config/config.js'
 
 const PERSPECTIVE_API_URL = 'https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1'
 const TOXICITY_THRESHOLD = 0.7
 
-module.exports = verify({
+export default verify({
   name: 'Civility Agent using Perspective API (Per Message)',
   description: `A basic civility agent using Perspective API with threshold ${TOXICITY_THRESHOLD} to prevent personal or identity based attacks`,
   maxTokens: 2000,
