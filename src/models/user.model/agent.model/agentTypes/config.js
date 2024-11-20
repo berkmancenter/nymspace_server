@@ -1,5 +1,6 @@
 module.exports = new Promise((resolve) => {
-  import('./index.mjs').then((agentTypes) => {
+  import('./index.mjs').then((exports) => {
+    const agentTypes = exports.default
     resolve(
       Object.keys(agentTypes).map((agentType) => {
         return {
