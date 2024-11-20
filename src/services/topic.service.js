@@ -269,23 +269,19 @@ const emailUsersToArchive = async () => {
   const archivableTopics = topics.filter(activeTopicFilter)
   const returnTopics = []
 
-  const promises = []
-
-  for (let x = 0; x < archivableTopics.length; x++) {
-    promises.push(async () => {
-      // Email users prompting them to archive
-      const topic = archivableTopics[x]
-      const owner = await User.findById(topic.owner)
-      const emailAddress = topic.archiveEmail ? topic.archiveEmail : owner.email
-      if (emailAddress) {
-        const archiveToken = await tokenService.generateArchiveTopicToken(owner)
-        await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken)
-        topic.isArchiveNotified = true
-        await topic.save()
-        returnTopics.push(topic)
-      }
-    })
-  }
+  const promises = archivableTopics.map(async (archivableTopic) => {
+    const topic = archivableTopic
+    const owner = await User.findById(topic.owner)
+    const emailAddress = topic.archiveEmail ? topic.archiveEmail : owner.email
+    if (emailAddress) {
+      const archiveToken = await tokenService.generateArchiveTopicToken(owner)
+      await emailService.sendArchiveTopicEmail(emailAddress, topic, archiveToken)
+      topic.isArchiveNotified = true
+      await topic.save()
+      returnTopics.push(topic)
+    }
+    return true
+  })
 
   await Promise.all(promises)
 
