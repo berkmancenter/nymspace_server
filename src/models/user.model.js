@@ -1,40 +1,45 @@
-const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
-const { roles } = require('../config/roles');
+const mongoose = require('mongoose')
+const { toJSON, paginate } = require('./plugins')
+const { roles } = require('../config/roles')
 
 const validateEmail = (email) => {
   const re =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(email);
-};
+    // eslint-disable-next-line
+    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+  return re.test(email)
+}
 
 const pseudonymSchema = new mongoose.Schema({
   token: {
     type: String,
     required: true,
+    index: true
   },
   pseudonym: {
     type: String,
     required: true,
+    index: true
   },
   active: {
     type: Boolean,
+    index: true
   },
   isDeleted: {
     type: Boolean,
     default: false,
+    index: true
   },
   threads: {
     type: [String],
-    default: [],
-  },
-});
+    default: []
+  }
+})
 
 const userSchema = mongoose.Schema(
   {
     username: {
       type: String,
-      trim: true,
+      trim: true
     },
     password: {
       type: String,
@@ -42,47 +47,49 @@ const userSchema = mongoose.Schema(
       minlength: 8,
       validate(value) {
         if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-          throw new Error('Password must contain at least one letter and one number');
+          throw new Error('Password must contain at least one letter and one number')
         }
       },
-      private: true, // used by the toJSON plugin
+      private: true // used by the toJSON plugin
     },
     pseudonyms: {
       type: [pseudonymSchema],
-      required: true,
+      required: true
     },
     role: {
       type: String,
       enum: roles,
       default: 'user',
+      index: true
     },
     goodReputation: {
       type: Boolean,
+      index: true
     },
     email: {
       type: String,
       trim: true,
-      validate: [validateEmail, 'Please fill a valid email address'],
-    },
+      validate: [validateEmail, 'Please fill a valid email address']
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
-);
+)
 
 // add plugin that converts mongoose to json
-userSchema.plugin(toJSON);
-userSchema.plugin(paginate);
+userSchema.plugin(toJSON)
+userSchema.plugin(paginate)
 
 userSchema.pre('validate', function (next) {
-  const user = this;
-  user.role = 'user';
-  next();
-});
+  const user = this
+  user.role = 'user'
+  next()
+})
 
 /**
  * @typedef User
  */
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema)
 
-module.exports = User;
+module.exports = User

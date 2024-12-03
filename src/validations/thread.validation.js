@@ -1,13 +1,13 @@
-const Joi = require('joi');
+const Joi = require('joi')
 
 const updateThread = {
   body: Joi.object().keys({
     id: Joi.string().required(),
     name: Joi.string(),
-    locked: Joi.boolean(),
-  }),
-};
+    locked: Joi.boolean()
+  })
+}
 
 module.exports = {
-  updateThread,
-};
+  updateThread
+}

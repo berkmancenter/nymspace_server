@@ -1,14 +1,14 @@
-const mongoose = require('mongoose');
-const faker = require('faker');
-const Topic = require('../../src/models/topic.model');
-const { userOne } = require('./user.fixture');
+const mongoose = require('mongoose')
+const faker = require('faker')
+const Topic = require('../../src/models/topic.model')
+const { userOne } = require('./user.fixture')
 
-const nameSlug = faker.lorem.word().toLowerCase();
+const nameSlug = faker.lorem.word().toLowerCase()
 const getRandomInt = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
-};
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min) + min)
+}
 
 const topicPost = {
   name: nameSlug,
@@ -16,8 +16,8 @@ const topicPost = {
   threadCreationAllowed: true,
   private: false,
   archivable: true,
-  archiveEmail: faker.internet.email(),
-};
+  archiveEmail: faker.internet.email()
+}
 
 const newPublicTopic = () => {
   return {
@@ -32,9 +32,9 @@ const newPublicTopic = () => {
     owner: userOne._id,
     isDeleted: false,
     isArchiveNotified: false,
-    threads: [],
-  };
-};
+    threads: []
+  }
+}
 
 const newPrivateTopic = () => {
   return {
@@ -50,18 +50,18 @@ const newPrivateTopic = () => {
     owner: userOne._id,
     isDeleted: false,
     isArchiveNotified: false,
-    threads: [],
-  };
-};
+    threads: []
+  }
+}
 
 const insertTopics = async (topics) => {
-  await Topic.insertMany(topics);
-};
+  await Topic.insertMany(topics)
+}
 
 module.exports = {
   newPublicTopic,
   newPrivateTopic,
   topicPost,
   insertTopics,
-  getRandomInt,
-};
+  getRandomInt
+}

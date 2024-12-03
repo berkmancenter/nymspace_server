@@ -1,10 +1,10 @@
-const express = require('express');
-const messageController = require('../../controllers/message.controller');
-const messageValidation = require('../../validations/message.validation');
-const validate = require('../../middlewares/validate');
-const auth = require('../../middlewares/auth');
+const express = require('express')
+const messageController = require('../../controllers/message.controller')
+const messageValidation = require('../../validations/message.validation')
+const validate = require('../../middlewares/validate')
+const auth = require('../../middlewares/auth')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -13,7 +13,7 @@ const router = express.Router();
  *   description: Manage application Messages
  */
 
-router.post('/', auth('createMessage'), validate(messageValidation.createMessage), messageController.createMessage);
+router.post('/', auth('createMessage'), validate(messageValidation.createMessage), messageController.createMessage)
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ router.post('/', auth('createMessage'), validate(messageValidation.createMessage
  *                 type: object
  *                 $ref: '#/components/schemas/Message'
  */
-router.route('/:threadId').get(messageController.threadMessages);
+router.route('/:threadId').get(messageController.threadMessages)
 
 /**
  * @swagger
@@ -72,6 +72,6 @@ router.route('/:threadId').get(messageController.threadMessages);
  *               $ref: '#/components/schemas/Message'
  *
  */
-router.route('/:messageId/vote').post(auth('vote'), messageController.vote);
+router.route('/:messageId/vote').post(auth('vote'), messageController.vote)
 
-module.exports = router;
+module.exports = router
