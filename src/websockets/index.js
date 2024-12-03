@@ -1,10 +1,13 @@
 const http = require('http')
 const { availableParallelism } = require('node:os')
 const cluster = require('node:cluster')
+const SocketIO = require('socket.io')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
 const { createAdapter, setupPrimary } = require('@socket.io/cluster-adapter')
 const logger = require('../config/logger')
 const config = require('../config/config')
+const registerMessageHandlers = require('./messageHandlers')
+const registerThreadHandlers = require('./threadHandlers')
 
 // Initialize an empty worker variable to take
 // the primary cluster instance for the rest of the
@@ -15,11 +18,14 @@ if (cluster.isMaster) {
   const httpServer = http.createServer()
   const numCPUs = availableParallelism()
   // create one worker per available core
-  for (let i = 0; i < numCPUs; i++) {
-    worker = cluster.fork({
-      PORT: 5555 + i
-    })
+  if (config.env !== 'test') {
+    for (let i = 0; i < numCPUs; i += 1) {
+      worker = cluster.fork({
+        PORT: 5555 + i
+      })
+    }
   }
+
   setupMaster(httpServer, {
     loadBalancingMethod: 'least-connection' // either "random", "round-robin" or "least-connection"
   })
@@ -29,7 +35,7 @@ if (cluster.isMaster) {
   }
 } else {
   const httpServer = http.createServer()
-  const io = require('socket.io')(httpServer, {
+  const io = SocketIO(httpServer, {
     cors: {
       origin: '*'
     },
@@ -40,9 +46,6 @@ if (cluster.isMaster) {
 
   io.adapter(createAdapter())
   setupWorker(io)
-
-  const registerMessageHandlers = require('./messageHandlers')
-  const registerThreadHandlers = require('./threadHandlers')
 
   const onConnection = (socket) => {
     logger.info('Socket connecting.')

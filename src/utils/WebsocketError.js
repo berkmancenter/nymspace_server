@@ -3,6 +3,7 @@ class WebsocketError extends Error {
     super(error.message)
     this.originalError = error
     this.data = data
+    this.statusCode = error.statusCode
 
     Error.captureStackTrace(this, this.constructor)
   }
