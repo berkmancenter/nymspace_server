@@ -6,6 +6,8 @@ const { setupMaster } = require('@socket.io/sticky')
 const { setupPrimary } = require('@socket.io/cluster-adapter')
 const config = require('../config/config')
 const socketIO = require('./socketIO')
+const registerMessageHandlers = require('./messageHandlers')
+const registerThreadHandlers = require('./threadHandlers')
 
 // Initialize an empty worker variable to take
 // the primary cluster instance for the rest of the
@@ -32,8 +34,6 @@ if (cluster.isMaster) {
   const httpServer = http.createServer()
   socketIO.connect(httpServer)
   const io = socketIO.connection()
-  const registerMessageHandlers = require('./messageHandlers')
-  const registerThreadHandlers = require('./threadHandlers')
   io.addConnectionHandlers([registerMessageHandlers, registerThreadHandlers])
 
   // receive messages from the rest of the app and pass them on to every
