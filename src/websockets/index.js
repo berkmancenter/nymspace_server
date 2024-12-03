@@ -15,11 +15,14 @@ if (cluster.isMaster) {
   const httpServer = http.createServer();
   const numCPUs = availableParallelism();
   // create one worker per available core
-  for (let i = 0; i < numCPUs; i++) {
-    worker = cluster.fork({
-      PORT: 5555 + i,
-    });
+  if (config.env !== 'test') {
+    for (let i = 0; i < numCPUs; i++) {
+      worker = cluster.fork({
+        PORT: 5555 + i,
+      });
+    }
   }
+
   setupMaster(httpServer, {
     loadBalancingMethod: 'least-connection', // either "random", "round-robin" or "least-connection"
   });
