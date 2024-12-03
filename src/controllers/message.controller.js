@@ -15,11 +15,13 @@ const threadMessages = catchAsync(async (req, res) => {
 
 const vote = catchAsync(async (req, res) => {
   const message = await messageService.vote(req.params.messageId, req.body.direction, req.body.status, req.user);
-  worker.send({
-    thread: message.thread._id.toString(),
-    event: 'vote:new',
-    message,
-  });
+  if (worker) {
+    worker.send({
+      thread: message.thread._id.toString(),
+      event: 'vote:new',
+      message,
+    });
+  }
   res.status(httpStatus.OK).send(message);
 });
 

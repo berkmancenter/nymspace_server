@@ -5,21 +5,25 @@ const { worker } = require('../websockets/index');
 
 const createThread = catchAsync(async (req, res) => {
   const thread = await threadService.createThread(req.body, req.user);
-  worker.send({
-    thread: thread.topic._id.toString(),
-    event: 'thread:new',
-    message: thread,
-  });
+  if (worker) {
+    worker.send({
+      thread: thread.topic._id.toString(),
+      event: 'thread:new',
+      message: thread,
+    });
+  }
   res.status(httpStatus.CREATED).send(thread);
 });
 
 const updateThread = catchAsync(async (req, res) => {
   const thread = await threadService.updateThread(req.body, req.user);
-  worker.send({
-    thread: thread.topic._id.toString(),
-    event: 'thread:update',
-    message: thread,
-  });
+  if (worker) {
+    worker.send({
+      thread: thread.topic._id.toString(),
+      event: 'thread:update',
+      message: thread,
+    });
+  }
   res.status(httpStatus.OK).send(thread);
 });
 
