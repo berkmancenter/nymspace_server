@@ -1,10 +1,10 @@
 const mongoose = require('mongoose')
-const setupTestDB = require('../utils/setupTestDB')
+const setupIntTest = require('../utils/setupIntTest')
 const { insertUsers, registeredUser } = require('../fixtures/user.fixture')
 const { insertMessages, messageOne } = require('../fixtures/message.fixture')
 const userService = require('../../src/services/user.service')
 
-setupTestDB()
+setupIntTest()
 
 const createVote = () => {
   return {

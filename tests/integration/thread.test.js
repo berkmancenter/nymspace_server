@@ -1,7 +1,6 @@
 const request = require('supertest')
 const httpStatus = require('http-status')
-const faker = require('faker')
-const setupTestDB = require('../utils/setupTestDB')
+const setupIntTest = require('../utils/setupIntTest')
 const app = require('../../src/app')
 const { insertUsers, userOne } = require('../fixtures/user.fixture')
 const { userOneAccessToken } = require('../fixtures/token.fixture')
@@ -10,7 +9,7 @@ const { threadOne, threadTwo, threadThree, insertThreads, publicTopic, privateTo
 const { messageOne, messageTwo, messageThree, insertMessages } = require('../fixtures/message.fixture')
 const { threadFollow, insertFollowers } = require('../fixtures/follower.fixture')
 
-setupTestDB()
+setupIntTest()
 
 describe('Thread routes', () => {
   beforeEach(async () => {
