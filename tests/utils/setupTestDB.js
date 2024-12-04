@@ -1,10 +1,12 @@
 const mongoose = require('mongoose')
 const config = require('../../src/config/config')
 const agenda = require('../../src/agenda')
+const { initializeAgents } = require('../../src/services/agent.service')
 
 const setupTestDB = () => {
   beforeAll(async () => {
     await mongoose.connect(config.mongoose.url, config.mongoose.options)
+    initializeAgents()
   })
 
   beforeEach(async () => {
