@@ -1,7 +1,10 @@
 const request = require('supertest')
 const httpStatus = require('http-status')
+const setupTestDB = require('../utils/setupTestDB')
 const app = require('../../src/app')
 const config = require('../../src/config/config')
+
+setupTestDB()
 
 describe('Auth routes', () => {
   describe('GET /v1/docs', () => {

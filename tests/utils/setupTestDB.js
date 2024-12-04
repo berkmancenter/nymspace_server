@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const config = require('../../src/config/config')
+const agenda = require('../../src/agenda')
 
 const setupTestDB = () => {
   beforeAll(async () => {
@@ -11,6 +12,8 @@ const setupTestDB = () => {
   })
 
   afterAll(async () => {
+    await agenda.stop()
+    await agenda.close()
     await mongoose.disconnect()
   })
 }

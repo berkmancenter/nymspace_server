@@ -1,5 +1,4 @@
 // NOTE! Our agent model is in ESM to support using esm module imports that we need
-import Agenda from 'agenda'
 import mongoose from 'mongoose'
 import socketIO from '../../../websockets/socketIO.js'
 import { toJSON, paginate } from '../../plugins/index.js'
@@ -7,11 +6,10 @@ import BaseUser from '../baseUser.model.js'
 import Message from '../../message.model.js'
 import pseudonymSchema from '../schemas/pseudonym.schema.js'
 import agentTypes from './agentTypes/index.mjs'
-import config from '../../../config/config.js'
 import logger from '../../../config/logger.js'
+import agenda from '../../../agenda.js'
 import { AgentMessageActions } from '../../../types/agent.types.js'
 
-const agenda = new Agenda({ db: { address: config.mongoose.url } })
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = ['userMessage', 'action', 'userContributionVisible', 'suggestion']
 const REQUIRED_AGENT_RESPONSE_PROPS = ['visible', 'message']

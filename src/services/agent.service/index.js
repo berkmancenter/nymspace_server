@@ -1,10 +1,7 @@
-const Agenda = require('agenda')
 const { default: PQueue } = require('p-queue')
-const config = require('../../config/config')
 const logger = require('../../config/logger')
 const sleep = require('../../utils/sleep')
-
-const agenda = new Agenda({ db: { address: config.mongoose.url } })
+const agenda = require('../../agenda')
 
 const MAX_CONCURRENCY = 20
 
