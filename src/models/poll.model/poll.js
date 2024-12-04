@@ -94,8 +94,8 @@ const pollSchema = mongoose.Schema(
       type: Boolean,
       required: true,
       default: true
-    },
-    followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
+    }
+    // NOT USED followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
   },
   {
     timestamps: true

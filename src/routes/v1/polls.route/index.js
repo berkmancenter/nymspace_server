@@ -1,8 +1,8 @@
 const express = require('express')
 const auth = require('../../../middlewares/auth')
 const pollsController = require('../../../controllers/poll.controller')
-// const pollValidation = require('../../validations/poll.validation')
-// const validate = require('../../middlewares/validate')
+const pollValidation = require('../../../validations/poll.validation')
+const validate = require('../../../middlewares/validate')
 
 const router = express.Router()
 
@@ -133,7 +133,7 @@ const router = express.Router()
  *       '200':
  *         description: ''
  */
-router.route('/').post(auth('createPoll'), pollsController.createPoll)
+router.route('/').post(auth('createPoll'), validate(pollValidation.createPoll), pollsController.createPoll)
 
 /**
  * @swagger
@@ -171,7 +171,7 @@ router.route('/').post(auth('createPoll'), pollsController.createPoll)
  *        '200':
  *          description: ''
  */
-router.route('/:pollId/respond').post(auth('respondPoll'), pollsController.respondPoll)
+router.route('/:pollId/respond').post(auth('respondPoll'), validate(pollValidation.respondPoll), pollsController.respondPoll)
 
 /**
  * @swagger
