@@ -13,6 +13,7 @@ jest.mock('agenda')
 require('../../../src/agenda.js')
 const setupIntTest = require('../../utils/setupIntTest.js')
 const waitFor = require('../../utils/waitFor.js')
+const config = require('../../../src/config/config')
 const { Message, Thread } = require('../../../src/models/index')
 const { insertUsers } = require('../../fixtures/user.fixture.js')
 const { publicTopic } = require('../../fixtures/thread.fixture.js')
@@ -30,8 +31,7 @@ jest.mock('../../../src/websockets/socketIO', () => ({
 const { connection } = require('../../../src/websockets/socketIO.js')
 
 setupIntTest()
-
-describe('reflection agent tests', () => {
+;(config.enableAgents ? describe : describe.skip)('reflection agent tests', () => {
   let agent
   let thread
   let footballThread

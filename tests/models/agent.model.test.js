@@ -5,6 +5,7 @@ jest.mock('agenda')
 const agenda = require('../../src/agenda')
 const setupIntTest = require('../utils/setupIntTest')
 const waitFor = require('../utils/waitFor')
+const config = require('../../src/config/config')
 const { Message, Thread } = require('../../src/models/index')
 const { registeredUser, insertUsers } = require('../fixtures/user.fixture')
 const { publicTopic, threadAgentsEnabled } = require('../fixtures/thread.fixture')
@@ -72,8 +73,7 @@ let msg1
 let msg2
 let msg3
 let Agent
-
-describe('agent tests', () => {
+;(config.enableAgents ? describe : describe.skip)('agent tests', () => {
   beforeAll(async () => {
     const module = await import('../../src/models/user.model/agent.model/index.mjs')
     Agent = module.default
