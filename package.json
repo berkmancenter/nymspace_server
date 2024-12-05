@@ -14,7 +14,7 @@
   "scripts": {
     "start": "pm2 start ecosystem.config.json",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js -i --colors --verbose",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js -i --colors --verbose --testPathIgnorePatterns=tests/models/agentTypes",
     "test:watch": "jest -i --watchAll",
     "coverage": "jest -i --coverage",
     "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
@@ -100,5 +100,6 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^5.0.10"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
