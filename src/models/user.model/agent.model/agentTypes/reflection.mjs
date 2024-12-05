@@ -43,6 +43,7 @@ Answer: `
 export default verify({
   name: 'Reflection Agent',
   description: 'A deliberation facilitator that reflects arguments and builds consensus',
+  priority: 20,
   maxTokens: 2000,
   useNumLastMessages: 7,
   minNewMessages: 7,

@@ -36,6 +36,7 @@ const template = `You are a facilitator in a text-based chat. You consider one m
 export default verify({
   name: 'Civility Agent using OpenAI (Per Message)',
   description: 'A basic civility agent using OpenAI to prevent personal or identity based attacks',
+  priority: 0,
   maxTokens: 2000,
   // don't include any history
   useNumLastMessages: 0,

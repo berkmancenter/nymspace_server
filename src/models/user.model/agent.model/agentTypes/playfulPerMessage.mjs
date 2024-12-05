@@ -30,6 +30,7 @@ Answer:`
 export default verify({
   name: 'Playful Agent (Per Message)',
   description: 'A playful agent to lighten up a conversation!',
+  priority: 100,
   maxTokens: 2000,
   useNumLastMessages: 10,
   // no min new messages

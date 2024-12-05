@@ -30,6 +30,7 @@ const template = `You are a playful discussion facilitator who can suggest discu
 export default verify({
   name: 'Playful Agent (Periodic)',
   description: 'A playful agent to lighten up a conversation!',
+  priority: 100,
   maxTokens: 2000,
   useNumLastMessages: 20,
   minNewMessages: 2,

@@ -37,7 +37,8 @@ jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/ind
       maxTokens: 2000,
       useNumLastMessages: 20,
       minNewMessages: 2,
-      timerPeriod: undefined
+      timerPeriod: undefined,
+      priority: 100
     },
     periodic: {
       initialize: mockInitialize,
@@ -49,7 +50,8 @@ jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/ind
       maxTokens: 2000,
       useNumLastMessages: 20,
       minNewMessages: undefined,
-      timerPeriod: '30 seconds'
+      timerPeriod: '30 seconds',
+      priority: 200
     },
     perMessage: {
       initialize: mockInitialize,
@@ -61,7 +63,8 @@ jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/ind
       maxTokens: 2000,
       useNumLastMessages: 0,
       minNewMessages: undefined,
-      timerPeriod: undefined
+      timerPeriod: undefined,
+      priority: 10
     }
   }
 }))

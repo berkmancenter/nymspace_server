@@ -7,7 +7,8 @@ const PROPERTIES = [
   'timerPeriod',
   'initialize',
   'evaluate',
-  'isWithinTokenLimit'
+  'isWithinTokenLimit',
+  'priority'
 ]
 
 export default function (agentType) {

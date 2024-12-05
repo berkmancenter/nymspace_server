@@ -141,8 +141,9 @@ const newMessageHandler = async (message, user) => {
   let userContributionVisible = true
 
   if (config.enableAgents && thread.enableAgents) {
-    // process evaluations and check for any rejections
-    for (const agent of thread.agents) {
+    // process evaluations and check for any rejections. Process in priority order
+    const sortedAgents = thread.agents.sort((a, b) => a.priority - b.priority)
+    for (const agent of sortedAgents) {
       // use in memory thread for speed
       agent.thread = thread
       const agentEvaluation = await agent.evaluate(message)

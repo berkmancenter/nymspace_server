@@ -9,6 +9,7 @@ const TOXICITY_THRESHOLD = 0.7
 export default verify({
   name: 'Civility Agent using Perspective API (Per Message)',
   description: `A basic civility agent using Perspective API with threshold ${TOXICITY_THRESHOLD} to prevent personal or identity based attacks`,
+  priority: 0,
   maxTokens: 2000,
   // don't include any history
   useNumLastMessages: 0,

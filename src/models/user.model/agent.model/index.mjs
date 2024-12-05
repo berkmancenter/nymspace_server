@@ -91,6 +91,10 @@ agentSchema.virtual('agendaJobName').get(function () {
   return `agent${this._id}`
 })
 
+agentSchema.virtual('priority').get(function () {
+  return agentTypes[this.agentType].priority
+})
+
 // other helpers
 
 function validAgentEvaluation(agentEvaluation) {
@@ -226,6 +230,8 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     this.lastActiveMessageCount = messageCount
     await this.save()
   }
+
+  logger.info(`Evaluated agent ${this.name} ${this.thread._id} ${AgentMessageActions[agentEvaluation.action]}`)
   return agentEvaluation
 })
 
