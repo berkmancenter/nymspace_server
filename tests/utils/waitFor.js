@@ -3,8 +3,7 @@ const waitFor = async (callback, timeout = 5000) => {
 
   while (Date.now() - startTime < timeout) {
     try {
-      await callback()
-      return // Condition met
+      return await callback() // Condition met
     } catch (error) {
       await new Promise((resolve) => setTimeout(resolve, 50)) // Wait a bit
     }
