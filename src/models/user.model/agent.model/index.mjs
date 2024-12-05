@@ -155,7 +155,8 @@ agentSchema.method('initialize', async function () {
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
-  await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
+  // eslint-disable-next-line no-return-await
+  return await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
 })
 
 agentSchema.method('resetTimer', async function () {
