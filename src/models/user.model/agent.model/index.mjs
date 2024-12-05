@@ -147,7 +147,6 @@ agentSchema.method('initialize', async function () {
     }
     await agent.thread.populate('messages').execPopulate()
     await agent.evaluate()
-    await agent.respond()
   })
 
   await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
