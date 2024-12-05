@@ -1,14 +1,14 @@
-const { ChatOpenAI } = require('@langchain/openai')
-const { RunnableSequence } = require('@langchain/core/runnables')
-const { PromptTemplate } = require('@langchain/core/prompts')
-const { StringOutputParser } = require('@langchain/core/output_parsers')
+import { ChatOpenAI } from '@langchain/openai'
+import { RunnableSequence } from '@langchain/core/runnables'
+import { PromptTemplate } from '@langchain/core/prompts'
+import { StringOutputParser } from '@langchain/core/output_parsers'
 // eslint-disable-next-line import/no-unresolved
-const { isWithinTokenLimit } = require('gpt-tokenizer/model/gpt-4o-mini')
-const { AgentMessageActions } = require('../../../../types/agent.types')
-const verify = require('./verify')
-const formatConvHistory = require('../helpers/formatConvHistory')
-const config = require('../../../../config/config')
-const { Message } = require('../../..')
+import { isWithinTokenLimit } from 'gpt-tokenizer/esm/model/gpt-4o-mini'
+import { AgentMessageActions } from '../../../../types/agent.types.js'
+import verify from './verify.mjs'
+import formatConvHistory from '../helpers/formatConvHistory.mjs'
+import config from '../../../../config/config.js'
+import Message from '../../../message.model.js'
 
 const llm = new ChatOpenAI(
   {
@@ -40,7 +40,7 @@ Summary: {summary}
 Prior Consensus Proposals: {proposals}
 Answer: `
 
-module.exports = verify({
+export default verify({
   name: 'Reflection Agent',
   description: 'A deliberation facilitator that reflects arguments and builds consensus',
   maxTokens: 2000,

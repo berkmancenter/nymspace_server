@@ -15,6 +15,8 @@ module.exports = {
   ],
   plugins: ['jest', 'security', 'prettier'],
   rules: {
+    // we have a missed CJS/ESM project right now
+    'import/extensions': 'off',
     'no-console': 'error',
     'func-names': 'off',
     'no-underscore-dangle': 'off',

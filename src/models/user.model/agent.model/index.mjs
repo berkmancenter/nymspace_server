@@ -1,16 +1,15 @@
-const Agenda = require('agenda')
-const mongoose = require('mongoose')
-const socketIO = require('../../../websockets/socketIO')
-const { toJSON, paginate } = require('../../plugins')
-const BaseUser = require('../baseUser.model')
-const { Message } = require('../..')
-const pseudonymSchema = require('../schemas/pseudonym.schema')
-const agentTypes = require('./agentTypes')
-const config = require('../../../config/config')
-const logger = require('../../../config/logger')
-const { AgentMessageActions } = require('../../../types/agent.types')
+// NOTE! Our agent model is in ESM to support using esm module imports that we need
+import mongoose from 'mongoose'
+import socketIO from '../../../websockets/socketIO.js'
+import { toJSON, paginate } from '../../plugins/index.js'
+import BaseUser from '../baseUser.model.js'
+import Message from '../../message.model.js'
+import pseudonymSchema from '../schemas/pseudonym.schema.js'
+import agentTypes from './agentTypes/index.mjs'
+import logger from '../../../config/logger.js'
+import agenda from '../../../agenda.js'
+import { AgentMessageActions } from '../../../types/agent.types.js'
 
-const agenda = new Agenda({ db: { address: config.mongoose.url } })
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = ['userMessage', 'action', 'userContributionVisible', 'suggestion']
 const REQUIRED_AGENT_RESPONSE_PROPS = ['visible', 'message']
@@ -148,7 +147,6 @@ agentSchema.method('initialize', async function () {
     }
     await agent.thread.populate('messages').execPopulate()
     await agent.evaluate()
-    await agent.respond()
   })
 
   await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
@@ -156,7 +154,8 @@ agentSchema.method('initialize', async function () {
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
-  await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
+  // eslint-disable-next-line no-return-await
+  return await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
 })
 
 agentSchema.method('resetTimer', async function () {
@@ -255,4 +254,4 @@ agentSchema.pre('validate', function () {
  */
 const Agent = BaseUser.discriminator('Agent', agentSchema)
 
-module.exports = Agent
+export default Agent

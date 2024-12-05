@@ -1,44 +1,45 @@
 /**
  * Uses Pol.is openData to simulate messages for the reflection agent to process.
- * For now, this test must be run manually with the following commands:
- * export NODE_ENV=test
- * npx mocha --exit --timeout 120000 tests/models/reflection.agent.test.mjs
- *
- *
+ * NOTE: this test is ignored when running npm test because it takes about 30 sec
+ * to execute due to actual LLM calls
+ * To run this test:
+ * node --experimental-vm-modules node_modules/jest/bin/jest.js -i --colors --verbose \
+ * tests/models/agentTypes/reflection.agent.test.js
  */
+const faker = require('faker')
+const mongoose = require('mongoose')
 
-/* eslint-disable jest/valid-expect */
-import agenda from 'agenda'
-import faker from 'faker'
-import mongoose from 'mongoose'
-import config from '../../src/config/config.js'
-import socketIO from '../../src/websockets/socketIO.js'
-const sinon = await import('sinon')
-import { use, expect } from 'chai'
-import chaiSubset from 'chai-subset'
-const { Agent, Message, Thread, User, Topic } = await import('../../src/models/index.js')
-const { insertUsers } = await import('../fixtures/user.fixture.js')
-const { publicTopic } = await import('../fixtures/thread.fixture.js')
-const { insertTopics } = await import('../fixtures/topic.fixture.js')
-const { AgentMessageActions } = await import('../../src/types/agent.types.js')
+jest.mock('agenda')
+require('../../../src/agenda.js')
+const setupIntTest = require('../../utils/setupIntTest.js')
+const waitFor = require('../../utils/waitFor.js')
+const config = require('../../../src/config/config')
+const { Message, Thread } = require('../../../src/models/index')
+const { insertUsers } = require('../../fixtures/user.fixture.js')
+const { publicTopic } = require('../../fixtures/thread.fixture.js')
+const { insertTopics } = require('../../fixtures/topic.fixture.js')
+const { AgentMessageActions } = require('../../../src/types/agent.types.js')
 
-use(chaiSubset)
-sinon.stub(agenda.prototype, 'start')
-sinon.stub(agenda.prototype, 'every')
-sinon.stub(agenda.prototype, 'cancel')
-const mockSocketInstance = {
-  emit: sinon.stub()
-}
-sinon.stub(socketIO, 'connection').returns(mockSocketInstance)
-const emitStub = mockSocketInstance.emit
+jest.setTimeout(120000)
 
-describe('reflection agent tests', () => {
+jest.mock('../../../src/websockets/socketIO', () => ({
+  connection: jest.fn(() => ({
+    emit: jest.fn()
+  }))
+}))
+
+const { connection } = require('../../../src/websockets/socketIO.js')
+
+setupIntTest()
+;(config.enableAgents ? describe : describe.skip)('reflection agent tests', () => {
   let agent
   let thread
   let footballThread
   let user1
   let user2
+  // eslint-disable-next-line one-var
   let user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14
+  let Agent
 
   async function createUser(pseudonym) {
     return {
@@ -72,35 +73,28 @@ describe('reflection agent tests', () => {
   }
 
   async function validateResponse(expectedMsgCount) {
-    await new Promise((resolve) => {
-      const intervalId = setInterval(() => {
-        if (emitStub.called) {
-          clearInterval(intervalId)
-          resolve()
-        }
-      }, 10) // Check every 10ms
-    })
-    expect(emitStub.calledOnce).to.be.true
-    const calledWithChannel = emitStub.firstCall.args[0]
-    const calledWithEventName = emitStub.firstCall.args[1]
-    const calledWithData = emitStub.firstCall.args[2]
-
-    expect(calledWithChannel).to.equal(thread._id.toString())
-    expect(calledWithEventName).to.equal('message:new')
-    expect(calledWithData).to.have.property('count', expectedMsgCount)
-    expect(calledWithData.body).to.not.be.undefined
-    // See agent response
-    console.log(calledWithData.body)
-    emitStub.resetHistory()
-    return calledWithData.body
+    // eslint-disable-next-line no-return-await
+    return await waitFor(async () => {
+      expect(connection).toHaveBeenCalled()
+      const emitMock = connection.mock.results[0].value.emit
+      expect(emitMock).toHaveBeenCalledWith(
+        thread._id.toString(),
+        'message:new',
+        expect.objectContaining({ count: expectedMsgCount })
+      )
+      const response = emitMock.mock.calls[0][2]
+      // eslint-disable-next-line no-console
+      console.log(response.body)
+      return response.body
+    }, 60000)
   }
 
   async function checkNoResponseEvaluation(evaluation) {
-    expect(evaluation).to.deep.equal({ action: AgentMessageActions.OK, userContributionVisible: true })
+    expect(evaluation).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
   }
 
   async function checkResponseEvaluation(evaluation, msg) {
-    expect(evaluation).to.deep.equal({
+    expect(evaluation).toEqual({
       action: AgentMessageActions.CONTRIBUTE,
       userContributionVisible: true,
       suggestion: undefined,
@@ -115,17 +109,12 @@ describe('reflection agent tests', () => {
     await thread.populate('messages').execPopulate()
   }
 
-  before(async () => {
-    await mongoose.connect(config.mongoose.url, config.mongoose.options)
-  })
-
-  after(async () => {
-    await mongoose.disconnect()
+  beforeAll(async () => {
+    const module = await import('../../../src/models/user.model/agent.model/index.mjs')
+    Agent = module.default
   })
 
   beforeEach(async () => {
-    await Promise.all(Object.values(mongoose.connection.collections).map(async (collection) => collection.deleteMany()))
-
     user1 = await createUser('Boring Badger')
     user2 = await createUser('Shady Lawyer')
     user3 = await createUser('Hungry Hippo')
@@ -164,7 +153,8 @@ describe('reflection agent tests', () => {
   })
 
   afterEach(async () => {
-    await sinon.restore()
+    jest.clearAllMocks()
+    jest.resetModules()
   })
 
   it('should generate an AI response when min messages received', async () => {
@@ -220,6 +210,7 @@ describe('reflection agent tests', () => {
 
     // We are currently including invisible messages in message count, so agent should add 2
     const response = await validateResponse(9)
+
     const expectedMessage = {
       fromAgent: true,
       visible: true,
@@ -230,8 +221,10 @@ describe('reflection agent tests', () => {
       owner: agent._id
     }
     const agentMessages = thread.messages.filter((msg) => msg.fromAgent && msg.visible)
-    expect(agentMessages.length).to.equal(1)
-    expect(agentMessages[0]).to.deep.include(expectedMessage)
+    expect(agentMessages.length).toBe(1)
+    expect(agentMessages[0]).toEqual(expect.objectContaining(expectedMessage))
+
+    jest.clearAllMocks()
 
     const msg8 = await createMessage(
       user8,
@@ -286,7 +279,7 @@ describe('reflection agent tests', () => {
       owner: agent._id
     }
     const agentMessages2 = thread.messages.filter((msg) => msg.fromAgent && msg.visible)
-    expect(agentMessages2.length).to.equal(2)
-    expect(agentMessages2[1]).to.deep.include(expectedMessage2)
+    expect(agentMessages2.length).toBe(2)
+    expect(agentMessages2[1]).toEqual(expect.objectContaining(expectedMessage2))
   })
 })

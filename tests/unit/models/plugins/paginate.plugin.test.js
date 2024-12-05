@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const setupTestDB = require('../../../utils/setupTestDB')
+const setupIntTest = require('../../../utils/setupIntTest')
 const paginate = require('../../../../src/models/plugins/paginate.plugin')
 
 const projectSchema = mongoose.Schema({
@@ -33,7 +33,7 @@ const taskSchema = mongoose.Schema({
 taskSchema.plugin(paginate)
 const Task = mongoose.model('Task', taskSchema)
 
-setupTestDB()
+setupIntTest()
 
 describe('paginate plugin', () => {
   describe('populate option', () => {

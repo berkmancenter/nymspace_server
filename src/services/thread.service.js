@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
-const { Thread, Topic, Follower, Message, Agent } = require('../models')
+const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
@@ -47,6 +47,7 @@ const createThread = async (threadBody, user) => {
   // need to save to get id
   await thread.save()
 
+  const { default: Agent } = await import('../models/user.model/agent.model/index.mjs')
   for (const agentType of threadBody.agentTypes) {
     const agent = new Agent({
       agentType,

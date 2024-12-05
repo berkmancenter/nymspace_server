@@ -1,16 +1,15 @@
 const faker = require('faker')
-const setupTestDB = require('../utils/setupTestDB')
+const setupIntTest = require('../utils/setupIntTest')
 const { insertUsers, userOne } = require('../fixtures/user.fixture')
 const { newPublicTopic, newPrivateTopic, insertTopics } = require('../fixtures/topic.fixture')
 const { topicService, emailService } = require('../../src/services')
 const Topic = require('../../src/models/topic.model')
 const { Token } = require('../../src/models')
-const { tokenTypes } = require('../../src/config/tokens')
 const { threadOne, insertThreads } = require('../fixtures/thread.fixture')
 const { messageOne, insertMessages } = require('../fixtures/message.fixture')
 const Thread = require('../../src/models/thread.model')
 
-setupTestDB()
+setupIntTest()
 
 let publicTopic
 let privateTopic
@@ -129,7 +128,7 @@ describe('Topic service methods', () => {
 
     test('should not archive topic if topic has recent message activity', async () => {
       jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue()
-      const sendArchiveEmailSpy = jest.spyOn(emailService, 'sendArchiveTopicEmail')
+      jest.spyOn(emailService, 'sendArchiveTopicEmail')
 
       publicTopic.createdAt = oldDate
       const d = new Date()

@@ -1,4 +1,4 @@
-module.exports = (messages, useNumLastMessages = 10, userMessage) => {
+export default (messages, useNumLastMessages = 10, userMessage) => {
   const formattedMessages = messages
     .slice(messages.length - Math.min(messages.length, useNumLastMessages))
     .map((message) => {

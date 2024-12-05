@@ -1,11 +1,13 @@
-const { ChatOpenAI } = require('@langchain/openai')
+import { ChatOpenAI } from '@langchain/openai'
 // eslint-disable-next-line import/no-unresolved
-const { isWithinTokenLimit } = require('gpt-tokenizer/model/gpt-3.5-turbo')
-const verify = require('./verify')
-const { AgentMessageActions } = require('../../../../types/agent.types')
-const formatConvHistory = require('../helpers/formatConvHistory')
-const { getSinglePromptResponse } = require('../helpers/llmChain')
-const config = require('../../../../config/config')
+import { isWithinTokenLimit } from 'gpt-tokenizer/esm/model/gpt-3.5-turbo'
+import { AgentMessageActions } from '../../../../types/agent.types.js'
+import verify from './verify.mjs'
+import formatConvHistory from '../helpers/formatConvHistory.mjs'
+import llmChain from '../helpers/llmChain.mjs'
+import config from '../../../../config/config.js'
+
+const { getSinglePromptResponse } = llmChain
 
 const llm = new ChatOpenAI(
   {
@@ -18,22 +20,20 @@ const llm = new ChatOpenAI(
 )
 
 const template = `You are a playful discussion facilitator who can suggest discussion questions based only on the topic provided and the conversation history.
-Always speak as if you were chatting to a friend in a playful and mischievious manner.
-Address your question to a specific discussion participant other than yourself (the user known as AI) and preface the partcipant's name with the @ symbol.
-Make sure your question is unique from prior questions you have asked.
-Topic: {topic}
-Conversation history: {convHistory}
-Answer:`
+             Always speak as if you were chatting to a friend in a playful and mischievious manner.
+             Address your question to a specific discussion participant other than yourself (the user known as AI) and preface the partcipant's name with the @ symbol.
+             Make sure your question is unique from prior questions you have asked.
+             Topic: {topic}
+             Conversation history: {convHistory}
+             Answer:`
 
-module.exports = verify({
-  name: 'Playful Agent (Per Message)',
+export default verify({
+  name: 'Playful Agent (Periodic)',
   description: 'A playful agent to lighten up a conversation!',
   maxTokens: 2000,
-  useNumLastMessages: 10,
-  // no min new messages
-  minNewMessages: undefined,
-  // no timer activation
-  timerPeriod: undefined,
+  useNumLastMessages: 20,
+  minNewMessages: 2,
+  timerPeriod: '30 seconds',
   async initialize() {
     return true
   },
@@ -45,9 +45,12 @@ module.exports = verify({
       suggestion: undefined
     }
   },
+
+  // eslint-disable-next-line class-methods-use-this
   async isWithinTokenLimit(promptText) {
     return isWithinTokenLimit(promptText, this.tokenLimit)
   },
+
   async respond(userMessage) {
     const convHistory = formatConvHistory(this.thread.messages, this.useNumLastMessages, userMessage)
     const topic = this.thread.name

@@ -1,9 +1,12 @@
 const mongoose = require('mongoose')
 const config = require('../../src/config/config')
+const agenda = require('../../src/agenda')
+const { initializeAgents } = require('../../src/services/agent.service')
 
-const setupTestDB = () => {
+const setupIntTest = () => {
   beforeAll(async () => {
     await mongoose.connect(config.mongoose.url, config.mongoose.options)
+    initializeAgents()
   })
 
   beforeEach(async () => {
@@ -11,8 +14,10 @@ const setupTestDB = () => {
   })
 
   afterAll(async () => {
+    await agenda.stop()
+    await agenda.close()
     await mongoose.disconnect()
   })
 }
 
-module.exports = setupTestDB
+module.exports = setupIntTest
