@@ -21,29 +21,52 @@ const { connection } = require('../../src/websockets/socketIO')
 
 const mockEvaluate = jest.fn()
 const mockRespond = jest.fn()
-const mockTokenLimit = jest.fn()
 const mockInitialize = jest.fn()
+const mockTokenLimit = jest.fn()
 
 jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/index.mjs', () => ({
   default: {
-    'test-type': {
+    perMessageWithMin: {
       initialize: mockInitialize,
       respond: mockRespond,
       evaluate: mockEvaluate,
       isWithinTokenLimit: mockTokenLimit,
-      name: 'Test Agent',
-      description: 'A periodic test agent',
+      name: 'Test Per Message Min',
+      description: 'An agent that responds per message after a certain number reached',
       maxTokens: 2000,
       useNumLastMessages: 20,
       minNewMessages: 2,
+      timerPeriod: undefined
+    },
+    periodic: {
+      initialize: mockInitialize,
+      respond: mockRespond,
+      evaluate: mockEvaluate,
+      isWithinTokenLimit: mockTokenLimit,
+      name: 'Test Periodic',
+      description: 'An agent that responds only periodically with no min messages',
+      maxTokens: 2000,
+      useNumLastMessages: 20,
+      minNewMessages: undefined,
       timerPeriod: '30 seconds'
+    },
+    perMessage: {
+      initialize: mockInitialize,
+      respond: mockRespond,
+      evaluate: mockEvaluate,
+      isWithinTokenLimit: mockTokenLimit,
+      name: 'Test Per Message',
+      description: 'An agent that responds to every message',
+      maxTokens: 2000,
+      useNumLastMessages: 0,
+      minNewMessages: undefined,
+      timerPeriod: undefined
     }
   }
 }))
 
 setupIntTest()
 
-let agent
 let thread
 let msg1
 let msg2
@@ -60,13 +83,7 @@ describe('agent tests', () => {
     await insertTopics([publicTopic])
 
     thread = new Thread(threadAgentsEnabled)
-    thread.save()
-
-    agent = new Agent({
-      agentType: 'test-type',
-      thread
-    })
-    await agent.save()
+    await thread.save()
 
     msg1 = new Message({
       _id: mongoose.Types.ObjectId(),
@@ -99,9 +116,15 @@ describe('agent tests', () => {
   })
 
   test('should generate an AI response when min messages received from users', async () => {
+    const agent = new Agent({
+      agentType: 'perMessageWithMin',
+      thread
+    })
+    await agent.save()
     await agent.initialize()
-    expect(agenda.start).toHaveBeenCalled()
-    expect(agenda.every).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
+    // ensure agenda was not started
+    expect(agenda.start).not.toHaveBeenCalled()
+    expect(agenda.every).not.toHaveBeenCalled()
     expect(mockInitialize).toHaveBeenCalled()
     agent.thread = thread
     const evaluation = await agent.evaluate(msg1)
@@ -134,10 +157,6 @@ describe('agent tests', () => {
     const evaluation2 = await agent.evaluate(msg2)
     expect(evaluation2).toEqual(expectedEval)
 
-    // verify timer was reset since agent processed messages
-    expect(agenda.cancel).toHaveBeenCalledWith({ name: agent.agendaJobName })
-    expect(agenda.every).toHaveBeenCalledTimes(2)
-
     // verify async response
     await waitFor(async () => {
       const agentMessage = await Message.findOne({ fromAgent: true }).select('body count').exec()
@@ -165,6 +184,10 @@ describe('agent tests', () => {
   })
 
   test('should generate an AI response when any messages received since last periodic check', async () => {
+    const agent = new Agent({
+      agentType: 'periodic',
+      thread
+    })
     await agent.initialize()
     expect(agenda.start).toHaveBeenCalled()
     expect(agenda.every).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
@@ -210,7 +233,39 @@ describe('agent tests', () => {
     expect(agenda.every).toHaveBeenCalledTimes(1)
   })
 
+  test('should not increase messsage count if message rejected', async () => {
+    const agent = new Agent({
+      agentType: 'perMessage',
+      thread
+    })
+    await agent.initialize()
+    expect(agenda.start).not.toHaveBeenCalled()
+    expect(agenda.every).not.toHaveBeenCalled()
+    expect(mockInitialize).toHaveBeenCalled()
+
+    const expectedEval = {
+      userMessage: msg1,
+      action: AgentMessageActions.REJECT,
+      agentContributionVisible: false,
+      userContributionVisible: true,
+      suggestion: 'Be nicer',
+      contribution: undefined
+    }
+
+    mockEvaluate.mockResolvedValue(expectedEval)
+    agent.thread = thread
+    const evaluation = await agent.evaluate(msg1)
+    expect(evaluation).toEqual(expectedEval)
+    expect(agent.lastActiveMessageCount).toBe(0)
+
+    expect(mockRespond).not.toHaveBeenCalled()
+  })
+
   test('should indicate if input text is within max token limit', async () => {
+    const agent = new Agent({
+      agentType: 'perMessage',
+      thread
+    })
     mockTokenLimit.mockResolvedValue(true)
 
     await agent.initialize()
