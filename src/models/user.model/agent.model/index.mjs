@@ -135,14 +135,14 @@ agentSchema.method('initialize', async function () {
 
   // also set up timers if needed
   if (agentType.timerPeriod === undefined) {
-    logger.info(`No timer to set for ${this.agentType} ${this._id}`)
+    logger.debug(`No timer to set for ${this.agentType} ${this._id}`)
     return
   }
 
   await agenda.start()
   agenda.define(this.agendaJobName, async function (job) {
     const { agentId } = job.attrs.data
-    logger.info(`Agenda activation ${agentId}`)
+    logger.debug(`Agenda activation ${agentId}`)
     const agent = await mongoose.model('Agent').findOne({ _id: agentId }).populate('thread').exec()
 
     if (!agent) {
@@ -154,7 +154,7 @@ agentSchema.method('initialize', async function () {
   })
 
   await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
-  logger.info(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
+  logger.debug(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
@@ -179,12 +179,12 @@ agentSchema.method('evaluate', async function (userMessage = null) {
 
   // do not process if no new messages
   if (messageCount === this.lastActiveMessageCount) {
-    logger.info(`No new messages to respond to ${this.agentType} ${this._id}`)
+    logger.debug(`No new messages to respond to ${this.agentType} ${this._id}`)
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
 
   if (userMessage && this.minNewMessages && messageCount - this.lastActiveMessageCount < this.minNewMessages) {
-    logger.info('Not enough new messages for activation')
+    logger.debug('Not enough new messages for activation')
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this, userMessage))
@@ -231,7 +231,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     await this.save()
   }
 
-  logger.info(`Evaluated agent ${this.name} ${this.thread._id} ${AgentMessageActions[agentEvaluation.action]}`)
+  logger.debug(`Evaluated agent ${this.name} ${this.thread._id} ${AgentMessageActions[agentEvaluation.action]}`)
   return agentEvaluation
 })
 
@@ -247,7 +247,7 @@ agentSchema.pre('validate', function () {
       active: true,
       isDeleted: false
     })
-    logger.info('Created default agent pseudonym')
+    logger.debug('Created default agent pseudonym')
   }
 
   if (this.pseudonyms.length > 1) {

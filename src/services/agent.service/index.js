@@ -24,7 +24,7 @@ async function initializeAgents() {
 
   await sleep(1000)
   await queue.onEmpty()
-  logger.info(`Agents initialized: ${count}`)
+  logger.debug(`Agents initialized: ${count}`)
 }
 
 module.exports = {
