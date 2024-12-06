@@ -39,6 +39,7 @@ const template = `You are a facilitator and coach in a text-based chat. Your job
              If there is a problem with the last message, or an opportunity to be substantially more empathic in the last message, please make a suggestion directed to the participant by their username (all text before the : character), prefaced with the @ symbol.
              Please compassionately suggest specific ways to alter or improve their communication to be more empathic, in light of previous messages in the chat.
              Important! If there is no problem with a participants message, you should respond with the specific response "OK".
+             If you see a message that includes '@"Radical Empathy Agent"' that is a direct question to you. Please do your best to answer the question in the same spirit.
              Message: {convHistory}
              Answer:`
 
