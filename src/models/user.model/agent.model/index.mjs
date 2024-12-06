@@ -194,35 +194,40 @@ agentSchema.method('evaluate', async function (userMessage = null) {
 
   if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
     // get agent responses async to free user to continue entering messages
-    agentTypes[this.agentType].respond
-      .call(this, userMessage)
-      .then(async (responses) => {
-        for (const agentResponse of responses) {
-          const response = validAgentResponse(agentResponse)
-          const agentMessage = new Message({
-            fromAgent: true,
-            visible: response.visible,
-            body: response.message,
-            thread: this.thread._id,
-            pseudonym: this.name,
-            pseudonymId: this.pseudonyms[0]._id,
-            owner: this._id
-          })
+    setTimeout(
+      function () {
+        agentTypes[this.agentType].respond
+          .call(this, userMessage)
+          .then(async (responses) => {
+            for (const agentResponse of responses) {
+              const response = validAgentResponse(agentResponse)
+              const agentMessage = new Message({
+                fromAgent: true,
+                visible: response.visible,
+                body: response.message,
+                thread: this.thread._id,
+                pseudonym: this.name,
+                pseudonymId: this.pseudonyms[0]._id,
+                owner: this._id
+              })
 
-          agentMessage.save()
-          this.thread.messages.push(agentMessage.toObject())
-          await this.thread.save()
-          agentMessage.count = this.thread.messages.length
-          const io = socketIO.connection()
-          io.emit(agentMessage.thread._id.toString(), 'message:new', {
-            ...agentMessage.toJSON(),
-            count: agentMessage.count
+              agentMessage.save()
+              this.thread.messages.push(agentMessage.toObject())
+              await this.thread.save()
+              agentMessage.count = this.thread.messages.length
+              const io = socketIO.connection()
+              io.emit(agentMessage.thread._id.toString(), 'message:new', {
+                ...agentMessage.toJSON(),
+                count: agentMessage.count
+              })
+            }
           })
-        }
-      })
-      .catch((err) => {
-        logger.error(`Error processing agent response: ${err}`)
-      })
+          .catch((err) => {
+            logger.error(`Error processing agent response: ${err}`)
+          })
+      }.bind(this),
+      100
+    )
   }
 
   // update last activation message count

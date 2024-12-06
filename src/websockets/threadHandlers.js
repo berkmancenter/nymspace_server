@@ -4,17 +4,17 @@ const logger = require('../config/logger')
 
 module.exports = (io, socket) => {
   const joinUser = catchAsync(async (data) => {
-    logger.info('Joining user via socket. UserId = %s', data.user._id)
+    logger.debug('Joining user via socket. UserId = %s', data.user._id)
     socket.join(data.userId.toString())
   })
 
   const joinTopic = catchAsync(async (data) => {
-    logger.info('Joining topic via socket. TopicId = %s', data.topicId)
+    logger.debug('Joining topic via socket. TopicId = %s', data.topicId)
     socket.join(data.topicId.toString())
   })
 
   socket.use(([event, args], next) => {
-    logger.info('Checking auth (JWT) for topic socket requests.')
+    logger.debug('Checking auth (JWT) for topic socket requests.')
     checkAuth(event, args, next)
   })
 

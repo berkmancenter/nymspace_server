@@ -46,12 +46,12 @@ module.exports = (io, socket) => {
   }
 
   const joinThread = catchAsync(async (data) => {
-    logger.info('Joining thread via socket. ThreadId = %s', data.threadId)
+    logger.debug('Joining thread via socket. ThreadId = %s', data.threadId)
     socket.join(data.threadId.toString())
   })
 
   socket.use(([event, args], next) => {
-    logger.info('Checking auth (JWT) for message/thread socket requests.')
+    logger.debug('Checking auth (JWT) for message/thread socket requests.')
     checkAuth(event, args, next)
   })
 

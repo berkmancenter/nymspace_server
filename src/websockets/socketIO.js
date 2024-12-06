@@ -29,7 +29,7 @@ class SocketIO {
 
   addConnectionHandlers(handlers) {
     this.io.on('connection', (socket) => {
-      logger.info('Socket connecting.')
+      logger.debug('Socket connecting.')
       for (const handler of handlers) {
         handler(this.io, socket)
       }
