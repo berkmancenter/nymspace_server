@@ -179,7 +179,16 @@ const inspectPoll = async (pollId, user) => {
   logger.info('Inspect poll %s %s', pollId, user._id)
 
   const pollData = poll.toObject()
-  if (poll.choicesVisible) pollData.choices = choices.map((choice) => choice.toObject())
+  const userResponses = await PollResponse.find({ poll: poll._id, owner: user._id })
+  // Add a boolean "isSelected" as true to each choice if the user has selected it
+  if (poll.choicesVisible) {
+    pollData.choices = choices.map((choice) => {
+      return {
+        ...choice.toObject(),
+        isSelected: userResponses.some((response) => response.choice.equals(choice._id))
+      }
+    })
+  }
 
   const userPollView = await getUserPollView(pollData, user)
   return userPollView
