@@ -63,26 +63,28 @@ export default verify({
     const topic = this.thread.name
     const llmResponse = await getSinglePromptResponse(llm, template, { convHistory, topic })
 
-    const action = llmResponse === 'OK' ? AgentMessageActions.OK : AgentMessageActions.CONTRIBUTE
+    const action = llmResponse === 'OK' ? AgentMessageActions.OK : AgentMessageActions.REJECT
 
     this.agentEvaluation = {
       userMessage,
       action,
       agentContributionVisible: true,
       userContributionVisible: true,
-      suggestion: undefined,
-      contribution: llmResponse
+      suggestion: llmResponse,
+      contribution: undefined
     }
 
     return this.agentEvaluation
   },
   async respond() {
     if (this.agentEvaluation.action === AgentMessageActions.OK) return []
-    const agentMessage = {
-      visible: true,
-      message: this.agentEvaluation.contribution
-    }
-    return [agentMessage]
+    // disable agent contribution. Use reject instead.
+    // const agentMessage = {
+    //   visible: true,
+    //   message: this.agentEvaluation.contribution
+    // }
+    // return [agentMessage]
+    return []
   },
   async isWithinTokenLimit(promptText) {
     return isWithinTokenLimit(promptText, this.tokenLimit)
