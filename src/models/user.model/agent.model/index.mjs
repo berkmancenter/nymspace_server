@@ -177,8 +177,8 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   const humanMsgCount = this.thread.messages.reduce((count, msg) => count + (msg.fromAgent ? 0 : 1), 0)
   const messageCount = humanMsgCount + (userMessage ? 1 : 0)
 
-  // do not process if no new messages
-  if (messageCount === this.lastActiveMessageCount) {
+  // do not process if no new messages, unless minNewMessages is undefined
+  if (this.minNewMessages && messageCount === this.lastActiveMessageCount) {
     logger.debug(`No new messages to respond to ${this.agentType} ${this._id}`)
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
@@ -188,9 +188,9 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this, userMessage))
-  // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
+  // Only reset timer if contributing in response to a new message, otherwise let it continue periodic checking
   // do after LLM processing, since it may take some time
-  if (userMessage && this.timerPeriod) await this.resetTimer()
+  if (userMessage && agentEvaluation.action === AgentMessageActions.CONTRIBUTE && this.timerPeriod) await this.resetTimer()
 
   if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
     // get agent responses async to free user to continue entering messages
