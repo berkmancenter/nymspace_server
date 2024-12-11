@@ -100,6 +100,10 @@ const listPolls = async (query, sort, sortDir, user) => {
 
 // choice can be a choiceId or a new choice object
 const respondPoll = async (pollId, choiceData, user) => {
+  if (!user) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Must be logged in to respond to a poll')
+  }
+
   const poll = await Poll.findById(pollId)
   if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
 
