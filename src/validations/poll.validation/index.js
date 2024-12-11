@@ -26,7 +26,8 @@ const respondPoll = {
     choice: Joi.object().keys({
       text: Joi.string().required(),
       remove: Joi.boolean()
-    })
+    }),
+    topicId: Joi.string().required()
   })
 }
 
