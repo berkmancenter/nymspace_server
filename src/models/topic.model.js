@@ -65,6 +65,11 @@ const topicSchema = mongoose.Schema(
       index: true
     },
     threads: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Thread' }],
+    // NOTE! polls are intentionally excluded from being saved here in order to prevent accidental disclosure of the
+    // owner of a poll, which is sensitive information
+    // really, we might want to consider moving all embedded document out and use a lookup instead
+    // especially for messages on threads, etc.
+    // this could help with performance
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }]
   },
   {

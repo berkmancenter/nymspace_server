@@ -4,7 +4,7 @@ const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
-const returnFields = 'name slug locked owner'
+const returnFields = 'name slug locked owner createdAt'
 
 /**
  * Removed messages array property and replaces with messageCount
@@ -29,6 +29,8 @@ const addMessageCount = (threads) => {
  * @returns {Promise<Thread>}
  */
 const createThread = async (threadBody, user) => {
+  if (!threadBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
+
   const topicId = mongoose.Types.ObjectId(threadBody.topicId)
   const topic = await Topic.findById(topicId)
 

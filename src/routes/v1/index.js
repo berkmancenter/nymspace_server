@@ -7,6 +7,7 @@ const topicsRoute = require('./topics.route')
 const threadsRoute = require('./threads.route')
 const configRoute = require('./config.route')
 const config = require('../../config/config')
+const pollsRoute = require('./polls.route')
 
 const router = express.Router()
 
@@ -30,6 +31,10 @@ const defaultRoutes = [
   {
     path: '/threads',
     route: threadsRoute
+  },
+  {
+    path: '/polls',
+    route: pollsRoute
   },
   {
     path: '/config',

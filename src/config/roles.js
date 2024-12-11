@@ -19,7 +19,15 @@ const allRoles = {
     'managePseudonym',
     'manageAccount',
     'getUser',
-    'updateThread'
+    'updateThread',
+
+    // poll roles
+    'createPoll',
+    'respondPoll',
+    'listPolls',
+    'inspectPoll',
+    'getPollResponses',
+    'getPollResponseCounts'
   ],
   admin: ['getUsers', 'manageUsers']
 }

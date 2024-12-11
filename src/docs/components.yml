@@ -2,7 +2,7 @@ components:
   schemas:
 
     Vote:
-      type: object 
+      type: object
       properties:
         _id:
           type: string
@@ -10,7 +10,7 @@ components:
           type: string
 
     Message:
-      type: object 
+      type: object
       properties:
         id:
           type: string
@@ -22,11 +22,11 @@ components:
           type: string
         upVotes:
           type: array
-          items: 
+          items:
             $ref: '#/components/schemas/Vote'
         downVotes:
           type: array
-          items: 
+          items:
             $ref: '#/components/schemas/Vote'
         pseuodonym:
           type: string
@@ -34,7 +34,7 @@ components:
           type: string
 
     Pseudonym:
-      type: object 
+      type: object
       properties:
         _id:
           type: string
@@ -63,7 +63,7 @@ components:
           type: string
         pseudonyms:
           type: array
-          items: 
+          items:
             $ref: '#/components/schemas/Pseudonym'
       example:
         id: 5ebac534954b54139806c112
@@ -72,7 +72,7 @@ components:
         role: user
         goodReputation: true
         createdAt: 2021-11-30T01:51:01.639Z
-        pseudonyms:  
+        pseudonyms:
           - token: b019d20aa74a16c8c68701cc2937c8a76bc6cdc6247d51cf80bb3d1f27f6ac3f9dec9c0dbe80543f8d2c40428c84576cc3a644668be5b3156be070f57be0521a13c3f6f42a8d2c8ef13f92e092236f4e
             pseudonym: Profound Red Rattlesnake
 
@@ -163,6 +163,94 @@ components:
         slug: my-favorite-dog-is-Rottweiler
         locked: false
         messageCount: 5
+
+    Poll:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        locked:
+          type: boolean
+        owner:
+          type: string
+        threshold:
+          type: number
+        expirationDate:
+          type: date
+        topic:
+          type: string
+        multiSelect:
+          type: boolean
+        allowNewChoices:
+          type: boolean
+        choicesVisible:
+          type: boolean
+        responseCountsVisible:
+          type: boolean
+        onlyOwnChoicesVisible:
+          type: boolean
+        whenResultsVisible:
+          type: string
+        responsesVisibleToNonParticipants:
+          type: boolean
+        responsesVisible:
+          type: boolean
+        createdAt:
+          type: date
+        updatedAt:
+          type: date
+      example:
+        id: 61b0ffca7d4eb20ee9dcfe8d
+        title: 'Where should we go to lunch?'
+        description: "This is a poll to decide where we should go to lunch"
+        slug: 'where-should-we-go-to-lunch'
+        locked: false
+        owner: 671935adec641ee43536bd7c
+        threshold: 10
+        expirationDate: 2024-11-20T00:00:00.000Z
+        topic: 6733fe79ca20209f1fa02168
+        multiSelect: true
+        allowNewChoices: true
+        choicesVisible: false
+        responseCountsVisible: false
+        onlyOwnChoicesVisible: true
+        whenResultsVisible: thresholdAndExpiration
+        responsesVisibleToNonParticipants: false
+        responsesVisible: true
+        createdAt: 2021-11-30T01:51:01.639Z
+        updatedAt: 2021-11-30T01:51:01.639Z
+
+    PollChoice:
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        poll:
+          type: string
+      example:
+        id: 61b0ffca7d4eb20ee9dcfe8e
+        text: "Poll choice #1"
+        poll: 6750a665664156091cdf5a31
+
+    PollResponse:
+      properties:
+        id:
+          type: string
+        poll:
+          type: string
+        choice:
+          type: string
+      example:
+        poll: 6750a665664156091cdf5a31
+        id: 61b0ffca7d4eb20ee9dcfe8e
+        choice: 61b0ffca7d4eb20ee9dcfe8f
 
   responses:
     DuplicateEmail:
