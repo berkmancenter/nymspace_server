@@ -51,7 +51,8 @@ jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/ind
       useNumLastMessages: 20,
       minNewMessages: 2,
       timerPeriod: '30 seconds',
-      priority: 200
+      priority: 200,
+      introMessage: 'Hello there'
     },
     periodicNoMin: {
       initialize: mockInitialize,
@@ -270,6 +271,32 @@ let Agent
     expect(agent.lastActiveMessageCount).toEqual(2)
     // timer should be reset
     expect(agenda.cancel).toHaveBeenCalled()
+  })
+
+  test('should generate an intro message when specified', async () => {
+    const agent = new Agent({
+      agentType: 'periodic',
+      thread
+    })
+    await agent.save()
+    await agent.initialize(true)
+    // ensure agenda was started
+    expect(agenda.start).toHaveBeenCalled()
+    expect(agenda.every).toHaveBeenCalled()
+    expect(mockInitialize).toHaveBeenCalled()
+    const expectedMessage = {
+      fromAgent: true,
+      visible: true,
+      body: agent.introMessage,
+      thread: thread._id,
+      pseudonym: agent.name,
+      pseudonymId: agent.pseudonyms[0]._id,
+      owner: agent._id
+    }
+    await thread.populate('messages').execPopulate()
+    const agentMessages = thread.messages.filter((msg) => msg.fromAgent && msg.visible)
+    expect(agentMessages.length).toBe(1)
+    expect(agentMessages).toContainEqual(expect.objectContaining(expectedMessage))
   })
 
   test('should generate an AI response when any messages received since last periodic check', async () => {

@@ -64,6 +64,8 @@ export default verify({
   useNumLastMessages: 7,
   minNewMessages: undefined,
   timerPeriod: '5 minutes',
+  introMessage: `Welcome to the conversation! I am your automated facilitator. You can ask me questions about the discussion topic or tips for healthy discourse by using @"Reflection Agent" in your message.
+    I will also chime in occasionally with my perspective on the discussion and some proposals for reaching consensus.`,
 
   async initialize() {
     return true

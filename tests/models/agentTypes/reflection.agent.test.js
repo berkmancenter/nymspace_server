@@ -161,12 +161,30 @@ setupIntTest()
       agentType: 'reflection',
       thread: thread._id
     })
+    agent.thread = thread
     await agent.save()
   })
 
   afterEach(async () => {
     jest.clearAllMocks()
     jest.resetModules()
+  })
+
+  it('should generate an intro message', async () => {
+    await agent.initialize(true)
+    const expectedMessage = {
+      fromAgent: true,
+      visible: true,
+      body: agent.introMessage,
+      thread: thread._id,
+      pseudonym: agent.name,
+      pseudonymId: agent.pseudonyms[0]._id,
+      owner: agent._id
+    }
+    await thread.populate('messages').execPopulate()
+    const agentMessages = thread.messages.filter((msg) => msg.fromAgent && msg.visible)
+    expect(agentMessages.length).toBe(1)
+    expect(agentMessages).toContainEqual(expect.objectContaining(expectedMessage))
   })
 
   it('should generate an AI response when min messages received', async () => {

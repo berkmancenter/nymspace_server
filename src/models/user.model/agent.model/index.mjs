@@ -87,6 +87,10 @@ agentSchema.virtual('useNumLastMessages').get(function () {
   return agentTypes[this.agentType].useNumLastMessages
 })
 
+agentSchema.virtual('introMessage').get(function () {
+  return agentTypes[this.agentType].introMessage
+})
+
 agentSchema.virtual('agendaJobName').get(function () {
   return `agent${this._id}`
 })
@@ -115,7 +119,7 @@ function validAgentResponse(agentResponse) {
 
 // methods
 
-agentSchema.method('initialize', async function () {
+agentSchema.method('initialize', async function (newAgent = false) {
   if (!this._id) throw new Error('Cannot invoke initializeTimer without an _id')
 
   if (!this.populated('thread')) await this.populate('thread').execPopulate()
@@ -155,6 +159,21 @@ agentSchema.method('initialize', async function () {
 
   await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
   logger.debug(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
+  if (this.introMessage && newAgent) {
+    const agentMessage = new Message({
+      fromAgent: true,
+      visible: true,
+      body: this.introMessage,
+      thread: this.thread._id,
+      pseudonym: this.name,
+      pseudonymId: this.pseudonyms[0]._id,
+      owner: this._id
+    })
+
+    agentMessage.save()
+    this.thread.messages.push(agentMessage.toObject())
+    await this.thread.save()
+  }
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
