@@ -1,9 +1,17 @@
 const httpStatus = require('http-status')
 const catchAsync = require('../../utils/catchAsync')
 const { pollService } = require('../../services')
+const { worker } = require('../../websockets/index')
 
 const createPoll = catchAsync(async (req, res) => {
   const poll = await pollService.createPoll(req.body, req.user)
+  if (worker) {
+    worker.send({
+      thread: poll.topic._id.toString(),
+      event: 'poll:new',
+      message: poll
+    })
+  }
   return res.status(httpStatus.CREATED).send(poll)
 })
 
@@ -44,6 +52,13 @@ const listPolls = catchAsync(async (req, res) => {
 // choice can be a choiceId or a new choice object
 const respondPoll = catchAsync(async (req, res) => {
   const pollResponse = await pollService.respondPoll(req.params.pollId, req.body.choice, req.user)
+  if (worker) {
+    worker.send({
+      thread: req.body.topicId,
+      event: 'choice:new',
+      message: pollResponse
+    })
+  }
   return res.status(httpStatus.OK).send(pollResponse)
 })
 
