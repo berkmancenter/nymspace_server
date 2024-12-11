@@ -36,6 +36,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     await mongoose.disconnect()
   })
 
+  let topicId
   let pollId
   let pollData
   let user1PollResponse1
@@ -60,6 +61,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     pollId = resp.body.id
 
     pollData = { ...body }
+    topicId = pollData.topicId
     delete pollData.topicId
     delete pollData.owner
 
@@ -72,7 +74,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -99,7 +102,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -129,14 +133,15 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Expiration date has not been reached')).toBe(true)
   })
 
   test('Admin responds to poll choice 2', async () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -164,7 +169,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       choice: {
         text: CHOICE2_TEXT,
         remove: true
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -181,7 +187,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -206,7 +213,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -260,7 +268,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -269,7 +278,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       .send(body)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Expiration date has been reached. No more responses are allowed.')).toBe(true)
+    expect(resp.body.message.includes('Expiration date has been reached. No more responses are allowed.')).toBe(true)
   })
 
   test('User 1 tries to remove response to poll after it is closed', async () => {
@@ -277,7 +286,8 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       choice: {
         text: CHOICE1_TEXT,
         remove: true
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -286,7 +296,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       .send(body)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Expiration date has been reached. No more responses are allowed.')).toBe(true)
+    expect(resp.body.message.includes('Expiration date has been reached. No more responses are allowed.')).toBe(true)
   })
 
   test('User 2 inspects poll', async () => {
@@ -304,7 +314,7 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Response counts are not visible for this poll')).toBe(true)
+    expect(resp.body.message.includes('Response counts are not visible for this poll')).toBe(true)
   })
 
   test('Non-participating user checks responses after poll is closed', async () => {
@@ -313,6 +323,6 @@ describe(`Poll API - Variant 1: ${pollOneBody.title}`, () => {
       .set('Authorization', `Bearer ${adminAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: You have not participated in this poll')).toBe(true)
+    expect(resp.body.message.includes('You have not participated in this poll')).toBe(true)
   })
 })

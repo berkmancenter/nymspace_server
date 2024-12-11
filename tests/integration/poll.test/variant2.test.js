@@ -35,6 +35,7 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     await mongoose.disconnect()
   })
 
+  let topicId
   let pollId
   let pollData
 
@@ -50,6 +51,7 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     pollId = resp.body.id
 
     pollData = { ...body }
+    topicId = pollData.topicId
     delete pollData.topicId
     delete pollData.owner
     delete pollData.choices
@@ -63,7 +65,8 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     const body = {
       choice: {
         text: 'NEW CHOICE NOT ALREADY AVAILABLE'
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -72,7 +75,7 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .send(body)
       .expect(httpStatus.BAD_REQUEST)
 
-    expect(resp.body.message.includes('Error: Only existing poll choices are allowed')).toBe(true)
+    expect(resp.body.message.includes('Only existing poll choices are allowed')).toBe(true)
   })
 
   test('User 1 checks responses before participating', async () => {
@@ -81,14 +84,15 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: You have not participated in this poll')).toBe(true)
+    expect(resp.body.message.includes('You have not participated in this poll')).toBe(true)
   })
 
   test('User 1 responds to poll choice 1', async () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -125,7 +129,8 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -152,14 +157,15 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .set('Authorization', `Bearer ${userTwoAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Threshold has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Threshold has not been reached')).toBe(true)
   })
 
   test('User 1 responds to poll choice 2', async () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -168,14 +174,15 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .send(body)
       .expect(httpStatus.BAD_REQUEST)
 
-    expect(resp.body.message.includes('Error: Only one response is allowed for this poll')).toBe(true)
+    expect(resp.body.message.includes('Only one response is allowed for this poll')).toBe(true)
   })
 
   test('Admin responds to poll choice 1', async () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -237,7 +244,7 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Response counts are not visible for this poll')).toBe(true)
+    expect(resp.body.message.includes('Response counts are not visible for this poll')).toBe(true)
   })
 
   test('Non-participating user checks responses after poll is closed', async () => {
@@ -246,6 +253,6 @@ describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
       .set('Authorization', `Bearer ${registeredUserAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: You have not participated in this poll')).toBe(true)
+    expect(resp.body.message.includes('You have not participated in this poll')).toBe(true)
   })
 })

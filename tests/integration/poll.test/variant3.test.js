@@ -41,6 +41,7 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
     await mongoose.disconnect()
   })
 
+  let topicId
   let pollId
   let pollData
 
@@ -64,6 +65,7 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
     pollId = resp.body.id
 
     pollData = { ...body }
+    topicId = pollData.topicId
     delete pollData.topicId
     delete pollData.owner
     delete pollData.choices
@@ -77,7 +79,8 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
     const body = {
       choice: {
         text: 'NEW CHOICE NOT ALREADY AVAILABLE'
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -86,7 +89,7 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
       .send(body)
       .expect(httpStatus.BAD_REQUEST)
 
-    expect(resp.body.message.includes('Error: Only existing poll choices are allowed')).toBe(true)
+    expect(resp.body.message.includes('Only existing poll choices are allowed')).toBe(true)
   })
 
   test('User 1 checks response counts before participating', async () => {
@@ -95,14 +98,15 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Expiration date has not been reached')).toBe(true)
   })
 
   test('User 1 responds to poll choice 1', async () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -139,7 +143,8 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -166,14 +171,15 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
       .set('Authorization', `Bearer ${userTwoAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Expiration date has not been reached')).toBe(true)
+    expect(resp.body.message.includes('Expiration date has not been reached')).toBe(true)
   })
 
   test('User 1 responds to poll choice 2', async () => {
     const body = {
       choice: {
         text: CHOICE2_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -182,14 +188,15 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
       .send(body)
       .expect(httpStatus.BAD_REQUEST)
 
-    expect(resp.body.message.includes('Error: Only one response is allowed for this poll')).toBe(true)
+    expect(resp.body.message.includes('Only one response is allowed for this poll')).toBe(true)
   })
 
   test('Admin responds to poll choice 1', async () => {
     const body = {
       choice: {
         text: CHOICE1_TEXT
-      }
+      },
+      topicId
     }
 
     const resp = await request(app)
@@ -218,7 +225,7 @@ describe(`Poll API - Variant 3: ${pollThreeBody.title}`, () => {
       .set('Authorization', `Bearer ${userOneAccessToken}`)
       .expect(httpStatus.FORBIDDEN)
 
-    expect(resp.body.message.includes('Error: Responses are not visible for this poll')).toBe(true)
+    expect(resp.body.message.includes('Responses are not visible for this poll')).toBe(true)
   })
 
   test('User 2 checks response counts after expiration is reached', async () => {
