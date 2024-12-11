@@ -9,6 +9,7 @@ import agentTypes from './agentTypes/index.mjs'
 import logger from '../../../config/logger.js'
 import agenda from '../../../agenda.js'
 import { AgentMessageActions } from '../../../types/agent.types.js'
+import { worker } from '../../../websockets/index.js'
 
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = ['userMessage', 'action', 'userContributionVisible', 'suggestion']
@@ -234,11 +235,22 @@ agentSchema.method('evaluate', async function (userMessage = null) {
               this.thread.messages.push(agentMessage.toObject())
               await this.thread.save()
               agentMessage.count = this.thread.messages.length
-              const io = socketIO.connection()
-              io.emit(agentMessage.thread._id.toString(), 'message:new', {
-                ...agentMessage.toJSON(),
-                count: agentMessage.count
-              })
+              if (worker) {
+                worker.send({
+                  thread: agentMessage.thread._id.toString(),
+                  event: 'message:new',
+                  message: {
+                    ...agentMessage.toJSON(),
+                    count: agentMessage.count
+                  }
+                })
+              } else {
+                const io = socketIO.connection()
+                io.emit(agentMessage.thread._id.toString(), 'message:new', {
+                  ...agentMessage.toJSON(),
+                  count: agentMessage.count
+                })
+              }
             }
           })
           .catch((err) => {
