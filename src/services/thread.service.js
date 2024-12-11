@@ -4,7 +4,7 @@ const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
-const returnFields = 'name slug locked owner'
+const returnFields = 'name slug locked owner updatedAt'
 
 /**
  * Removed messages array property and replaces with messageCount
