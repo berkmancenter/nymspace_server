@@ -1,9 +1,9 @@
 {
   "name": "@berkmankleincenter/nymspace_server",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "",
   "main": "src/index.js",
-  "repository": "https://github.com/berkmancenter/nymspace_server",
+  "repository": "https://github.com/berkmancenter/nymspace_servery",
   "author": "",
   "license": "MIT",
   "engines": {
