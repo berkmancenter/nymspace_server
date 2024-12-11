@@ -52,6 +52,13 @@ const listPolls = catchAsync(async (req, res) => {
 // choice can be a choiceId or a new choice object
 const respondPoll = catchAsync(async (req, res) => {
   const pollResponse = await pollService.respondPoll(req.params.pollId, req.body.choice, req.user)
+  if (worker) {
+    worker.send({
+      thread: req.body.topicId,
+      event: 'choice:new',
+      message: pollResponse
+    })
+  }
   return res.status(httpStatus.OK).send(pollResponse)
 })
 
