@@ -58,7 +58,7 @@ const createThread = async (threadBody, user) => {
     await agent.save()
 
     // initialize to set up timer, etc.
-    await agent.initialize()
+    await agent.initialize(true)
 
     // depopulate thread to prevent circular clone
     agent.thread = thread._id

@@ -9,6 +9,7 @@ import agentTypes from './agentTypes/index.mjs'
 import logger from '../../../config/logger.js'
 import agenda from '../../../agenda.js'
 import { AgentMessageActions } from '../../../types/agent.types.js'
+import { worker } from '../../../websockets/index.js'
 
 const FAKE_AGENT_TOKEN = 'FAKE_AGENT_TOKEN'
 const REQUIRED_AGENT_EVALUATION_PROPS = ['userMessage', 'action', 'userContributionVisible', 'suggestion']
@@ -87,6 +88,10 @@ agentSchema.virtual('useNumLastMessages').get(function () {
   return agentTypes[this.agentType].useNumLastMessages
 })
 
+agentSchema.virtual('introMessage').get(function () {
+  return agentTypes[this.agentType].introMessage
+})
+
 agentSchema.virtual('agendaJobName').get(function () {
   return `agent${this._id}`
 })
@@ -115,7 +120,7 @@ function validAgentResponse(agentResponse) {
 
 // methods
 
-agentSchema.method('initialize', async function () {
+agentSchema.method('initialize', async function (newAgent = false) {
   if (!this._id) throw new Error('Cannot invoke initializeTimer without an _id')
 
   if (!this.populated('thread')) await this.populate('thread').execPopulate()
@@ -155,6 +160,21 @@ agentSchema.method('initialize', async function () {
 
   await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
   logger.debug(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
+  if (this.introMessage && newAgent) {
+    const agentMessage = new Message({
+      fromAgent: true,
+      visible: true,
+      body: this.introMessage,
+      thread: this.thread._id,
+      pseudonym: this.name,
+      pseudonymId: this.pseudonyms[0]._id,
+      owner: this._id
+    })
+
+    agentMessage.save()
+    this.thread.messages.push(agentMessage.toObject())
+    await this.thread.save()
+  }
 })
 
 agentSchema.method('isWithinTokenLimit', async function (promptText) {
@@ -177,8 +197,8 @@ agentSchema.method('evaluate', async function (userMessage = null) {
   const humanMsgCount = this.thread.messages.reduce((count, msg) => count + (msg.fromAgent ? 0 : 1), 0)
   const messageCount = humanMsgCount + (userMessage ? 1 : 0)
 
-  // do not process if no new messages
-  if (messageCount === this.lastActiveMessageCount) {
+  // do not process if no new messages, unless minNewMessages is undefined
+  if (this.minNewMessages && messageCount === this.lastActiveMessageCount) {
     logger.debug(`No new messages to respond to ${this.agentType} ${this._id}`)
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
@@ -188,9 +208,9 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this, userMessage))
-  // Only reset timer if processing in response to a new message, otherwise let it continue periodic checking
+  // Only reset timer if contributing in response to a new message, otherwise let it continue periodic checking
   // do after LLM processing, since it may take some time
-  if (userMessage && this.timerPeriod) await this.resetTimer()
+  if (userMessage && agentEvaluation.action === AgentMessageActions.CONTRIBUTE && this.timerPeriod) await this.resetTimer()
 
   if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
     // get agent responses async to free user to continue entering messages
@@ -215,11 +235,22 @@ agentSchema.method('evaluate', async function (userMessage = null) {
               this.thread.messages.push(agentMessage.toObject())
               await this.thread.save()
               agentMessage.count = this.thread.messages.length
-              const io = socketIO.connection()
-              io.emit(agentMessage.thread._id.toString(), 'message:new', {
-                ...agentMessage.toJSON(),
-                count: agentMessage.count
-              })
+              if (worker) {
+                worker.send({
+                  thread: agentMessage.thread._id.toString(),
+                  event: 'message:new',
+                  message: {
+                    ...agentMessage.toJSON(),
+                    count: agentMessage.count
+                  }
+                })
+              } else {
+                const io = socketIO.connection()
+                io.emit(agentMessage.thread._id.toString(), 'message:new', {
+                  ...agentMessage.toJSON(),
+                  count: agentMessage.count
+                })
+              }
             }
           })
           .catch((err) => {

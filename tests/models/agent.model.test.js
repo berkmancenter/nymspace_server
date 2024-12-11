@@ -49,6 +49,20 @@ jest.unstable_mockModule('../../src/models/user.model/agent.model/agentTypes/ind
       description: 'An agent that responds only periodically with no min messages',
       maxTokens: 2000,
       useNumLastMessages: 20,
+      minNewMessages: 2,
+      timerPeriod: '30 seconds',
+      priority: 200,
+      introMessage: 'Hello there'
+    },
+    periodicNoMin: {
+      initialize: mockInitialize,
+      respond: mockRespond,
+      evaluate: mockEvaluate,
+      isWithinTokenLimit: mockTokenLimit,
+      name: 'Test Periodic',
+      description: 'An agent that responds only periodically with no min messages',
+      maxTokens: 2000,
+      useNumLastMessages: 20,
       minNewMessages: undefined,
       timerPeriod: '30 seconds',
       priority: 200
@@ -186,6 +200,105 @@ let Agent
     expect(agent.lastActiveMessageCount).toEqual(2)
   })
 
+  test('should reset timer only on agent response to new message', async () => {
+    const agent = new Agent({
+      agentType: 'periodic',
+      thread
+    })
+    await agent.save()
+    await agent.initialize()
+    // ensure agenda was started
+    expect(agenda.start).toHaveBeenCalled()
+    expect(agenda.every).toHaveBeenCalled()
+    expect(mockInitialize).toHaveBeenCalled()
+    agent.thread = thread
+    const evaluation = await agent.evaluate(msg1)
+
+    expect(evaluation).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
+
+    // timer should not be reset
+    expect(agenda.cancel).not.toHaveBeenCalled()
+
+    // User message is persisted after agent is called and gives the OK
+    await msg1.save()
+    thread.messages.push(msg1.toObject())
+    await thread.save()
+    await thread.populate('messages').execPopulate()
+
+    agent.thread = thread
+
+    const expectedEval = {
+      userMessage: msg2,
+      action: AgentMessageActions.CONTRIBUTE,
+      agentContributionVisible: true,
+      userContributionVisible: true,
+      suggestion: undefined
+    }
+
+    const expectedResponse = {
+      visible: true,
+      message: 'A response'
+    }
+
+    mockEvaluate.mockResolvedValue(expectedEval)
+    mockRespond.mockResolvedValue([expectedResponse])
+    const evaluation2 = await agent.evaluate(msg2)
+    expect(evaluation2).toEqual(expectedEval)
+
+    // verify async response
+    await waitFor(async () => {
+      const agentMessage = await Message.findOne({ fromAgent: true }).select('body count').exec()
+      if (agentMessage == null) throw Error('Agent message not found')
+      expect(agentMessage.body).toBe('A response')
+      expect(connection).toHaveBeenCalled()
+      const emitMock = connection.mock.results[0].value.emit
+      expect(emitMock).toHaveBeenCalledWith(
+        thread._id.toString(),
+        'message:new',
+        expect.objectContaining({ body: 'A response', count: 2 })
+      )
+    })
+
+    await msg2.save()
+    thread.messages.push(msg2.toObject())
+    await thread.save()
+    await thread.populate('messages').execPopulate()
+
+    // 2 user messages and one agent message processed at this point, but agent message should not count in calculation
+    agent.thread = thread
+    const evaluation3 = await agent.evaluate(msg3)
+    expect(evaluation3).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
+    expect(agent.lastActiveMessageCount).toEqual(2)
+    // timer should be reset
+    expect(agenda.cancel).toHaveBeenCalled()
+  })
+
+  test('should generate an intro message when specified', async () => {
+    const agent = new Agent({
+      agentType: 'periodic',
+      thread
+    })
+    await agent.save()
+    await agent.initialize(true)
+    // ensure agenda was started
+    expect(agenda.start).toHaveBeenCalled()
+    expect(agenda.every).toHaveBeenCalled()
+    expect(mockInitialize).toHaveBeenCalled()
+    const expectedMessage = {
+      fromAgent: true,
+      visible: true,
+      body: agent.introMessage,
+      thread: thread._id,
+      pseudonym: agent.name,
+      pseudonymId: agent.pseudonyms[0]._id,
+      owner: agent._id
+    }
+    await thread.populate('messages').execPopulate()
+    const agentMessages = thread.messages.filter((msg) => msg.fromAgent && msg.visible)
+    expect(agentMessages.length).toBe(1)
+    expect(agentMessages).toContainEqual(expect.objectContaining(expectedMessage))
+  })
+
   test('should generate an AI response when any messages received since last periodic check', async () => {
     const agent = new Agent({
       agentType: 'periodic',
@@ -231,6 +344,30 @@ let Agent
         expect.objectContaining({ body: 'Another response', count: 2 })
       )
     })
+
+    // verify timer was not reset
+    expect(agenda.every).toHaveBeenCalledTimes(1)
+  })
+
+  test('should allow agent to evaluate when no messages received since last periodic check if minNewMessages undefined', async () => {
+    const agent = new Agent({
+      agentType: 'periodicNoMin',
+      thread
+    })
+    await agent.initialize()
+    expect(agenda.start).toHaveBeenCalled()
+    expect(agenda.every).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
+    expect(mockInitialize).toHaveBeenCalled()
+
+    mockEvaluate.mockResolvedValue({
+      action: AgentMessageActions.OK,
+      userContributionVisible: true,
+      userMessage: null,
+      suggestion: undefined
+    })
+    await agent.evaluate()
+    expect(mockEvaluate).toHaveBeenCalled()
+    expect(mockRespond).not.toHaveBeenCalled()
 
     // verify timer was not reset
     expect(agenda.every).toHaveBeenCalledTimes(1)
