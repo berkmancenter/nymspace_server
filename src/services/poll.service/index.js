@@ -67,7 +67,7 @@ const createPoll = async (pollBody, user) => {
   // NO: topic.polls.push(poll.toObject())
   // NO: await topic.save()
 
-  logger.info('Created poll %s %s %s', poll._id, poll.title, choices?.length)
+  logger.info('Created poll %s %s %s', poll._id, poll.title, choices?.length ?? 0)
   return poll
 }
 
