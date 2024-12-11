@@ -1,9 +1,17 @@
 const httpStatus = require('http-status')
 const catchAsync = require('../../utils/catchAsync')
 const { pollService } = require('../../services')
+const { worker } = require('../../websockets/index')
 
 const createPoll = catchAsync(async (req, res) => {
   const poll = await pollService.createPoll(req.body, req.user)
+  if (worker) {
+    worker.send({
+      thread: poll.topic._id.toString(),
+      event: 'poll:new',
+      message: poll
+    })
+  }
   return res.status(httpStatus.CREATED).send(poll)
 })
 
