@@ -85,8 +85,8 @@ export default verify({
           ? this.thread.messages.filter((msg) => !msg.fromAgent).length
           : this.thread.messages.slice(lastInvisibleIndex).filter((msg) => !msg.fromAgent).length
 
-      if (!userMessage && countSinceSummary > 0) {
-        // periodic invocation - there has been at least one new message
+      if (!userMessage && countSinceSummary > 1) {
+        // periodic invocation - there have been at least two new messages
         action = AgentMessageActions.CONTRIBUTE
       } else if (userMessage && countSinceSummary + 1 >= minMessagesForSummary) {
         action = AgentMessageActions.CONTRIBUTE

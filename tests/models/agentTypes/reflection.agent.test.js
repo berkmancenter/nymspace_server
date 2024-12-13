@@ -432,15 +432,23 @@ setupIntTest()
     await validateResponse(13, 3)
   })
 
-  it('should respond on perodic invocation if at least one new message', async () => {
+  it('should respond on perodic invocation if at least two new messages', async () => {
+    const msg1 = await createMessage(user1, 'test 123')
+    agent.thread = thread
+    await addMessageToThread(msg1)
+
+    // doesn't respond on first message
+    await checkOkResponseEvaluation(await agent.evaluate())
+
     const msg2 = await createMessage(
       user2,
       'The monetary incentives of professional football will continue to attract players for a long time, particularly from low income populations.'
     )
     agent.thread = thread
     await addMessageToThread(msg2)
+    // responds on second
     await checkResponseEvaluation(await agent.evaluate(), null)
-    await validateResponse(3, 1)
+    await validateResponse(4, 1)
 
     // no response because no new messages
     await checkOkResponseEvaluation(await agent.evaluate())

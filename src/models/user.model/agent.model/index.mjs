@@ -158,7 +158,7 @@ agentSchema.method('initialize', async function (newAgent = false) {
     await agent.evaluate()
   })
 
-  await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
+  await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id }, { skipImmediate: true })
   logger.debug(`Set timer for ${this.agentType} ${this._id} ${this.agendaJobName} ${this.timerPeriod}`)
   if (this.introMessage && newAgent) {
     const agentMessage = new Message({
@@ -182,11 +182,6 @@ agentSchema.method('isWithinTokenLimit', async function (promptText) {
   return await agentTypes[this.agentType].isWithinTokenLimit.call(this, promptText)
 })
 
-agentSchema.method('resetTimer', async function () {
-  await agenda.cancel({ name: this.agendaJobName })
-  await agenda.every(this.timerPeriod, this.agendaJobName, { agentId: this._id })
-})
-
 // this method is the same for periodic invocation or for evaluating a new message from a user
 // userMessage is optional current user message BEFORE it is added to the thread for evaluation
 // it should always set this.agentEvaluation in all conditions
@@ -208,9 +203,6 @@ agentSchema.method('evaluate', async function (userMessage = null) {
     return { action: AgentMessageActions.OK, userContributionVisible: true }
   }
   const agentEvaluation = validAgentEvaluation(await agentTypes[this.agentType].evaluate.call(this, userMessage))
-  // Only reset timer if contributing in response to a new message, otherwise let it continue periodic checking
-  // do after LLM processing, since it may take some time
-  if (userMessage && agentEvaluation.action === AgentMessageActions.CONTRIBUTE && this.timerPeriod) await this.resetTimer()
 
   if (agentEvaluation.action === AgentMessageActions.CONTRIBUTE) {
     // get agent responses async to free user to continue entering messages
