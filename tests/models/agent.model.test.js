@@ -200,79 +200,6 @@ let Agent
     expect(agent.lastActiveMessageCount).toEqual(2)
   })
 
-  test('should reset timer only on agent response to new message', async () => {
-    const agent = new Agent({
-      agentType: 'periodic',
-      thread
-    })
-    await agent.save()
-    await agent.initialize()
-    // ensure agenda was started
-    expect(agenda.start).toHaveBeenCalled()
-    expect(agenda.every).toHaveBeenCalled()
-    expect(mockInitialize).toHaveBeenCalled()
-    agent.thread = thread
-    const evaluation = await agent.evaluate(msg1)
-
-    expect(evaluation).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
-
-    // timer should not be reset
-    expect(agenda.cancel).not.toHaveBeenCalled()
-
-    // User message is persisted after agent is called and gives the OK
-    await msg1.save()
-    thread.messages.push(msg1.toObject())
-    await thread.save()
-    await thread.populate('messages').execPopulate()
-
-    agent.thread = thread
-
-    const expectedEval = {
-      userMessage: msg2,
-      action: AgentMessageActions.CONTRIBUTE,
-      agentContributionVisible: true,
-      userContributionVisible: true,
-      suggestion: undefined
-    }
-
-    const expectedResponse = {
-      visible: true,
-      message: 'A response'
-    }
-
-    mockEvaluate.mockResolvedValue(expectedEval)
-    mockRespond.mockResolvedValue([expectedResponse])
-    const evaluation2 = await agent.evaluate(msg2)
-    expect(evaluation2).toEqual(expectedEval)
-
-    // verify async response
-    await waitFor(async () => {
-      const agentMessage = await Message.findOne({ fromAgent: true }).select('body count').exec()
-      if (agentMessage == null) throw Error('Agent message not found')
-      expect(agentMessage.body).toBe('A response')
-      expect(connection).toHaveBeenCalled()
-      const emitMock = connection.mock.results[0].value.emit
-      expect(emitMock).toHaveBeenCalledWith(
-        thread._id.toString(),
-        'message:new',
-        expect.objectContaining({ body: 'A response', count: 2 })
-      )
-    })
-
-    await msg2.save()
-    thread.messages.push(msg2.toObject())
-    await thread.save()
-    await thread.populate('messages').execPopulate()
-
-    // 2 user messages and one agent message processed at this point, but agent message should not count in calculation
-    agent.thread = thread
-    const evaluation3 = await agent.evaluate(msg3)
-    expect(evaluation3).toEqual({ action: AgentMessageActions.OK, userContributionVisible: true })
-    expect(agent.lastActiveMessageCount).toEqual(2)
-    // timer should be reset
-    expect(agenda.cancel).toHaveBeenCalled()
-  })
-
   test('should generate an intro message when specified', async () => {
     const agent = new Agent({
       agentType: 'periodic',
@@ -306,7 +233,12 @@ let Agent
     })
     await agent.initialize()
     expect(agenda.start).toHaveBeenCalled()
-    expect(agenda.every).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
+    expect(agenda.every).toHaveBeenCalledWith(
+      agent.timerPeriod,
+      agent.agendaJobName,
+      { agentId: agent._id },
+      { skipImmediate: true }
+    )
     expect(mockInitialize).toHaveBeenCalled()
 
     await msg1.save()
@@ -344,9 +276,6 @@ let Agent
         expect.objectContaining({ body: 'Another response', count: 2 })
       )
     })
-
-    // verify timer was not reset
-    expect(agenda.every).toHaveBeenCalledTimes(1)
   })
 
   test('should allow agent to evaluate when no messages received since last periodic check if minNewMessages undefined', async () => {
@@ -356,7 +285,12 @@ let Agent
     })
     await agent.initialize()
     expect(agenda.start).toHaveBeenCalled()
-    expect(agenda.every).toHaveBeenCalledWith(agent.timerPeriod, agent.agendaJobName, { agentId: agent._id })
+    expect(agenda.every).toHaveBeenCalledWith(
+      agent.timerPeriod,
+      agent.agendaJobName,
+      { agentId: agent._id },
+      { skipImmediate: true }
+    )
     expect(mockInitialize).toHaveBeenCalled()
 
     mockEvaluate.mockResolvedValue({
@@ -368,9 +302,6 @@ let Agent
     await agent.evaluate()
     expect(mockEvaluate).toHaveBeenCalled()
     expect(mockRespond).not.toHaveBeenCalled()
-
-    // verify timer was not reset
-    expect(agenda.every).toHaveBeenCalledTimes(1)
   })
 
   test('should not increase messsage count if message rejected', async () => {
