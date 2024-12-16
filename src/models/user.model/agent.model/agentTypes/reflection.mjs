@@ -106,6 +106,7 @@ export default verify({
   },
   async respond(userMessage) {
     let llmResponse
+    let pause = true
     const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
     const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages)
 
@@ -120,6 +121,7 @@ export default verify({
         topic: this.thread.name,
         question: `${userMessage.user}: ${userMessage.body}`
       })
+      pause = false
     } else {
       const summarizationPrompt = PromptTemplate.fromTemplate(summarizationTemplate)
       const summarizationChain = summarizationPrompt.pipe(llm).pipe(new StringOutputParser())
@@ -161,7 +163,8 @@ export default verify({
 
     const agentResponse = {
       visible: true,
-      message: llmResponse
+      message: llmResponse,
+      pause
     }
 
     return [agentResponse]
