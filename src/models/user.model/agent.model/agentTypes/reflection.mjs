@@ -16,7 +16,8 @@ const { getSinglePromptResponse } = llmChain
 const llm = new ChatOpenAI(
   {
     apiKey: config.llms.openAI.key,
-    model: 'gpt-4o-mini'
+    model: 'gpt-4o-mini',
+    temperature: 1.2
   },
   {
     basePath: config.llms.basePath
@@ -38,7 +39,7 @@ Answer:`
 const consensusTemplate = `Given the following summary of various comments from a deliberation platform, generate one original comment that is likely to get consensus.
 I am including your prior consensus proposals. Make sure your original comment is unique from these prior proposals.
 Present your comment to the group for discussion along with a more concise summary of the discussion thus far.
-Limit your summary and comment to one paragraph. Use a conversational tone. Present the summary first. Do not identify the summary and comment with labels.
+Limit your summary and comment to three sentences. Use a conversational tone. Present the summary first. Do not identify the summary and comment with labels.
 Summary: {summary}
 Prior Consensus Proposals: {proposals}
 Answer: `
@@ -46,9 +47,12 @@ const chatTemplate = `You are a facilitator of an online deliberation on the giv
 You will receive the most recent comments on the topic.
 In each line of the most recent comments, I provide you with a participant's handle name, followed by a ":" and then the participants's comment on the given discussion topic.
 You will also receive summaries of the conversation that occurred prior to these most recent comments.
-A participant has asked you the given Participant Question, addressing you as '@"Reflection Agent".' Do your best to answer the
-question, but only if it concerns the discussion topic or guidelines for healthy civil deliberation.
+A participant has asked you the given Participant Question, addressing you as '@"Reflection Agent".' 
+The question starts with participants's username followed by ":" and then the participant's question.
+Do your best to answer the question, but only if it broadly concerns the discussion topic or guidelines for healthy civil deliberation.
 Othwerise, respond with a polite reminder that you can only answer questions about the discussion topic or deliberation procedure.
+Be concise and limit your answer to three sentences.
+Respond to the participant by their username (all text before the : character), prefaced with the @ symbol.
 Deliberation topic: {topic}
 Comments: {convHistory}
 Summaries: {summaries}
@@ -102,8 +106,9 @@ export default verify({
   },
   async respond(userMessage) {
     let llmResponse
+    let pause = 0
     const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
-    const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages, userMessage)
+    const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages)
 
     const summaryMessages = this.thread.messages.filter((msg) => msg.fromAgent && !msg.visible)
     const summaries = summaryMessages.map((message) => {
@@ -114,9 +119,10 @@ export default verify({
         convHistory,
         summaries,
         topic: this.thread.name,
-        question: userMessage.body
+        question: `${userMessage.user}: ${userMessage.body}`
       })
     } else {
+      pause = 30
       const summarizationPrompt = PromptTemplate.fromTemplate(summarizationTemplate)
       const summarizationChain = summarizationPrompt.pipe(llm).pipe(new StringOutputParser())
       const consensusPrompt = PromptTemplate.fromTemplate(consensusTemplate)
@@ -157,7 +163,8 @@ export default verify({
 
     const agentResponse = {
       visible: true,
-      message: llmResponse
+      message: llmResponse,
+      pause
     }
 
     return [agentResponse]

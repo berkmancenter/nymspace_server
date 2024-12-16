@@ -171,7 +171,7 @@ agentSchema.method('initialize', async function (newAgent = false) {
       owner: this._id
     })
 
-    agentMessage.save()
+    await agentMessage.save()
     this.thread.messages.push(agentMessage.toObject())
     await this.thread.save()
   }
@@ -223,7 +223,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                 owner: this._id
               })
 
-              agentMessage.save()
+              await agentMessage.save()
               this.thread.messages.push(agentMessage.toObject())
               await this.thread.save()
               agentMessage.count = this.thread.messages.length
@@ -233,6 +233,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                   event: 'message:new',
                   message: {
                     ...agentMessage.toJSON(),
+                    pause: response.pause,
                     count: agentMessage.count
                   }
                 })
@@ -240,6 +241,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                 const io = socketIO.connection()
                 io.emit(agentMessage.thread._id.toString(), 'message:new', {
                   ...agentMessage.toJSON(),
+                  pause: response.pause,
                   count: agentMessage.count
                 })
               }

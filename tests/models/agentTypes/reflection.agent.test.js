@@ -62,17 +62,14 @@ setupIntTest()
   }
 
   async function createMessage(user, body) {
-    return new Message({
-      _id: mongoose.Types.ObjectId(),
+    return {
       body,
       thread: footballThread._id,
-      owner: user._id,
-      pseudonymId: user.pseudonyms[0]._id,
-      pseudonym: user.pseudonyms[0].pseudonym
-    })
+      user: user.pseudonyms[0].pseudonym
+    }
   }
 
-  async function validateResponse(expectedMsgCount, expectedVisibleAgentMsgCount) {
+  async function validateResponse(expectedMsgCount, expectedVisibleAgentMsgCount, expectedPause = 30) {
     // eslint-disable-next-line no-return-await
     const agentMsg = await waitFor(async () => {
       expect(connection).toHaveBeenCalled()
@@ -80,7 +77,7 @@ setupIntTest()
       expect(emitMock).toHaveBeenCalledWith(
         thread._id.toString(),
         'message:new',
-        expect.objectContaining({ count: expectedMsgCount })
+        expect.objectContaining({ count: expectedMsgCount, pause: expectedPause })
       )
       const response = emitMock.mock.calls[0][2]
       // eslint-disable-next-line no-console
@@ -114,7 +111,15 @@ setupIntTest()
     })
   }
 
-  async function addMessageToThread(msg) {
+  async function addMessageToThread(msgObj, user) {
+    const msg = new Message({
+      _id: mongoose.Types.ObjectId(),
+      body: msgObj.body,
+      thread: msgObj.thread,
+      owner: user._id,
+      pseudonymId: user.pseudonyms[0]._id,
+      pseudonym: user.pseudonyms[0].pseudonym
+    })
     await msg.save()
     thread.messages.push(msg.toObject())
     await thread.save()
@@ -193,7 +198,7 @@ setupIntTest()
     const msg1 = await createMessage(user1, 'test 123')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg1))
-    await addMessageToThread(msg1)
+    await addMessageToThread(msg1, user1)
 
     const msg2 = await createMessage(
       user2,
@@ -201,7 +206,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg2))
-    await addMessageToThread(msg2)
+    await addMessageToThread(msg2, user2)
 
     const msg3 = await createMessage(
       user3,
@@ -209,7 +214,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg3))
-    await addMessageToThread(msg3)
+    await addMessageToThread(msg3, user3)
 
     const msg4 = await createMessage(
       user4,
@@ -217,12 +222,12 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg4))
-    await addMessageToThread(msg4)
+    await addMessageToThread(msg4, user4)
 
     const msg5 = await createMessage(user5, 'testing fooo')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg5))
-    await addMessageToThread(msg5)
+    await addMessageToThread(msg5, user5)
 
     const msg6 = await createMessage(
       user6,
@@ -230,13 +235,13 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg6))
-    await addMessageToThread(msg6)
+    await addMessageToThread(msg6, user6)
 
     const msg7 = await createMessage(user7, 'asdjfkalsjdfkl')
     agent.thread = thread
 
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
-    await addMessageToThread(msg7)
+    await addMessageToThread(msg7, user7)
 
     // We are currently including invisible messages in message count, so agent should add 2
     await validateResponse(9, 1)
@@ -249,22 +254,22 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg8))
-    await addMessageToThread(msg8)
+    await addMessageToThread(msg8, user8)
 
     const msg9 = await createMessage(user9, 'Football is forever American.')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg9))
-    await addMessageToThread(msg9)
+    await addMessageToThread(msg9, user9)
 
     const msg10 = await createMessage(user10, "RuPaul's Drag Race is defining mainstream gay culture.")
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg10))
-    await addMessageToThread(msg10)
+    await addMessageToThread(msg10, user10)
 
     const msg11 = await createMessage(user11, 'Yellow color is associated with warmth.')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg11))
-    await addMessageToThread(msg11)
+    await addMessageToThread(msg11, user11)
 
     const msg12 = await createMessage(
       user12,
@@ -272,18 +277,18 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg12))
-    await addMessageToThread(msg12)
+    await addMessageToThread(msg12, user12)
 
     const msg13 = await createMessage(user13, 'Football is amazing.')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg13))
-    await addMessageToThread(msg13)
+    await addMessageToThread(msg13, user13)
 
     const msg14 = await createMessage(user14, 'Yes.')
     agent.thread = thread
 
     await checkResponseEvaluation(await agent.evaluate(msg14), msg14)
-    await addMessageToThread(msg14)
+    await addMessageToThread(msg14, user14)
 
     await validateResponse(18, 2)
   })
@@ -294,7 +299,7 @@ setupIntTest()
     const msg1 = await createMessage(user1, 'test 123')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg1))
-    await addMessageToThread(msg1)
+    await addMessageToThread(msg1, user1)
 
     const msg2 = await createMessage(
       user2,
@@ -302,7 +307,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg2))
-    await addMessageToThread(msg2)
+    await addMessageToThread(msg2, user2)
 
     const msg3 = await createMessage(
       user3,
@@ -310,7 +315,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg3))
-    await addMessageToThread(msg3)
+    await addMessageToThread(msg3, user3)
 
     const msg4 = await createMessage(
       user4,
@@ -318,7 +323,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg4))
-    await addMessageToThread(msg4)
+    await addMessageToThread(msg4, user4)
 
     // manual verification - response to topic question
     const msg5 = await createMessage(
@@ -327,9 +332,9 @@ setupIntTest()
     )
     agent.thread = thread
     await checkResponseEvaluation(await agent.evaluate(msg5), msg5)
-    await addMessageToThread(msg5)
+    await addMessageToThread(msg5, user5)
 
-    await validateResponse(6, 1)
+    await validateResponse(6, 1, 0)
     jest.clearAllMocks()
 
     const msg6 = await createMessage(
@@ -338,13 +343,13 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg6))
-    await addMessageToThread(msg6)
+    await addMessageToThread(msg6, user6)
 
     // This is message 7, should trigger summarization
     const msg7 = await createMessage(user7, 'asdjfkalsjdfkl')
     agent.thread = thread
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
-    await addMessageToThread(msg7)
+    await addMessageToThread(msg7, user7)
 
     await validateResponse(10, 2)
     jest.clearAllMocks()
@@ -356,7 +361,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg8))
-    await addMessageToThread(msg8)
+    await addMessageToThread(msg8, user8)
   })
 
   it('should summarize on the 8th message if 7th is a direct question', async () => {
@@ -365,7 +370,7 @@ setupIntTest()
     const msg1 = await createMessage(user1, 'test 123')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg1))
-    await addMessageToThread(msg1)
+    await addMessageToThread(msg1, user1)
 
     const msg2 = await createMessage(
       user2,
@@ -373,7 +378,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg2))
-    await addMessageToThread(msg2)
+    await addMessageToThread(msg2, user2)
 
     const msg3 = await createMessage(
       user3,
@@ -381,7 +386,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg3))
-    await addMessageToThread(msg3)
+    await addMessageToThread(msg3, user3)
 
     const msg4 = await createMessage(
       user4,
@@ -389,12 +394,12 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg4))
-    await addMessageToThread(msg4)
+    await addMessageToThread(msg4, user4)
 
     const msg5 = await createMessage(user5, 'asdjfkalsjdfkl')
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg5))
-    await addMessageToThread(msg5)
+    await addMessageToThread(msg5, user5)
 
     const msg6 = await createMessage(
       user6,
@@ -402,13 +407,13 @@ setupIntTest()
     )
     agent.thread = thread
     await checkOkResponseEvaluation(await agent.evaluate(msg6))
-    await addMessageToThread(msg6)
+    await addMessageToThread(msg6, user6)
 
     // manual verification - response to off-topic question
     const msg7 = await createMessage(user7, '@"Reflection Agent" what is your favorite beer?')
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
-    await addMessageToThread(msg7)
-    await validateResponse(8, 1)
+    await addMessageToThread(msg7, user7)
+    await validateResponse(8, 1, 0)
     jest.clearAllMocks()
 
     // This message should trigger summarization
@@ -418,7 +423,7 @@ setupIntTest()
     )
     agent.thread = thread
     await checkResponseEvaluation(await agent.evaluate(msg8), msg8)
-    await addMessageToThread(msg8)
+    await addMessageToThread(msg8, user8)
     await validateResponse(11, 2)
     jest.clearAllMocks()
 
@@ -428,14 +433,14 @@ setupIntTest()
       'Hey @"Reflection Agent", what is the appropriate way to respond to @Happy Ant\'s message? It is really offensive.'
     )
     await checkResponseEvaluation(await agent.evaluate(msg9), msg9)
-    await addMessageToThread(msg9)
-    await validateResponse(13, 3)
+    await addMessageToThread(msg9, user9)
+    await validateResponse(13, 3, 0)
   })
 
   it('should respond on perodic invocation if at least two new messages', async () => {
     const msg1 = await createMessage(user1, 'test 123')
     agent.thread = thread
-    await addMessageToThread(msg1)
+    await addMessageToThread(msg1, user1)
 
     // doesn't respond on first message
     await checkOkResponseEvaluation(await agent.evaluate())
@@ -445,7 +450,7 @@ setupIntTest()
       'The monetary incentives of professional football will continue to attract players for a long time, particularly from low income populations.'
     )
     agent.thread = thread
-    await addMessageToThread(msg2)
+    await addMessageToThread(msg2, user2)
     // responds on second
     await checkResponseEvaluation(await agent.evaluate(), null)
     await validateResponse(4, 1)
