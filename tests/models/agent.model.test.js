@@ -273,7 +273,7 @@ let Agent
       expect(emitMock).toHaveBeenCalledWith(
         thread._id.toString(),
         'message:new',
-        expect.objectContaining({ body: 'Another response', count: 2 })
+        expect.objectContaining({ body: 'Another response', count: 2, pause: undefined })
       )
     })
   })

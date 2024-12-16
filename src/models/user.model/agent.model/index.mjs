@@ -233,7 +233,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                   event: 'message:new',
                   message: {
                     ...agentMessage.toJSON(),
-                    pause: !!response.pause,
+                    pause: response.pause,
                     count: agentMessage.count
                   }
                 })
@@ -241,7 +241,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                 const io = socketIO.connection()
                 io.emit(agentMessage.thread._id.toString(), 'message:new', {
                   ...agentMessage.toJSON(),
-                  pause: !!response.pause,
+                  pause: response.pause,
                   count: agentMessage.count
                 })
               }
