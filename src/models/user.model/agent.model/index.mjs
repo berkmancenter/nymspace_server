@@ -171,7 +171,7 @@ agentSchema.method('initialize', async function (newAgent = false) {
       owner: this._id
     })
 
-    agentMessage.save()
+    await agentMessage.save()
     this.thread.messages.push(agentMessage.toObject())
     await this.thread.save()
   }
@@ -223,7 +223,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
                 owner: this._id
               })
 
-              agentMessage.save()
+              await agentMessage.save()
               this.thread.messages.push(agentMessage.toObject())
               await this.thread.save()
               agentMessage.count = this.thread.messages.length
