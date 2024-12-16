@@ -69,7 +69,7 @@ setupIntTest()
     }
   }
 
-  async function validateResponse(expectedMsgCount, expectedVisibleAgentMsgCount) {
+  async function validateResponse(expectedMsgCount, expectedVisibleAgentMsgCount, expectedPause = 30) {
     // eslint-disable-next-line no-return-await
     const agentMsg = await waitFor(async () => {
       expect(connection).toHaveBeenCalled()
@@ -77,7 +77,7 @@ setupIntTest()
       expect(emitMock).toHaveBeenCalledWith(
         thread._id.toString(),
         'message:new',
-        expect.objectContaining({ count: expectedMsgCount })
+        expect.objectContaining({ count: expectedMsgCount, pause: expectedPause })
       )
       const response = emitMock.mock.calls[0][2]
       // eslint-disable-next-line no-console
@@ -334,7 +334,7 @@ setupIntTest()
     await checkResponseEvaluation(await agent.evaluate(msg5), msg5)
     await addMessageToThread(msg5, user5)
 
-    await validateResponse(6, 1)
+    await validateResponse(6, 1, 0)
     jest.clearAllMocks()
 
     const msg6 = await createMessage(
@@ -413,7 +413,7 @@ setupIntTest()
     const msg7 = await createMessage(user7, '@"Reflection Agent" what is your favorite beer?')
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
     await addMessageToThread(msg7, user7)
-    await validateResponse(8, 1)
+    await validateResponse(8, 1, 0)
     jest.clearAllMocks()
 
     // This message should trigger summarization
@@ -434,7 +434,7 @@ setupIntTest()
     )
     await checkResponseEvaluation(await agent.evaluate(msg9), msg9)
     await addMessageToThread(msg9, user9)
-    await validateResponse(13, 3)
+    await validateResponse(13, 3, 0)
   })
 
   it('should respond on perodic invocation if at least two new messages', async () => {

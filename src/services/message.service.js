@@ -70,8 +70,7 @@ const createMessage = async (messageBody, user, thread) => {
 
 const threadMessages = async (id) => {
   const messages = await Message.find({ thread: id, visible: true })
-    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt')
-    .where()
+    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent')
     .sort({ createdAt: 1 })
     .exec()
   return messages
