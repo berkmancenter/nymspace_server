@@ -46,10 +46,11 @@ Answer: `
 const chatTemplate = `You are a facilitator of an online deliberation on the given discussion topic.
 You will receive the most recent comments on the topic.
 In each line of the most recent comments, I provide you with a participant's handle name, followed by a ":" and then the participants's comment on the given discussion topic.
+You are the participant known as 'AI'.
 You will also receive summaries of the conversation that occurred prior to these most recent comments.
 A participant has asked you the given Participant Question, addressing you as '@"Reflection Agent".' 
 The question starts with participants's username followed by ":" and then the participant's question.
-Do your best to answer the question, but only if it broadly concerns the discussion topic or guidelines for healthy civil deliberation.
+Do your best to answer the question, but only if it broadly concerns the discussion topic, a topic you raised in the conversation history, or guidelines for healthy civil deliberation.
 Othwerise, respond with a polite reminder that you can only answer questions about the discussion topic or deliberation procedure.
 Be concise and limit your answer to three sentences.
 Respond to the participant by their username (all text before the : character), prefaced with the @ symbol.
@@ -65,7 +66,7 @@ export default verify({
   description: 'A deliberation facilitator that reflects arguments and builds consensus',
   priority: 20,
   maxTokens: 2000,
-  useNumLastMessages: 7,
+  useNumLastMessages: 10,
   minNewMessages: undefined,
   timerPeriod: '5 minutes',
   introMessage: `Welcome to the conversation! I am your automated facilitator. You can ask me questions about the discussion topic or tips for healthy discourse by using @"Reflection Agent" in your message.
@@ -89,8 +90,8 @@ export default verify({
           ? this.thread.messages.filter((msg) => !msg.fromAgent).length
           : this.thread.messages.slice(lastInvisibleIndex).filter((msg) => !msg.fromAgent).length
 
-      if (!userMessage && countSinceSummary > 1) {
-        // periodic invocation - there have been at least two new messages
+      if (!userMessage && countSinceSummary > 3) {
+        // periodic invocation - there have been at least four new messages
         action = AgentMessageActions.CONTRIBUTE
       } else if (userMessage && countSinceSummary + 1 >= minMessagesForSummary) {
         action = AgentMessageActions.CONTRIBUTE
@@ -107,14 +108,14 @@ export default verify({
   async respond(userMessage) {
     let llmResponse
     let pause = 0
-    const humanMsgs = this.thread.messages.filter((msg) => !msg.fromAgent)
-    const convHistory = formatConvHistory(humanMsgs, this.useNumLastMessages)
 
     const summaryMessages = this.thread.messages.filter((msg) => msg.fromAgent && !msg.visible)
     const summaries = summaryMessages.map((message) => {
       return `Summary: ${message.body}`
     })
     if (userMessage?.body.includes(`@"${this.name}"`)) {
+      const msgs = this.thread.messages.filter((msg) => msg.visible)
+      const convHistory = formatConvHistory(msgs, this.useNumLastMessages)
       llmResponse = await getSinglePromptResponse(llm, chatTemplate, {
         convHistory,
         summaries,
@@ -123,6 +124,8 @@ export default verify({
       })
     } else {
       pause = 30
+      const msgs = this.thread.messages.filter((msg) => !msg.fromAgent)
+      const convHistory = formatConvHistory(msgs, this.useNumLastMessages)
       const summarizationPrompt = PromptTemplate.fromTemplate(summarizationTemplate)
       const summarizationChain = summarizationPrompt.pipe(llm).pipe(new StringOutputParser())
       const consensusPrompt = PromptTemplate.fromTemplate(consensusTemplate)
