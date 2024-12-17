@@ -437,7 +437,7 @@ setupIntTest()
     await validateResponse(13, 3, 0)
   })
 
-  it('should respond on perodic invocation if at least two new messages', async () => {
+  it('should respond on perodic invocation if at least four new messages', async () => {
     const msg1 = await createMessage(user1, 'test 123')
     agent.thread = thread
     await addMessageToThread(msg1, user1)
@@ -451,9 +451,24 @@ setupIntTest()
     )
     agent.thread = thread
     await addMessageToThread(msg2, user2)
-    // responds on second
+    await checkOkResponseEvaluation(await agent.evaluate())
+
+    const msg3 = await createMessage(
+      user3,
+      "Gladwell calls football a \"moral abomination,\" but I think the real abomination is how he picks one sport without contextualizing the ENTIRE community health risk posed by ALL sports. Ex: so far I haven't heard him mention the rate of concussions of girls heading 70 mph soccer balls. The rules in college and pro football have changed to better protect QBs and receivers. I think Gladwell put down his crumpet to watch football for 1 second and didn't like what he saw. He's an atrocious sports fan."
+    )
+    agent.thread = thread
+    await addMessageToThread(msg3, user3)
+    await checkOkResponseEvaluation(await agent.evaluate())
+
+    const msg4 = await createMessage(
+      user4,
+      'Considering I\'ve read 4 of his books I\'m hesitant to say this, but I think Gladwell\'s commentaries on sports, and the "10,000 hour rule," have already unravelled. His "rule" has been utterly debunked, so you can imagine it doesn\'t apply to youth hockey as he tried to demonstrate in Outliers. From this video, he not only thinks boxing "disappeared," but he\'s also never heard of MMA apparently. Football and the lot have always been known as very dangerous sports.'
+    )
+    agent.thread = thread
+    await addMessageToThread(msg4, user4)
     await checkResponseEvaluation(await agent.evaluate(), null)
-    await validateResponse(4, 1)
+    await validateResponse(6, 1)
 
     // no response because no new messages
     await checkOkResponseEvaluation(await agent.evaluate())
