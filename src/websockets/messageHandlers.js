@@ -34,7 +34,7 @@ module.exports = (io, socket) => {
         })
       }
     } catch (err) {
-      logger.error('Error creating message via socket - %s %s', err.message, err.statusCode)
+      logger.error('Error creating message', err)
       // send error back to user
       io.in(data.userId).emit('error', {
         error: 'message:create',
@@ -68,7 +68,7 @@ module.exports = (io, socket) => {
       logger.info('Socket error - request: %s, user: %s, error: %s', data.request, data.userId, originalError.message)
       io.in(data.userId).emit('error', { error: originalError.message, request: data.request })
     } else {
-      logger.error('Socket error - %s', err.message)
+      logger.error('Socket error', err)
     }
   })
 

@@ -248,7 +248,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
             }
           })
           .catch((err) => {
-            logger.error(`Error processing agent response: ${err}`)
+            logger.error('Error processing agent response', err)
           })
       }.bind(this),
       100
