@@ -6,7 +6,14 @@ const { insertUsers, userOne } = require('../fixtures/user.fixture')
 const { userOneAccessToken } = require('../fixtures/token.fixture')
 const { insertTopics } = require('../fixtures/topic.fixture')
 const { threadOne, threadTwo, threadThree, insertThreads, publicTopic, privateTopic } = require('../fixtures/thread.fixture')
-const { messageOne, messageTwo, messageThree, insertMessages } = require('../fixtures/message.fixture')
+const {
+  messageOne,
+  messageTwo,
+  messageThree,
+  messageFour,
+  invisibleMessage,
+  insertMessages
+} = require('../fixtures/message.fixture')
 const { threadFollow, insertFollowers } = require('../fixtures/follower.fixture')
 
 setupIntTest()
@@ -15,9 +22,10 @@ describe('Thread routes', () => {
   beforeEach(async () => {
     await insertUsers([userOne])
     await insertTopics([publicTopic, privateTopic])
-    await insertMessages([messageOne, messageTwo, messageThree])
+    await insertMessages([messageOne, messageTwo, messageThree, messageFour, invisibleMessage])
     threadOne.messages = [messageOne]
     threadTwo.messages = [messageTwo, messageThree]
+    threadThree.messages = [messageFour, invisibleMessage]
     await insertThreads([threadOne, threadTwo, threadThree])
   })
 
@@ -36,6 +44,10 @@ describe('Thread routes', () => {
 
       const t2 = resp.body.find((x) => x.id === threadTwo._id.toString())
       expect(t2.messageCount).toEqual(2)
+
+      // count should be 1 for visible message only
+      const t3 = resp.body.find((x) => x.id === threadThree._id.toString())
+      expect(t3.messageCount).toEqual(1)
     })
   })
 

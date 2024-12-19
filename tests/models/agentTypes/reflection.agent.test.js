@@ -243,8 +243,7 @@ setupIntTest()
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
     await addMessageToThread(msg7, user7)
 
-    // We are currently including invisible messages in message count, so agent should add 2
-    await validateResponse(9, 1)
+    await validateResponse(8, 1)
 
     jest.clearAllMocks()
 
@@ -290,7 +289,7 @@ setupIntTest()
     await checkResponseEvaluation(await agent.evaluate(msg14), msg14)
     await addMessageToThread(msg14, user14)
 
-    await validateResponse(18, 2)
+    await validateResponse(16, 2)
   })
 
   it('should respond when addressed by a participant about the discussion topic while keeping summarization count', async () => {
@@ -351,7 +350,7 @@ setupIntTest()
     await checkResponseEvaluation(await agent.evaluate(msg7), msg7)
     await addMessageToThread(msg7, user7)
 
-    await validateResponse(10, 2)
+    await validateResponse(9, 2)
     jest.clearAllMocks()
 
     // This message should not
@@ -424,7 +423,7 @@ setupIntTest()
     agent.thread = thread
     await checkResponseEvaluation(await agent.evaluate(msg8), msg8)
     await addMessageToThread(msg8, user8)
-    await validateResponse(11, 2)
+    await validateResponse(10, 2)
     jest.clearAllMocks()
 
     // manual verification - response to message about civil discourse
@@ -434,7 +433,7 @@ setupIntTest()
     )
     await checkResponseEvaluation(await agent.evaluate(msg9), msg9)
     await addMessageToThread(msg9, user9)
-    await validateResponse(13, 3, 0)
+    await validateResponse(12, 3, 0)
   })
 
   it('should respond on perodic invocation if at least four new messages', async () => {
@@ -468,7 +467,7 @@ setupIntTest()
     agent.thread = thread
     await addMessageToThread(msg4, user4)
     await checkResponseEvaluation(await agent.evaluate(), null)
-    await validateResponse(6, 1)
+    await validateResponse(5, 1)
 
     // no response because no new messages
     await checkOkResponseEvaluation(await agent.evaluate())
