@@ -14,7 +14,8 @@ const returnFields = 'name slug locked owner'
 const addMessageCount = (threads) => {
   return threads.map((thread) => {
     const t = thread.toObject()
-    t.messageCount = t.messages ? t.messages.length : 0
+
+    t.messageCount = t.messages ? t.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0) : 0
     delete t.messages
     // Replace _id with id since toJSON plugin will not be applied
     t.id = t._id.toString()
@@ -100,7 +101,7 @@ const userThreads = async (user) => {
       }
     ]
   })
-    .populate({ path: 'messages', select: 'id' })
+    .populate({ path: 'messages', select: 'id visible' })
     .select(returnFields)
     .exec()
   threads = addMessageCount(threads)
@@ -130,7 +131,7 @@ const findByIdFull = async (id, user) => {
 
 const topicThreads = async (topicId) => {
   const threads = await Thread.find({ topic: topicId })
-    .populate({ path: 'messages', select: 'id' })
+    .populate({ path: 'messages', select: 'id visible' })
     .select(returnFields)
     .exec()
   return addMessageCount(threads)
@@ -157,7 +158,7 @@ const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id')
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
     .select(returnFields)
-    .populate({ path: 'messages', select: 'id' })
+    .populate({ path: 'messages', select: 'id visible' })
     .exec()
   return addMessageCount(threads)
 }

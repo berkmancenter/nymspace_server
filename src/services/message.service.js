@@ -64,7 +64,7 @@ const createMessage = async (messageBody, user, thread) => {
   thread.messages.push(message.toObject())
   await thread.save()
 
-  message.count = thread.messages.length
+  message.count = thread.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0)
   return message
 }
 

@@ -226,7 +226,7 @@ agentSchema.method('evaluate', async function (userMessage = null) {
               await agentMessage.save()
               this.thread.messages.push(agentMessage.toObject())
               await this.thread.save()
-              agentMessage.count = this.thread.messages.length
+              agentMessage.count = this.thread.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0)
               if (worker) {
                 worker.send({
                   thread: agentMessage.thread._id.toString(),
