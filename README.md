@@ -1,4 +1,4 @@
-# Threads API
+# Nymspace Server
 
 ## Description
 
@@ -53,7 +53,7 @@ Note that the tests use the `.env` file instead of `.env.local`. Copy `.env.loca
 
 ### Stress tests
 
-Stress tests can be run from the client repo in the [k6 directory](https://github.com/berkmancenter/threads_client/blob/main/k6).
+Stress tests can be run from the client repo in the [k6 directory](https://github.com/berkmancenter/nymspace_client/blob/main/k6).
 
 ## Deployment
 
