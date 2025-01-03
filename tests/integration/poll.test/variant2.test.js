@@ -21,7 +21,7 @@ const BASE_API = '/v1/polls'
 const CHOICE1_TEXT = 'Choice 1'
 const CHOICE2_TEXT = 'Choice 2'
 
-describe(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
+;(config.enablePolls ? describe : describe.skip)(`Poll API - Variant 2: ${pollTwoBody.title}`, () => {
   // we keep our database between tests and perform a sequence of tests that should be evaluated in order
   beforeAll(async () => {
     await mongoose.connect(config.mongoose.url, config.mongoose.options)

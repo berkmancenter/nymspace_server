@@ -1,5 +1,6 @@
 const { default: PQueue } = require('p-queue')
 const logger = require('../../config/logger')
+const config = require('../../config/config')
 const sleep = require('../../utils/sleep')
 const agenda = require('../../agenda')
 
@@ -8,6 +9,8 @@ const MAX_CONCURRENCY = 20
 // initialize all agent to set up their timers as needed
 async function initializeAgents() {
   const { default: Agent } = await import('../../models/user.model/agent.model/index.mjs')
+
+  if (!config.enableAgents) return
 
   // stop to clear locks
   await agenda.stop()

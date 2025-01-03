@@ -9,9 +9,11 @@ const envVarsSchema = Joi.object()
   .keys({
     NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
     PORT: Joi.number().default(3000),
+    WEBSOCKET_BASE_PORT: Joi.number().default(5555),
     MONGODB_URL: Joi.string().required().description('Mongo DB url'),
     MONGODB_DEBUG: Joi.boolean().description('Enable mongoose debugging'),
     NYMSPACE_ENABLE_AGENTS: Joi.boolean().default(true).description('Enable agent support'),
+    NYMSPACE_ENABLE_POLLS: Joi.boolean().default(true).description('Enable poll support'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -44,6 +46,7 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  websocketBasePort: envVars.WEBSOCKET_BASE_PORT,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     debug: envVars.MONGODB_DEBUG,
@@ -76,6 +79,7 @@ module.exports = {
   auth: {
     authTokenSecret: envVars.AUTH_TOKEN_SECRET
   },
+  enablePolls: envVars.NYMSPACE_ENABLE_POLLS,
   enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
   llms: {
     basePath: envVars.LANGCHAIN_API_BASE_PATH,

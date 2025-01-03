@@ -8,7 +8,7 @@ This is the backend API for [berkmancenter/nymspace_client](https://github.com/b
 
 ### Using Docker
 
-- Create file `.env.local` and copy contents of `.env.example`. Feel free to change the port number in the file but make sure to make changes on fronend env file to reflect the correct port number. Also, if you change the port number, make sure to change the port numbers in `docker-compose.yml` as well. The port number for socket io is defined implicitly in the app as `5555` and can be changed by making change to file `/src/websockets/index.js`
+- Create file `.env.local` and copy contents of `.env.example`. Feel free to change the port number in the file but make sure to make changes on fronend env file to reflect the correct port number. Also, if you change the port number, make sure to change the port numbers in `docker-compose.yml` as well. Certain optional app functionality, like polls and LLM agents can be enabled or disabled with environment variables.
 - Edit `docker-compose.dev.yml` file to add the following block to the `node-app` service
 
 ```

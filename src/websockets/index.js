@@ -21,7 +21,7 @@ if (cluster.isMaster) {
   if (config.env !== 'test') {
     for (let i = 0; i < numCPUs; i += 1) {
       worker = cluster.fork({
-        PORT: 5555 + i
+        PORT: config.websocketBasePort + i
       })
     }
   }
