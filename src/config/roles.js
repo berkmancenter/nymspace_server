@@ -19,15 +19,23 @@ const allRoles = {
     'managePseudonym',
     'manageAccount',
     'getUser',
-    'updateThread'
-  ],
-  admin: ['getUsers', 'manageUsers'],
-};
+    'updateThread',
 
-const roles = Object.keys(allRoles);
-const roleRights = new Map(Object.entries(allRoles));
+    // poll roles
+    'createPoll',
+    'respondPoll',
+    'listPolls',
+    'inspectPoll',
+    'getPollResponses',
+    'getPollResponseCounts'
+  ],
+  admin: ['getUsers', 'manageUsers']
+}
+
+const roles = Object.keys(allRoles)
+const roleRights = new Map(Object.entries(allRoles))
 
 module.exports = {
   roles,
-  roleRights,
-};
+  roleRights
+}

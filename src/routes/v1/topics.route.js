@@ -1,10 +1,10 @@
-const express = require('express');
-const topicController = require('../../controllers/topic.controller');
-const auth = require('../../middlewares/auth');
-const validate = require('../../middlewares/validate');
-const topicValidation = require('../../validations/topic.validation');
+const express = require('express')
+const topicController = require('../../controllers/topic.controller')
+const auth = require('../../middlewares/auth')
+const validate = require('../../middlewares/validate')
+const topicValidation = require('../../validations/topic.validation')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -50,7 +50,7 @@ const router = express.Router();
  *               $ref: '#/components/schemas/Topic'
  *
  */
-router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic);
+router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic), topicController.createTopic)
 
 /**
  * @swagger
@@ -77,7 +77,7 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
  *               $ref: '#/components/schemas/Topic'
  *
  */
- router.route('/').put(auth('updateTopic'), validate(topicValidation.updateTopic), topicController.updateTopic);
+router.route('/').put(auth('updateTopic'), validate(topicValidation.updateTopic), topicController.updateTopic)
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.route('/').post(auth('createTopic'), validate(topicValidation.createTopic
  *                 $ref: '#/definitions/Topic'
  *
  */
-router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
+router.route('/userTopics').get(auth('userTopics'), topicController.userTopics)
 
 /**
  * @swagger
@@ -150,7 +150,7 @@ router.route('/userTopics').get(auth('userTopics'), topicController.userTopics);
  *                 $ref: '#/definitions/Topic'
  *
  */
-router.route('/public/:token').get(topicController.publicTopics);
+router.route('/public/:token').get(topicController.publicTopics)
 
 /**
  * @swagger
@@ -172,8 +172,8 @@ router.route('/public/:token').get(topicController.publicTopics);
  *                 $ref: '#/definitions/Topic'
  *
  */
-router.route('/').get(auth('allTopics'), topicController.allTopics);
-router.route('/:topicId').get(topicController.getTopic);
+router.route('/').get(auth('allTopics'), topicController.allTopics)
+router.route('/:topicId').get(topicController.getTopic)
 
 /**
  * @swagger
@@ -195,7 +195,7 @@ router.route('/:topicId').get(topicController.getTopic);
  *         description: ok
  *
  */
-router.route('/:topicId').delete(auth('deleteTopic'),topicController.deleteTopic);
+router.route('/:topicId').delete(auth('deleteTopic'), topicController.deleteTopic)
 
 /**
  * @swagger
@@ -221,7 +221,7 @@ router.route('/:topicId').delete(auth('deleteTopic'),topicController.deleteTopic
  *         description: ok
  *
  */
-router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate);
+router.route('/auth').post(validate(topicValidation.authenticate), topicController.authenticate)
 
 /**
  * @swagger
@@ -247,8 +247,8 @@ router.route('/auth').post(validate(topicValidation.authenticate), topicControll
  *         description: ok
  *
  */
-router.route('/archive').post(validate(topicValidation.archiveTopic), topicController.archiveTopic);
+router.route('/archive').post(validate(topicValidation.archiveTopic), topicController.archiveTopic)
 
-router.route('/follow').post(auth('followTopic'), topicController.follow);
+router.route('/follow').post(auth('followTopic'), topicController.follow)
 
-module.exports = router;
+module.exports = router

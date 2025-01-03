@@ -1,16 +1,16 @@
-const httpStatus = require('http-status');
-const crypto = require('crypto');
-const { uniqueNamesGenerator } = require('unique-names-generator');
-const bcrypt = require('bcryptjs');
-const { uid } = require('uid');
-const { User } = require('../models');
-const { Message } = require('../models');
-const ApiError = require('../utils/ApiError');
-const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries');
-const logger = require('../config/logger');
-const config = require('../config/config');
+const httpStatus = require('http-status')
+const crypto = require('crypto')
+const { uniqueNamesGenerator } = require('unique-names-generator')
+const bcrypt = require('bcryptjs')
+const { uid } = require('uid')
+const { User } = require('../models')
+const { Message } = require('../models')
+const ApiError = require('../utils/ApiError')
+const { pseudonymAdjectives, pseudonymNouns } = require('../config/pseudonym-dictionaries')
+const logger = require('../config/logger')
+const config = require('../config/config')
 
-const tokenKey = 'greenheron';
+const tokenKey = 'greenheron'
 
 /**
  * Hash a password
@@ -18,10 +18,10 @@ const tokenKey = 'greenheron';
  * @returns {Promise<String>}
  */
 const hashPassword = async (password) => {
-  const saltRounds = 10;
-  const hash = await bcrypt.hash(password, saltRounds);
-  return hash;
-};
+  const saltRounds = 10
+  const hash = await bcrypt.hash(password, saltRounds)
+  return hash
+}
 
 /**
  * Create a user
@@ -29,8 +29,8 @@ const hashPassword = async (password) => {
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  let hash;
-  if (userBody.password) hash = await hashPassword(userBody.password);
+  let hash
+  if (userBody.password) hash = await hashPassword(userBody.password)
   let user = {
     username: userBody.username,
     password: hash,
@@ -39,14 +39,14 @@ const createUser = async (userBody) => {
         token: userBody.token,
         pseudonym: userBody.pseudonym,
         // Mark pseudonym as active
-        active: true,
-      },
-    ],
-  };
-  if (userBody.email) user.email = userBody.email;
-  user = await User.create(user);
-  return user;
-};
+        active: true
+      }
+    ]
+  }
+  if (userBody.email) user.email = userBody.email
+  user = await User.create(user)
+  return user
+}
 
 /**
  * Update a user
@@ -54,28 +54,28 @@ const createUser = async (userBody) => {
  * @returns {Promise<User>}
  */
 const updateUser = async (userBody) => {
-  const user = await User.findById(userBody.userId);
-  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  const user = await User.findById(userBody.userId)
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
   if (userBody.username && userBody.username !== user.username) {
-    const existingUser = await getUserByUsername(userBody.username);
+    const existingUser = await getUserByUsername(userBody.username)
     if (existingUser) {
-      throw new ApiError(httpStatus.CONFLICT, 'Username is already registered');
+      throw new ApiError(httpStatus.CONFLICT, 'Username is already registered')
     }
   }
   if (userBody.email && userBody.email !== user.email) {
-    const existingUser = await getUserByEmail(userBody.email);
+    const existingUser = await getUserByEmail(userBody.email)
     if (existingUser) {
-      throw new ApiError(httpStatus.CONFLICT, 'Email address is already registered');
+      throw new ApiError(httpStatus.CONFLICT, 'Email address is already registered')
     }
   }
-  user.username = userBody.username ? userBody.username : user.username;
+  user.username = userBody.username ? userBody.username : user.username
   if (userBody.password) {
-    user.password = await hashPassword(userBody.password);
+    user.password = await hashPassword(userBody.password)
   }
-  user.email = userBody.email ? userBody.email : user.email;
-  await user.save();
-  return user;
-};
+  user.email = userBody.email ? userBody.email : user.email
+  await user.save()
+  return user
+}
 
 /**
  * Add a pseudonym to an existing a user
@@ -84,17 +84,17 @@ const updateUser = async (userBody) => {
  * @returns {Promise<User>}
  */
 const addPseudonym = async (requestBody, requestUser) => {
-  requestBody.active = true;
-  const user = await User.findById(requestUser.id);
-  const psuedos = user.pseudonyms.filter((p) => !p.isDeleted);
+  requestBody.active = true
+  const user = await User.findById(requestUser.id)
+  const psuedos = user.pseudonyms.filter((p) => !p.isDeleted)
   if (psuedos.length >= 5) {
-    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms');
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms')
   }
-  user.pseudonyms.forEach((p) => (p.active = false));
-  user.pseudonyms.push(requestBody);
-  await user.save();
-  return user;
-};
+  user.pseudonyms.forEach((p) => (p.active = false))
+  user.pseudonyms.push(requestBody)
+  await user.save()
+  return user
+}
 
 /**
  * Update a pseudonym
@@ -103,21 +103,21 @@ const addPseudonym = async (requestBody, requestUser) => {
  * @returns {Promise<User>}
  */
 const activatePseudonym = async (requestBody, requestUser) => {
-  const user = await User.findById(requestUser.id);
-  let match = false;
+  const user = await User.findById(requestUser.id)
+  let match = false
   user.pseudonyms.forEach((p) => {
-    p.active = false;
+    p.active = false
     if (p.token === requestBody.token) {
-      p.active = true;
-      match = true;
+      p.active = true
+      match = true
     }
-  });
+  })
   if (!match) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Pseudonym not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Pseudonym not found')
   }
-  await user.save();
-  return user;
-};
+  await user.save()
+  return user
+}
 
 /**
  * Delete a pseudonym
@@ -128,16 +128,16 @@ const activatePseudonym = async (requestBody, requestUser) => {
 const deletePseudonym = async (pseudonymId, requestUser) => {
   // Check if pseudonym is used on any messages. If it is, then
   // soft delete it. If not, hard delete, since if can be used again.
-  const user = await User.findById(requestUser.id);
-  const messages = await Message.find({ pseudonymId });
-  const pseudo = user.pseudonyms.id(pseudonymId);
+  const user = await User.findById(requestUser.id)
+  const messages = await Message.find({ pseudonymId })
+  const pseudo = user.pseudonyms.id(pseudonymId)
   if (messages.length > 0) {
-    pseudo.isDeleted = true;
+    pseudo.isDeleted = true
   } else {
-    user.pseudonyms.id(pseudonymId).remove();
+    user.pseudonyms.id(pseudonymId).remove()
   }
-  await user.save();
-};
+  await user.save()
+}
 
 /**
  * Query for users
@@ -149,9 +149,9 @@ const deletePseudonym = async (pseudonymId, requestUser) => {
  * @returns {Promise<QueryResult>}
  */
 const queryUsers = async (filter, options) => {
-  const users = await User.paginate(filter, options);
-  return users;
-};
+  const users = await User.paginate(filter, options)
+  return users
+}
 
 /**
  * Get user by id
@@ -159,8 +159,8 @@ const queryUsers = async (filter, options) => {
  * @returns {Promise<User>}
  */
 const getUserById = async (id) => {
-  return User.findById(id);
-};
+  return User.findById(id)
+}
 
 /**
  * Get user by username and password
@@ -169,13 +169,13 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByUsernamePassword = async (username, password) => {
-  const user = await getUserByUsername(username);
+  const user = await getUserByUsername(username)
   if (user) {
-    const match = await bcrypt.compare(password, user.password);
-    if (match) return user;
+    const match = await bcrypt.compare(password, user.password)
+    if (match) return user
   }
-  return null;
-};
+  return null
+}
 
 /**
  * Get user by username
@@ -183,8 +183,8 @@ const getUserByUsernamePassword = async (username, password) => {
  * @returns {Promise<User>}
  */
 const getUserByUsername = async (username) => {
-  return User.findOne({ username });
-};
+  return User.findOne({ username })
+}
 
 /**
  * Get user by email
@@ -192,8 +192,8 @@ const getUserByUsername = async (username) => {
  * @returns {Promise<User>}
  */
 const getUserByEmail = async (email) => {
-  return User.findOne({ email });
-};
+  return User.findOne({ email })
+}
 
 /**
  * Update user by id
@@ -202,14 +202,14 @@ const getUserByEmail = async (email) => {
  * @returns {Promise<User>}
  */
 const updateUserById = async (userId, updateBody) => {
-  const user = await getUserById(userId);
+  const user = await getUserById(userId)
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
   }
-  Object.assign(user, updateBody);
-  await user.save();
-  return user;
-};
+  Object.assign(user, updateBody)
+  await user.save()
+  return user
+}
 
 /**
  * Delete user by id
@@ -217,34 +217,34 @@ const updateUserById = async (userId, updateBody) => {
  * @returns {Promise<User>}
  */
 const deleteUserById = async (userId) => {
-  const user = await getUserById(userId);
+  const user = await getUserById(userId)
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
   }
-  await user.remove();
-  return user;
-};
+  await user.remove()
+  return user
+}
 
 const newToken = () => {
-  const currentDate = new Date().valueOf().toString();
-  const random = Math.random().toString();
+  const currentDate = new Date().valueOf().toString()
+  const random = Math.random().toString()
   const result = crypto
     .createHash('sha256')
     .update(currentDate + random)
-    .digest('hex');
+    .digest('hex')
 
   const data = JSON.stringify({
-    token: result,
-  });
+    token: result
+  })
 
-  const algorithm = 'aes256';
-  const key = tokenKey.repeat(32).substring(0, 32);
-  const iv = tokenKey.repeat(16).substring(0, 16);
+  const algorithm = 'aes256'
+  const key = tokenKey.repeat(32).substring(0, 32)
+  const iv = tokenKey.repeat(16).substring(0, 16)
 
-  const cipher = crypto.createCipheriv(algorithm, key, iv);
-  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
-  return encrypted;
-};
+  const cipher = crypto.createCipheriv(algorithm, key, iv)
+  const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex')
+  return encrypted
+}
 
 const newPseudonym = async (recursionIndex) => {
   // Get number of all possible pseudonym combinations (currently 163,564)
@@ -253,53 +253,53 @@ const newPseudonym = async (recursionIndex) => {
 
   // If we reach the max number of possible pseudonyms, switch to random pseudonyms
   if (recursionIndex === 163563) {
-    logger.error('No more unique pseudonyms left to assign. Switching to truly random pseudonyms.');
-    config.trulyRandomPseudonyms = 'true';
+    logger.error('No more unique pseudonyms left to assign. Switching to truly random pseudonyms.')
+    config.trulyRandomPseudonyms = 'true'
   }
 
-  let pseudo = '';
+  let pseudo = ''
   if (config.trulyRandomPseudonyms === 'false') {
     // Returns human friendly random pseudonym. Example: Bold Aardvark
-    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymAdjectives, pseudonymNouns], length: 2 });
+    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymAdjectives, pseudonymNouns], length: 2 })
     pseudo = pseudo
       .split('_')
       .map((word) => {
-        return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+        return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
       })
-      .join(' ');
+      .join(' ')
   } else {
     // Returns truly random pseudo. Example: Woodpecker_e65ddfe1d20
-    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymNouns], length: 1 });
-    pseudo = pseudo.charAt(0).toUpperCase() + pseudo.slice(1);
-    pseudo = `${pseudo}_${uid()}`;
+    pseudo = uniqueNamesGenerator({ dictionaries: [pseudonymNouns], length: 1 })
+    pseudo = pseudo.charAt(0).toUpperCase() + pseudo.slice(1)
+    pseudo = `${pseudo}_${uid()}`
   }
 
   // Check if this pseudonym has been used on messages already. If yes,
   // generate a new one via recursion, to ensure uniqueness.
-  const messages = await Message.find({ pseudonym: pseudo });
+  const messages = await Message.find({ pseudonym: pseudo })
   if (messages.length > 0) {
-    recursionIndex++;
-    return newPseudonym(recursionIndex);
+    recursionIndex++
+    return newPseudonym(recursionIndex)
   }
-  return pseudo;
-};
+  return pseudo
+}
 
 const isTokenGeneratedByThreads = (password) => {
-  let decryptedParsed = {};
+  let decryptedParsed = {}
   try {
-    const algorithm = 'aes256';
-    const key = tokenKey.repeat(32).substring(0, 32);
-    const iv = tokenKey.repeat(16).substring(0, 16);
-    const decipher = crypto.createDecipheriv(algorithm, key, iv);
-    const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8');
-    decryptedParsed = JSON.parse(decrypted);
+    const algorithm = 'aes256'
+    const key = tokenKey.repeat(32).substring(0, 32)
+    const iv = tokenKey.repeat(16).substring(0, 16)
+    const decipher = crypto.createDecipheriv(algorithm, key, iv)
+    const decrypted = decipher.update(password, 'hex', 'utf8') + decipher.final('utf8')
+    decryptedParsed = JSON.parse(decrypted)
   } catch (err) {
     // Todo: log error?
-    throw new Error('Invalid token');
+    throw new Error('Invalid token')
   }
 
-  return typeof decryptedParsed.token !== 'undefined';
-};
+  return typeof decryptedParsed.token !== 'undefined'
+}
 
 /**
  * Check if a user has good "reputation"
@@ -308,31 +308,31 @@ const isTokenGeneratedByThreads = (password) => {
  */
 const goodReputation = async (user) => {
   // Calculate total upvotes and downvotes for all user's messages
-  const messages = await Message.find({ owner: user.id });
-  let totalDownVotes = 0;
-  let totalUpVotes = 0;
+  const messages = await Message.find({ owner: user.id })
+  let totalDownVotes = 0
+  let totalUpVotes = 0
   if (messages.length > 0) {
     totalDownVotes = messages
       .map((m) => {
-        return m.downVotes.length;
+        return m.downVotes.length
       })
-      .reduce((x, y) => x + y);
+      .reduce((x, y) => x + y)
     totalUpVotes = messages
       .map((m) => {
-        return m.upVotes.length;
+        return m.upVotes.length
       })
-      .reduce((x, y) => x + y);
+      .reduce((x, y) => x + y)
   }
   // Subtract downvotes from upvotes for "reputation score"
-  const reputationScore = totalUpVotes - totalDownVotes;
+  const reputationScore = totalUpVotes - totalDownVotes
   // Calculate days since account creation
-  const today = new Date();
-  const createdDate = new Date(user.createdAt);
-  const days = Math.round((today - createdDate) / 86400000);
+  const today = new Date()
+  const createdDate = new Date(user.createdAt)
+  const days = Math.round((today - createdDate) / 86400000)
   // Good reputation is a combined total of message votes exceeding -5,
   // and an account more than 1 day old.
-  return reputationScore > -5 && days >= config.DAYS_FOR_GOOD_REPUTATION;
-};
+  return reputationScore > -5 && days >= config.DAYS_FOR_GOOD_REPUTATION
+}
 
 module.exports = {
   createUser,
@@ -351,5 +351,5 @@ module.exports = {
   addPseudonym,
   activatePseudonym,
   deletePseudonym,
-  hashPassword,
-};
+  hashPassword
+}

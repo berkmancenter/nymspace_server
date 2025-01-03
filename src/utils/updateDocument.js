@@ -1,4 +1,4 @@
-const { Document } = require("mongoose");
+const { Document } = require('mongoose')
 
 /**
  * Update a Mongoose document with properties from a request body, for update/PUT routes.
@@ -8,14 +8,14 @@ const { Document } = require("mongoose");
  * @param {Document} document
  * @returns {Document}
  */
- const updateDocument = (incomingObj, document) => {
-    Object.keys(incomingObj).forEach((prop) => {
-        if (prop !== 'id') {
-            document[prop] = incomingObj[prop];
-        }
-    });
+const updateDocument = (incomingObj, document) => {
+  Object.keys(incomingObj).forEach((prop) => {
+    if (prop !== 'id') {
+      document[prop] = incomingObj[prop]
+    }
+  })
 
-    return document;
-};
-  
-  module.exports = updateDocument;
+  return document
+}
+
+module.exports = updateDocument

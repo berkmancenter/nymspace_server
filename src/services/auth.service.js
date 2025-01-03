@@ -1,12 +1,12 @@
-const httpStatus = require('http-status');
-const tokenService = require('./token.service');
-const userService = require('./user.service');
-const Token = require('../models/token.model');
-const ApiError = require('../utils/ApiError');
-const { tokenTypes } = require('../config/tokens');
-const emailService = require('./email.service');
-const User = require('../models/user.model');
-const logger = require('../config/logger');
+const httpStatus = require('http-status')
+const tokenService = require('./token.service')
+const userService = require('./user.service')
+const Token = require('../models/token.model')
+const ApiError = require('../utils/ApiError')
+const { tokenTypes } = require('../config/tokens')
+const emailService = require('./email.service')
+const User = require('../models/user.model/user.model')
+const logger = require('../config/logger')
 
 /**
  * Login with username and password
@@ -15,12 +15,12 @@ const logger = require('../config/logger');
  * @returns {Promise<User>}
  */
 const loginUser = async (loginBody) => {
-  const user = await userService.getUserByUsernamePassword(loginBody.username, loginBody.password);
+  const user = await userService.getUserByUsernamePassword(loginBody.username, loginBody.password)
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect credentials');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect credentials')
   }
-  return user;
-};
+  return user
+}
 
 /**
  * Logout
@@ -28,12 +28,12 @@ const loginUser = async (loginBody) => {
  * @returns {Promise}
  */
 const logout = async (refreshToken) => {
-  const refreshTokenDoc = await Token.findOne({ token: refreshToken, type: tokenTypes.REFRESH, blacklisted: false });
+  const refreshTokenDoc = await Token.findOne({ token: refreshToken, type: tokenTypes.REFRESH, blacklisted: false })
   if (!refreshTokenDoc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Not found')
   }
-  await refreshTokenDoc.remove();
-};
+  await refreshTokenDoc.remove()
+}
 
 /**
  * Refresh auth tokens
@@ -42,17 +42,17 @@ const logout = async (refreshToken) => {
  */
 const refreshAuth = async (refreshToken) => {
   try {
-    const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH);
-    const user = await userService.getUserById(refreshTokenDoc.user);
+    const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH)
+    const user = await userService.getUserById(refreshTokenDoc.user)
     if (!user) {
-      throw new Error();
+      throw new Error()
     }
-    await refreshTokenDoc.remove();
-    return tokenService.generateAuthTokens(user);
+    await refreshTokenDoc.remove()
+    return tokenService.generateAuthTokens(user)
   } catch (error) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate')
   }
-};
+}
 
 /**
  * Send a password reset email to user
@@ -60,19 +60,19 @@ const refreshAuth = async (refreshToken) => {
  * @returns {Promise}
  */
 const sendPasswordReset = async (email) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email })
   if (!user || !user.email) {
-    return;
+    return
   }
-  const resetToken = await tokenService.generatePasswordResetToken(user);
+  const resetToken = await tokenService.generatePasswordResetToken(user)
   emailService.sendPasswordResetEmail(user.email, resetToken, (err, info) => {
     if (err) {
-      logger.error(`Error occurred sending password reset email: ${err.message}`);
-      return;
+      logger.error(`Error occurred sending password reset email: ${err.message}`)
+      return
     }
-    logger.info(`Password reset email sent successfully to ${user.email}. Response: ${info.response}`);
-  });
-};
+    logger.info(`Password reset email sent successfully to ${user.email}. Response: ${info.response}`)
+  })
+}
 
 /**
  * Resets a user's password
@@ -80,20 +80,20 @@ const sendPasswordReset = async (email) => {
  * @returns {Promise}
  */
 const resetPassword = async (token, password) => {
-  const tokenDoc = await tokenService.verifyToken(token, tokenTypes.RESET_PASSWORD);
-  const user = await User.findById(tokenDoc.user);
+  const tokenDoc = await tokenService.verifyToken(token, tokenTypes.RESET_PASSWORD)
+  const user = await User.findById(tokenDoc.user)
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found')
   }
-  user.password = await userService.hashPassword(password);
-  await user.save();
-  await Token.deleteOne({ _id: tokenDoc._id });
-};
+  user.password = await userService.hashPassword(password)
+  await user.save()
+  await Token.deleteOne({ _id: tokenDoc._id })
+}
 
 module.exports = {
   loginUser,
   logout,
   refreshAuth,
   sendPasswordReset,
-  resetPassword,
-};
+  resetPassword
+}
