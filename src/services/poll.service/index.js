@@ -124,7 +124,7 @@ const respondPoll = async (pollId, choiceData, user) => {
 
   // find by case insensitive text match for robustness
   // eslint-disable-next-line
-  const textRegex = new RegExp(`^${escapeStringRegex(text)}$`, 'i')
+                const textRegex = new RegExp(`^${escapeStringRegex(text)}$`, 'i')
 
   // find existing choice or create a new one
   let choice = await PollChoice.findOne({ poll: poll._id, text: textRegex })
@@ -241,7 +241,7 @@ const collectVisiblePollResponses = async (poll, user) => {
   const userResponses = await PollResponse.find({ poll: poll._id, owner: user._id })
   const userChoiceMap = userResponses.reduce((map, response) => {
     // eslint-disable-next-line
-    map[response.choice._id.toString()] = true
+                  map[response.choice._id.toString()] = true
     return map
   }, {})
 

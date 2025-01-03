@@ -5,7 +5,7 @@ const { registeredUser } = require('./user.fixture')
 const { threadOne, threadTwo } = require('./thread.fixture')
 
 const messageOne = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   body: faker.lorem.words(10),
   thread: threadOne._id,
   owner: registeredUser._id,
@@ -14,7 +14,7 @@ const messageOne = {
 }
 
 const messageTwo = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   body: faker.lorem.words(10),
   thread: threadTwo._id,
   owner: registeredUser._id,
@@ -23,7 +23,7 @@ const messageTwo = {
 }
 
 const messageThree = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   body: faker.lorem.words(10),
   thread: threadTwo._id,
   owner: registeredUser._id,

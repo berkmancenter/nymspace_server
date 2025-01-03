@@ -219,11 +219,11 @@ describe('Topic routes', () => {
 
     test('should return 200 and threads should include followed', async () => {
       const newTopic = newPublicTopic()
-      newTopic.owner = mongoose.Types.ObjectId()
+      newTopic.owner = new mongoose.Types.ObjectId()
       await insertUsers([userOne])
       await insertTopics([publicTopic, privateTopic, newTopic])
       const topicFollow = {
-        _id: mongoose.Types.ObjectId(),
+        _id: new mongoose.Types.ObjectId(),
         user: userOne._id,
         topic: newTopic._id
       }
