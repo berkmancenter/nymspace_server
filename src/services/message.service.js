@@ -16,7 +16,9 @@ const ApiError = require('../utils/ApiError')
  */
 const fetchThread = async (messageBody, user) => {
   const threadId = mongoose.Types.ObjectId(messageBody.thread)
-  const thread = await Thread.findById(threadId).populate('agents').populate('messages')
+  const thread = await Thread.findById(threadId)
+    .populate('agents')
+    .populate({ path: 'messages', match: { visible: true } })
   if (thread.locked) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This thread is locked and cannot receive messages.')
   }
@@ -64,7 +66,7 @@ const createMessage = async (messageBody, user, thread) => {
   thread.messages.push(message.toObject())
   await thread.save()
 
-  message.count = thread.messages.length
+  message.count = thread.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0)
   return message
 }
 

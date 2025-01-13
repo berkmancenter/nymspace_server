@@ -18,7 +18,7 @@ const topicsWithSortData = async (topicQuery) => {
     .populate({
       path: 'threads',
       select: 'id',
-      populate: [{ path: 'messages', select: ['id', 'createdAt'] }]
+      populate: [{ path: 'messages', select: ['id', 'createdAt'], match: { visible: true } }]
     })
     .select('name slug private votingAllowed threadCreationAllowed archiveEmail owner')
     .exec()
@@ -36,7 +36,7 @@ const topicsWithSortData = async (topicQuery) => {
         // which will always be the most recent as it is pushed
         // to Thread.messages upon message creation.
         threadMsgTimes.push(thread.messages.slice(-1)[0].createdAt)
-        // Sum up the messages and followers for all threads
+        // Sum up the visible messages and followers for all threads
         msgCount += thread.messages.length
       }
     })
@@ -221,7 +221,7 @@ const deleteOldTopics = async () => {
     .populate({
       path: 'threads',
       select: 'id',
-      populate: [{ path: 'messages', select: ['id', 'createdAt'] }]
+      populate: [{ path: 'messages', select: ['id', 'createdAt'], match: { visible: true } }]
     })
     .exec()
 
@@ -262,7 +262,7 @@ const emailUsersToArchive = async () => {
     .populate({
       path: 'threads',
       select: 'id',
-      populate: [{ path: 'messages', select: ['id', 'createdAt'] }]
+      populate: [{ path: 'messages', select: ['id', 'createdAt'], match: { visible: true } }]
     })
     .exec()
   // Filter out topics that have recent activity

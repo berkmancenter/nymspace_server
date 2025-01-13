@@ -6,7 +6,7 @@ const { topicService, emailService } = require('../../src/services')
 const Topic = require('../../src/models/topic.model')
 const { Token } = require('../../src/models')
 const { threadOne, insertThreads } = require('../fixtures/thread.fixture')
-const { messageOne, insertMessages } = require('../fixtures/message.fixture')
+const { messageOne, invisibleMessage, insertMessages } = require('../fixtures/message.fixture')
 const Thread = require('../../src/models/thread.model')
 
 setupIntTest()
@@ -41,6 +41,37 @@ describe('Topic service methods', () => {
       expect(ret[0]._id).toEqual(publicTopic._id)
 
       const dbPublicTopic = await Topic.findById(publicTopic._id)
+      expect(dbPublicTopic.isDeleted).toBe(true)
+
+      const dbPrivateTopic = await Topic.findById(privateTopic._id)
+      expect(dbPrivateTopic.isDeleted).toBe(false)
+    })
+
+    test('should delete topics older than 97 days with no recent visible messages', async () => {
+      publicTopic.createdAt = oldDate
+
+      const d = new Date()
+      d.setDate(d.getDate() - 96)
+      privateTopic.createdAt = d.toISOString()
+
+      await insertTopics([publicTopic, privateTopic])
+      await insertThreads([threadOne])
+      invisibleMessage.thread = threadOne._id
+      await insertMessages([invisibleMessage])
+
+      let dbPublicTopic = await Topic.findById(publicTopic._id)
+      dbPublicTopic.threads.push(threadOne)
+      await dbPublicTopic.save()
+
+      const dbThreadOne = await Thread.findById(threadOne._id)
+      dbThreadOne.messages.push(invisibleMessage)
+      await dbThreadOne.save()
+
+      const ret = await topicService.deleteOldTopics()
+      expect(ret).toHaveLength(1)
+      expect(ret[0]._id).toEqual(publicTopic._id)
+
+      dbPublicTopic = await Topic.findById(publicTopic._id)
       expect(dbPublicTopic.isDeleted).toBe(true)
 
       const dbPrivateTopic = await Topic.findById(privateTopic._id)
@@ -155,6 +186,41 @@ describe('Topic service methods', () => {
 
       const dbPrivateTopic = await Topic.findById(privateTopic._id)
       expect(dbPrivateTopic.isArchiveNotified).toBe(false)
+    })
+
+    test('should archive topic if topic has no recent visible message activity', async () => {
+      jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue()
+      const sendArchiveEmailSpy = jest.spyOn(emailService, 'sendArchiveTopicEmail')
+
+      publicTopic.createdAt = oldDate
+      const d = new Date()
+      d.setDate(d.getDate() - 88)
+      privateTopic.createdAt = d.toISOString()
+
+      await insertTopics([publicTopic, privateTopic])
+      await insertThreads([threadOne])
+      invisibleMessage.thread = threadOne._id
+      await insertMessages([invisibleMessage])
+
+      let dbPublicTopic = await Topic.findById(publicTopic._id)
+      dbPublicTopic.threads.push(threadOne)
+      await dbPublicTopic.save()
+
+      const dbThreadOne = await Thread.findById(threadOne._id)
+      dbThreadOne.messages.push(invisibleMessage)
+      await dbThreadOne.save()
+
+      const ret = await topicService.emailUsersToArchive()
+      expect(ret).toHaveLength(1)
+      expect(ret[0]._id).toEqual(publicTopic._id)
+
+      expect(sendArchiveEmailSpy).toHaveBeenCalledWith(userOne.email, expect.any(Object), expect.any(String))
+      const token = sendArchiveEmailSpy.mock.calls[0][3]
+      const dbToken = await Token.findOne({ token })
+      expect(dbToken).toBeDefined()
+
+      dbPublicTopic = await Topic.findById(publicTopic._id)
+      expect(dbPublicTopic.isArchiveNotified).toBe(true)
     })
 
     test('should use topic-level email if it exists', async () => {

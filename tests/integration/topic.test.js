@@ -13,6 +13,8 @@ const Topic = require('../../src/models/topic.model')
 const { tokenTypes } = require('../../src/config/tokens')
 const Token = require('../../src/models/token.model')
 const { insertFollowers } = require('../fixtures/follower.fixture')
+const { threadThree, insertThreads } = require('../fixtures/thread.fixture')
+const { messageFour, invisibleMessage, insertMessages } = require('../fixtures/message.fixture')
 
 setupIntTest()
 
@@ -235,6 +237,28 @@ describe('Topic routes', () => {
         .expect(httpStatus.OK)
 
       expect(resp.body.length).toEqual(3)
+    })
+
+    test('should return 200 and include count of visible messages in threads', async () => {
+      const newTopic = newPublicTopic()
+      await insertUsers([userOne])
+      privateTopic.threads.push(threadThree)
+      await insertTopics([publicTopic, privateTopic, newTopic])
+      await insertMessages([messageFour, invisibleMessage])
+
+      threadThree.messages = [messageFour, invisibleMessage]
+      threadThree.topic = privateTopic._id
+      await insertThreads([threadThree])
+
+      const resp = await request(app)
+        .get(`/v1/topics/userTopics`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.OK)
+
+      expect(resp.body.length).toEqual(3)
+      const pt = resp.body.find((x) => x.id === privateTopic._id.toString())
+      expect(pt.messageCount).toEqual(1)
     })
   })
 })
