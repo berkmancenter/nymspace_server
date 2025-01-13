@@ -4,9 +4,9 @@ const Topic = require('../../src/models/topic.model')
 const { userOne } = require('./user.fixture')
 
 const nameSlug = faker.lorem.word().toLowerCase()
-const getRandomInt = (min, max) => {
-  min = Math.ceil(min)
-  max = Math.floor(max)
+const getRandomInt = (origMin, origMax) => {
+  const min = Math.ceil(origMin)
+  const max = Math.floor(origMax)
   return Math.floor(Math.random() * (max - min) + min)
 }
 
@@ -21,7 +21,7 @@ const topicPost = {
 
 const newPublicTopic = () => {
   return {
-    _id: mongoose.Types.ObjectId(),
+    _id: new mongoose.Types.ObjectId(),
     name: nameSlug,
     slug: nameSlug,
     votingAllowed: true,
@@ -38,7 +38,7 @@ const newPublicTopic = () => {
 
 const newPrivateTopic = () => {
   return {
-    _id: mongoose.Types.ObjectId(),
+    _id: new mongoose.Types.ObjectId(),
     name: nameSlug,
     slug: nameSlug,
     votingAllowed: false,

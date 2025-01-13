@@ -43,7 +43,7 @@ setupIntTest()
 
   async function createUser(pseudonym) {
     return {
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       username: faker.name.findName(),
       email: faker.internet.email().toLowerCase(),
       password: 'password1',
@@ -51,7 +51,7 @@ setupIntTest()
       isEmailVerified: false,
       pseudonyms: [
         {
-          _id: mongoose.Types.ObjectId(),
+          _id: new mongoose.Types.ObjectId(),
           token:
             '31c5d2b7d2b0f86b2b4b204ed4bf17938e4108a573b25db493a55c4639cc6cd3518a4c88787fe29cf9f273d61e3c5fd4eabb528e3e9b7398c1ed0944581ce51e53f6eae13328c4be05e7e14365063409',
           pseudonym,
@@ -113,7 +113,7 @@ setupIntTest()
 
   async function addMessageToThread(msgObj, user) {
     const msg = new Message({
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       body: msgObj.body,
       thread: msgObj.thread,
       owner: user._id,
@@ -152,7 +152,7 @@ setupIntTest()
     await insertTopics([publicTopic])
 
     footballThread = {
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       name: 'Is the concussion crisis and CTE the end of the NFL?',
       owner: user1._id,
       topic: publicTopic._id,

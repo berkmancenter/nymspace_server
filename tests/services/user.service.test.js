@@ -8,8 +8,8 @@ setupIntTest()
 
 const createVote = () => {
   return {
-    _id: mongoose.Types.ObjectId(),
-    owner: mongoose.Types.ObjectId()
+    _id: new mongoose.Types.ObjectId(),
+    owner: new mongoose.Types.ObjectId()
   }
 }
 

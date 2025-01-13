@@ -103,7 +103,7 @@ let Agent
     await thread.save()
 
     msg1 = new Message({
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       body: faker.lorem.words(10),
       thread: threadAgentsEnabled._id,
       owner: registeredUser._id,
@@ -111,7 +111,7 @@ let Agent
       pseudonym: registeredUser.pseudonyms[0].pseudonym
     })
     msg2 = new Message({
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       body: faker.lorem.words(10),
       thread: threadAgentsEnabled._id,
       owner: registeredUser._id,
@@ -119,7 +119,7 @@ let Agent
       pseudonym: registeredUser.pseudonyms[0].pseudonym
     })
     msg3 = new Message({
-      _id: mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       body: faker.lorem.words(10),
       thread: threadAgentsEnabled._id,
       owner: registeredUser._id,

@@ -13,7 +13,7 @@ const nameSlug3 = faker.lorem.word().toLowerCase()
 const nameSlug4 = faker.lorem.word().toLowerCase()
 
 const threadOne = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   name: nameSlug1,
   slug: nameSlug1,
   owner: userOne._id,
@@ -22,7 +22,7 @@ const threadOne = {
 }
 
 const threadTwo = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   name: nameSlug2,
   slug: nameSlug2,
   owner: userOne._id,
@@ -30,7 +30,7 @@ const threadTwo = {
 }
 
 const threadThree = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   name: nameSlug3,
   slug: nameSlug3,
   owner: userTwo._id,
@@ -38,7 +38,7 @@ const threadThree = {
 }
 
 const threadAgentsEnabled = {
-  _id: mongoose.Types.ObjectId(),
+  _id: new mongoose.Types.ObjectId(),
   name: nameSlug4,
   owner: registeredUser._id,
   topic: publicTopic._id,

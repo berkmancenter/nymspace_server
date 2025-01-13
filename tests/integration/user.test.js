@@ -14,7 +14,7 @@ const config = require('../../src/config/config')
 
 const createPseudo = () => {
   return {
-    _id: mongoose.Types.ObjectId(),
+    _id: new mongoose.Types.ObjectId(),
     token: faker.datatype.uuid(),
     pseudonym: faker.name.findName(),
     active: false,
@@ -24,8 +24,8 @@ const createPseudo = () => {
 
 const createVote = () => {
   return {
-    _id: mongoose.Types.ObjectId(),
-    owner: mongoose.Types.ObjectId()
+    _id: new mongoose.Types.ObjectId(),
+    owner: new mongoose.Types.ObjectId()
   }
 }
 
@@ -200,7 +200,7 @@ describe('User routes', () => {
         .put('/v1/users')
         .set('Authorization', `Bearer ${registeredUserAccessToken}`)
         .send({
-          userId: mongoose.Types.ObjectId(),
+          userId: new mongoose.Types.ObjectId(),
           email,
           username,
           password
