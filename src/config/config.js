@@ -30,8 +30,9 @@ const envVarsSchema = Joi.object()
     TRULY_RANDOM_PSEUDONYMS: Joi.string()
       .default('false')
       .description('true/false if pseudonyms are made truly random with UID'),
+    MAX_MESSAGE_LENGTH: Joi.number().min(50).max(100000).default(2000).description('The maximum length of a message'),
     DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
-    OPENAI_API_KEY: Joi.string().description('OpenAI key'),
+    OPENAI_API_KEY: Joi.string().default('INVALID_API_KEY').description('OpenAI key'),
     LANGCHAIN_API_BASE_PATH: Joi.string().description('LangChain API base path'),
     PERSPECTIVE_API_KEY: Joi.string().description('Perspective API key')
   })
@@ -79,6 +80,7 @@ module.exports = {
   auth: {
     authTokenSecret: envVars.AUTH_TOKEN_SECRET
   },
+  maxMessageLength: envVars.MAX_MESSAGE_LENGTH,
   enablePolls: envVars.NYMSPACE_ENABLE_POLLS,
   enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
   llms: {

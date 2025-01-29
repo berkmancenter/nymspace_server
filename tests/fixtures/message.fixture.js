@@ -1,8 +1,19 @@
 const mongoose = require('mongoose')
 const faker = require('faker')
+const config = require('../../src/config/config')
 const Message = require('../../src/models/message.model')
 const { registeredUser } = require('./user.fixture')
 const { threadOne, threadTwo, threadThree } = require('./thread.fixture')
+
+function generateLoremText(minLength) {
+  let text = ''
+
+  while (text.length < minLength) {
+    text += `${faker.lorem.paragraph()} `
+  }
+
+  return text
+}
 
 const messageOne = {
   _id: new mongoose.Types.ObjectId(),
@@ -55,6 +66,11 @@ const messagePost = {
   thread: threadOne._id
 }
 
+const messagePostTooLong = {
+  body: generateLoremText(config.maxMessageLength + 10),
+  thread: threadOne._id
+}
+
 const insertMessages = async (msgs) => {
   await Message.insertMany(msgs)
 }
@@ -66,5 +82,6 @@ module.exports = {
   messageFour,
   invisibleMessage,
   messagePost,
+  messagePostTooLong,
   insertMessages
 }

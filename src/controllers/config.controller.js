@@ -6,6 +6,7 @@ const agentTypesPromise = require('../models/user.model/agent.model/agentTypes/c
 const getConfig = catchAsync(async (req, res) => {
   const agentTypes = await agentTypesPromise
   return res.status(httpStatus.OK).send({
+    maxMessageLength: config.maxMessageLength,
     enablePolls: config.enablePolls,
     enableAgents: config.enableAgents,
     availableAgents: config.enableAgents ? agentTypes : []

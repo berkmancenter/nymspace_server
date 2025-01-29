@@ -55,6 +55,10 @@ const fetchThread = async (messageBody, user) => {
 const createMessage = async (messageBody, user, thread) => {
   const activePseudo = user.activePseudonym
 
+  if (!messageBody.body) throw new ApiError(httpStatus.BAD_REQUEST, 'Message body is required')
+  if (messageBody.body.length > config.maxMessageLength)
+    throw new ApiError(httpStatus.BAD_REQUEST, `Message must be no longer than ${config.maxMessageLength} characters`)
+
   const message = await Message.create({
     body: messageBody.body,
     thread: thread._id,

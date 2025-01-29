@@ -1,7 +1,7 @@
 const request = require('supertest')
 const httpStatus = require('http-status')
 const setupIntTest = require('../utils/setupIntTest')
-const { messageOne, insertMessages, messagePost } = require('../fixtures/message.fixture')
+const { messageOne, insertMessages, messagePost, messagePostTooLong } = require('../fixtures/message.fixture')
 const app = require('../../src/app')
 const { insertUsers, registeredUser, userOne } = require('../fixtures/user.fixture')
 const { registeredUserAccessToken, userOneAccessToken } = require('../fixtures/token.fixture')
@@ -74,6 +74,20 @@ describe('Message routes', () => {
   })
 
   describe('POST /v1/messages', () => {
+    test('a message that is too long should return 400 and not create message', async () => {
+      await insertUsers([registeredUser])
+      await insertTopics([publicTopic])
+      await insertThreads([threadOne])
+      await request(app)
+        .post(`/v1/messages/`)
+        .set('Authorization', `Bearer ${registeredUserAccessToken}`)
+        .send(messagePostTooLong)
+        .expect(httpStatus.BAD_REQUEST)
+
+      const msgs = await Message.find({ body: messagePostTooLong.body })
+      expect(msgs.length).toBe(0)
+    })
+
     test('should return 201 and create message', async () => {
       await insertUsers([registeredUser])
       await insertTopics([publicTopic])
@@ -86,6 +100,9 @@ describe('Message routes', () => {
 
       const msgs = await Message.find({ id: res.id })
       expect(msgs.length).toBe(1)
+
+      const msgsFromBody = await Message.find({ body: messagePost.body })
+      expect(msgsFromBody.length).toBe(1)
     })
 
     test('should create message, and message should have current active pseudonym', async () => {
