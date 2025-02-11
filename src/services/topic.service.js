@@ -6,6 +6,7 @@ const Token = require('../models/token.model')
 const ApiError = require('../utils/ApiError')
 const updateDocument = require('../utils/updateDocument')
 const User = require('../models/user.model/user.model')
+const config = require('../config/config')
 
 /**
  * Query topics and add sorting properties
@@ -91,11 +92,12 @@ const createTopic = async (topicBody, user) => {
   if (topicBody.private) {
     passcode = await randomPasscode(1000000, 9999999)
   }
+
   const topic = await Topic.create({
     name: topicBody.name,
     votingAllowed: topicBody.votingAllowed,
     threadCreationAllowed: topicBody.threadCreationAllowed,
-    private: topicBody.private,
+    private: config.enablePublicChannelCreation ? topicBody.private : true,
     archivable: topicBody.archivable,
     archiveEmail: topicBody.archiveEmail,
     passcode,
