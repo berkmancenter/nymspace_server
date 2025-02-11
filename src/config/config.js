@@ -14,6 +14,7 @@ const envVarsSchema = Joi.object()
     MONGODB_DEBUG: Joi.boolean().description('Enable mongoose debugging'),
     NYMSPACE_ENABLE_AGENTS: Joi.boolean().default(false).description('Enable agent support'),
     NYMSPACE_ENABLE_POLLS: Joi.boolean().default(false).description('Enable poll support'),
+    NYMSPACE_ENABLE_PUBLIC_CHANNEL_CREATION: Joi.boolean().default(false).description('Enable channel creation'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -83,6 +84,8 @@ module.exports = {
   maxMessageLength: envVars.MAX_MESSAGE_LENGTH,
   enablePolls: envVars.NYMSPACE_ENABLE_POLLS,
   enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
+  enablePublicChannelCreation: envVars.NYMSPACE_ENABLE_PUBLIC_CHANNEL_CREATION,
+
   llms: {
     basePath: envVars.LANGCHAIN_API_BASE_PATH,
     openAI: {
