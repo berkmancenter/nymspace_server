@@ -31,7 +31,7 @@ if (cluster.isMaster) {
   })
   setupPrimary()
   if (config.env !== 'test') {
-    httpServer.listen(5555)
+    httpServer.listen(config.websocketBasePort)
   }
 } else {
   const httpServer = http.createServer()
