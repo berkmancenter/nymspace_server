@@ -19,7 +19,7 @@ if (cluster.isMaster) {
   const numCPUs = availableParallelism()
   // create one worker per available core
   if (config.env !== 'test') {
-    for (let i = 0; i < numCPUs; i += 1) {
+    for (let i = 1; i < numCPUs; i += 1) {
       worker = cluster.fork({
         PORT: config.websocketBasePort + i
       })
