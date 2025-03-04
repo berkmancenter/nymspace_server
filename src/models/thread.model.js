@@ -39,7 +39,11 @@ const threadSchema = mongoose.Schema(
       required: true,
       index: true
     },
-    messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
+    messageCount: {
+      type: mongoose.SchemaTypes.Number,
+      ref: 'MessageCount'
+    },
+    // messages: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
     agents: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Agent' }]
   },

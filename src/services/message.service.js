@@ -67,10 +67,9 @@ const createMessage = async (messageBody, user, thread) => {
     pseudonymId: activePseudo._id
   })
 
-  thread.messages.push(message.toObject())
-  await thread.save()
+  Thread.findOneAndUpdate({ _id: thread._id }, { $inc: { messageCount: 1 } }).exec()
 
-  message.count = thread.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0)
+  message.threadMessageCount = thread.messageCount + 1
   return message
 }
 
