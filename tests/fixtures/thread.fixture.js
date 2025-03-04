@@ -18,7 +18,7 @@ const threadOne = {
   slug: nameSlug1,
   owner: userOne._id,
   topic: publicTopic._id,
-  messages: []
+  messageCount: 0
 }
 
 const threadTwo = {
@@ -44,7 +44,7 @@ const threadAgentsEnabled = {
   topic: publicTopic._id,
   enableAgents: true,
   agents: [],
-  messages: []
+  messageCount: 0
 }
 
 const insertThreads = async (threads) => {
