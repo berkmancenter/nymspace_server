@@ -83,6 +83,8 @@ const revealHitTheButtonHiddenMessages = async (threadId, user) => {
 
   // Set hitTheButtonhidden=false for all messages in this thread
   await Message.updateMany({ thread: threadId, hitTheButtonhidden: true }, { $set: { hitTheButtonhidden: false } })
+
+  return thread
 }
 
 const userThreads = async (user) => {
