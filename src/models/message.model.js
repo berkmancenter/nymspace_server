@@ -56,6 +56,11 @@ const messageSchema = mongoose.Schema(
       default: true,
       required: true,
       index: true
+    },
+    hitTheButtonhidden: {
+      type: Boolean,
+      default: false,
+      required: true
     }
   },
   {

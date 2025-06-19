@@ -1,6 +1,6 @@
 const express = require('express')
 const threadsController = require('../../controllers/thread.controller')
-const auth = require('../../middlewares/auth')
+const { auth } = require('../../middlewares/auth')
 const threadValidation = require('../../validations/thread.validation')
 const validate = require('../../middlewares/validate')
 
@@ -113,6 +113,33 @@ router.route('/follow').post(auth('followThread'), threadsController.follow)
  *
  */
 router.route('/').put(auth('updateThread'), validate(threadValidation.updateThread), threadsController.updateThread)
+
+/**
+ * @swagger
+ * /threads/reveal:
+ *   put:
+ *     description: Reveal hidden messages in a thread
+ *     tags: [Thread]
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             $ref: '#/components/schemas/Thread'
+ *     responses:
+ *       200:
+ *         description: ok
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/Thread'
+ *
+ */
+router.route('/reveal').put(auth('revealHitTheButtonHiddenMessages'), threadsController.revealHitTheButtonHiddenMessages)
 
 /**
  * @swagger

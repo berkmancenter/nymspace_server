@@ -64,7 +64,8 @@ const createMessage = async (messageBody, user, thread) => {
     thread: thread._id,
     owner: user,
     pseudonym: activePseudo.pseudonym,
-    pseudonymId: activePseudo._id
+    pseudonymId: activePseudo._id,
+    hitTheButtonhidden: thread.hitTheButton
   })
 
   Thread.findOneAndUpdate({ _id: thread._id }, { $inc: { messageCount: 1 } }).exec()
@@ -73,12 +74,28 @@ const createMessage = async (messageBody, user, thread) => {
   return message
 }
 
-const threadMessages = async (id) => {
-  const messages = await Message.find({ thread: id, visible: true })
-    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent')
+const threadMessages = async (id, userId) => {
+  const messages = await Message.find({
+    thread: id,
+    visible: true
+  })
+    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hitTheButtonhidden')
     .sort({ createdAt: 1 })
     .exec()
-  return messages
+
+  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
+  const redactedMessages = messages.map((msg) => {
+    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
+      return {
+        ...msg.toObject(),
+        body: null, // or 'REDACTED'
+        pseudonym: null // or 'REDACTED'
+      }
+    }
+    return msg
+  })
+
+  return redactedMessages
 }
 
 /**

@@ -4,7 +4,8 @@ const updateThread = {
   body: Joi.object().keys({
     id: Joi.string().required(),
     name: Joi.string(),
-    locked: Joi.boolean()
+    locked: Joi.boolean(),
+    hitTheButton: Joi.boolean()
   })
 }
 

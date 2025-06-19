@@ -9,7 +9,7 @@ const createMessage = catchAsync(async (req, res) => {
 })
 
 const threadMessages = catchAsync(async (req, res) => {
-  const messages = await messageService.threadMessages(req.params.threadId)
+  const messages = await messageService.threadMessages(req.params.threadId, req.user.id)
   res.status(httpStatus.OK).send(messages)
 })
 

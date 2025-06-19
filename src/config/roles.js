@@ -27,7 +27,10 @@ const allRoles = {
     'listPolls',
     'inspectPoll',
     'getPollResponses',
-    'getPollResponseCounts'
+    'getPollResponseCounts',
+
+    // hit the button roles
+    'revealHitTheButtonHiddenMessages'
   ],
   admin: ['getUsers', 'manageUsers']
 }

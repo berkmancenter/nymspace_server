@@ -44,7 +44,12 @@ const threadSchema = mongoose.Schema(
       ref: 'MessageCount'
     },
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
-    agents: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Agent' }]
+    agents: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Agent' }],
+    hitTheButton: {
+      type: mongoose.SchemaTypes.Boolean,
+      ref: 'HitTheButton',
+      default: false
+    }
   },
   {
     timestamps: true

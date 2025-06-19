@@ -2,7 +2,7 @@ const express = require('express')
 const messageController = require('../../controllers/message.controller')
 const messageValidation = require('../../validations/message.validation')
 const validate = require('../../middlewares/validate')
-const auth = require('../../middlewares/auth')
+const { auth, optionalAuth } = require('../../middlewares/auth')
 
 const router = express.Router()
 
@@ -34,7 +34,7 @@ router.post('/', auth('createMessage'), validate(messageValidation.createMessage
  *                 type: object
  *                 $ref: '#/components/schemas/Message'
  */
-router.route('/:threadId').get(messageController.threadMessages)
+router.route('/:threadId').get(optionalAuth, messageController.threadMessages)
 
 /**
  * @swagger
