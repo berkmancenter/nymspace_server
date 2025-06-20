@@ -59,14 +59,20 @@ const createMessage = async (messageBody, user, thread) => {
   if (messageBody.body.length > config.maxMessageLength)
     throw new ApiError(httpStatus.BAD_REQUEST, `Message must be no longer than ${config.maxMessageLength} characters`)
 
-  const message = await Message.create({
+  const messageData = {
     body: messageBody.body,
     thread: thread._id,
     owner: user,
     pseudonym: activePseudo.pseudonym,
     pseudonymId: activePseudo._id,
     hitTheButtonhidden: thread.hitTheButton
-  })
+  }
+
+  if (messageBody.parentMessage) {
+    messageData.parentMessage = mongoose.Types.ObjectId(messageBody.parentMessage)
+  }
+
+  const message = await Message.create(messageData)
 
   Thread.findOneAndUpdate({ _id: thread._id }, { $inc: { messageCount: 1 } }).exec()
 
@@ -77,22 +83,48 @@ const createMessage = async (messageBody, user, thread) => {
 const threadMessages = async (id, userId) => {
   const messages = await Message.find({
     thread: id,
-    visible: true
+    visible: true,
+    parentMessage: { $exists: false }
   })
     .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hitTheButtonhidden')
     .sort({ createdAt: 1 })
     .exec()
 
-  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
-  const redactedMessages = messages.map((msg) => {
-    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
-      return {
-        ...msg.toObject(),
-        body: null, // or 'REDACTED'
-        pseudonym: null // or 'REDACTED'
+  const messageIds = messages.map(msg => msg._id)
+  const replyCounts = await Message.aggregate([
+    {
+      $match: {
+        parentMessage: { $in: messageIds },
+        visible: true
+      }
+    },
+    {
+      $group: {
+        _id: '$parentMessage',
+        count: { $sum: 1 }
       }
     }
-    return msg
+  ])
+
+  const replyCountMap = {}
+  replyCounts.forEach(item => {
+    replyCountMap[item._id.toString()] = item.count
+  })
+
+  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
+  const redactedMessages = messages.map((msg) => {
+    const msgObj = msg.toObject()
+
+    msgObj.replyCount = replyCountMap[msg._id.toString()] || 0
+
+    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
+      return {
+        ...msgObj,
+        body: null,
+        pseudonym: null
+      }
+    }
+    return msgObj
   })
 
   return redactedMessages
@@ -190,10 +222,41 @@ const newMessageHandler = async (message, user) => {
   return messages
 }
 
+/**
+ * Get replies for a specific message
+ * @param {Object} messageId
+ * @param {Object} userId
+ * @returns {Promise<[Message]>}
+ */
+const getMessageReplies = async (messageId, userId) => {
+  const replies = await Message.find({
+    parentMessage: messageId,
+    visible: true
+  })
+    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hitTheButtonhidden')
+    .sort({ createdAt: 1 })
+    .exec()
+
+  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
+  const redactedReplies = replies.map((msg) => {
+    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
+      return {
+        ...msg.toObject(),
+        body: null,
+        pseudonym: null
+      }
+    }
+    return msg
+  })
+
+  return redactedReplies
+}
+
 module.exports = {
   fetchThread,
   createMessage,
   threadMessages,
   vote,
-  newMessageHandler
+  newMessageHandler,
+  getMessageReplies
 }

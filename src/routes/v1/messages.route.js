@@ -38,6 +38,34 @@ router.route('/:threadId').get(optionalAuth, messageController.threadMessages)
 
 /**
  * @swagger
+ * /messages/{messageId}/replies:
+ *   get:
+ *     description: Returns all replies to a message
+ *     tags: [Message]
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         description: Id of message to get replies for
+ *         schema:
+ *           type: string
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: Reply message array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/components/schemas/Message'
+ */
+router.route('/:messageId/replies').get(optionalAuth, messageController.messageReplies)
+
+/**
+ * @swagger
  * /messages/{messageId}/vote:
  *   post:
  *     description: Vote on a message

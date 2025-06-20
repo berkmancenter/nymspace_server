@@ -13,6 +13,11 @@ const threadMessages = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(messages)
 })
 
+const messageReplies = catchAsync(async (req, res) => {
+  const replies = await messageService.getMessageReplies(req.params.messageId, req.user.id)
+  res.status(httpStatus.OK).send(replies)
+})
+
 const vote = catchAsync(async (req, res) => {
   const message = await messageService.vote(req.params.messageId, req.body.direction, req.body.status, req.user)
   if (worker) {
@@ -33,5 +38,6 @@ const vote = catchAsync(async (req, res) => {
 module.exports = {
   createMessage,
   threadMessages,
+  messageReplies,
   vote
 }

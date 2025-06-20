@@ -61,6 +61,10 @@ const messageSchema = mongoose.Schema(
       type: Boolean,
       default: false,
       required: true
+    },
+    parentMessage: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Message',
     }
   },
   {
