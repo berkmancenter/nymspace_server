@@ -47,7 +47,7 @@ const sendPasswordResetEmailAsync = async (to, token) => {
   const text = `Dear user,
   To reset your password, copy and paste this link in your browser: ${resetPasswordUrl}
   If you did not request any password resets, please ignore this email.`
-  const html = `<p>Dear Threads user,</p>
+  const html = `<p>Dear Nymspace user,</p>
   <p>To reset your password, please <a href="${resetPasswordUrl}">click here</a>.</p>
   <p>If you did not request any password resets, please ignore this email.</p>`
   await sendEmailAsync(to, subject, text, html)
@@ -65,7 +65,7 @@ const sendPasswordResetEmail = (to, token, callback) => {
   const text = `Dear user,
   To reset your password, copy and paste this link in your browser: ${resetPasswordUrl}
   If you did not request any password resets, please ignore this email.`
-  const html = `<p>Dear Threads user,</p>
+  const html = `<p>Dear Nymspace user,</p>
   <p>To reset your password, please <a href="${resetPasswordUrl}">click here</a>.</p>
   <p>If you did not request any password resets, please ignore this email.</p>`
   sendEmail(to, subject, text, html, callback)
@@ -98,12 +98,12 @@ const sendArchiveTopicEmail = async (to, topic, token) => {
   const subject = 'Archiving Your Threads Channel'
   // replace this url with the link to the archive topic page of your front-end app
   const archivalUrl = `${config.appHost}/archive-topic?topicId=${topic._id}&token=${token}`
-  const text = `Dear Threads user,
-Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.
-To prevent archival and keep your channel on Threads, please copy and paste this link in your browser: ${archivalUrl}`
+  const text = `Dear Nymspace user,
+Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Nymspace in 7 days.
+To prevent archival and keep your channel on Nymspace, please copy and paste this link in your browser: ${archivalUrl}`
   const html = `<p>Dear user,</p>
-<p>Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Threads in 7 days.</p>
-<p>To prevent archival and keep your channel on Threads, please <a href="${archivalUrl}">click here</a>.</p>`
+<p>Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Nymspace in 7 days.</p>
+<p>To prevent archival and keep your channel on Nymspace, please <a href="${archivalUrl}">click here</a>.</p>`
   await sendEmailAsync(to, subject, text, html)
 }
 

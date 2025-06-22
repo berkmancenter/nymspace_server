@@ -17,7 +17,7 @@ const logger = require('../config/logger')
 const loginUser = async (loginBody) => {
   const user = await userService.getUserByUsernamePassword(loginBody.username, loginBody.password)
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect credentials')
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect username or password')
   }
   return user
 }
