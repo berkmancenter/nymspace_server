@@ -3,6 +3,7 @@ const ApiError = require('../utils/ApiError')
 const catchAsync = require('../utils/catchAsync')
 const { exportService } = require('../services')
 const Thread = require('../models/thread.model')
+const logger = require('../config/logger')
 
 const exportThread = catchAsync(async (req, res) => {
   const { threadId } = req.params
@@ -32,7 +33,7 @@ const exportThread = catchAsync(async (req, res) => {
     res.setHeader('Content-Length', buffer.length)
     res.send(buffer)
   } catch (error) {
-    console.error('Export error:', error)
+    logger.error('Export error:', error)
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to export thread')
   }
 })

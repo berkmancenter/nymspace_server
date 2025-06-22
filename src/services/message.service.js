@@ -90,7 +90,7 @@ const threadMessages = async (id, userId) => {
     .sort({ createdAt: 1 })
     .exec()
 
-  const messageIds = messages.map(msg => msg._id)
+  const messageIds = messages.map((msg) => msg._id)
   const replyCounts = await Message.aggregate([
     {
       $match: {
@@ -107,7 +107,7 @@ const threadMessages = async (id, userId) => {
   ])
 
   const replyCountMap = {}
-  replyCounts.forEach(item => {
+  replyCounts.forEach((item) => {
     replyCountMap[item._id.toString()] = item.count
   })
 
