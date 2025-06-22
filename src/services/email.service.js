@@ -95,13 +95,13 @@ const sendPasswordResetEmail = (to, token, callback) => {
  * @returns {Promise}
  */
 const sendArchiveTopicEmail = async (to, topic, token) => {
-  const subject = 'Archiving Your Threads Channel'
+  const subject = 'Archiving Your Nymspace Channel'
   // replace this url with the link to the archive topic page of your front-end app
   const archivalUrl = `${config.appHost}/archive-topic?topicId=${topic._id}&token=${token}`
   const text = `Dear Nymspace user,
 Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Nymspace in 7 days.
 To prevent archival and keep your channel on Nymspace, please copy and paste this link in your browser: ${archivalUrl}`
-  const html = `<p>Dear user,</p>
+  const html = `<p>Dear Nymspace user,</p>
 <p>Your channel "${topic.name}" is now 90 days old, and will be archived and removed from Nymspace in 7 days.</p>
 <p>To prevent archival and keep your channel on Nymspace, please <a href="${archivalUrl}">click here</a>.</p>`
   await sendEmailAsync(to, subject, text, html)
