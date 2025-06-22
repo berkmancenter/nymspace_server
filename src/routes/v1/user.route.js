@@ -181,4 +181,110 @@ router.route('/pseudonyms/activate').put(auth('managePseudonym'), userController
  */
 router.route('/pseudonyms/:pseudonymId').delete(auth('managePseudonym'), userController.deletePseudonym)
 
+/**
+ * @swagger
+ * /users/{userId}/preferences/export:
+ *   put:
+ *     description: Update user's data export opt-out preference
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the user
+ *         schema:
+ *           type: string
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               optOut:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Updated preference
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 dataExportOptOut:
+ *                   type: boolean
+ */
+router.route('/user/:userId/preferences/export').put(auth('manageAccount'), userController.updateDataExportPreference)
+
+/**
+ * @swagger
+ * /users/{userId}/preferences/export:
+ *   get:
+ *     description: Get user's data export opt-out preference
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the user
+ *         schema:
+ *           type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Current preference
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 dataExportOptOut:
+ *                   type: boolean
+ */
+router.route('/user/:userId/preferences/export').get(auth('manageAccount'), userController.getDataExportPreference)
+
+/**
+ * @swagger
+ * /users/{userId}/exports:
+ *   get:
+ *     description: Get export audit log for user
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the user
+ *         schema:
+ *           type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Export audit log
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 audits:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       threadName:
+ *                         type: string
+ *                       exporterUsername:
+ *                         type: string
+ *                       format:
+ *                         type: string
+ *                       exportDate:
+ *                         type: string
+ *                       messageCount:
+ *                         type: number
+ */
+router.route('/user/:userId/exports').get(auth('manageAccount'), userController.getExportAuditLog)
+
 module.exports = router

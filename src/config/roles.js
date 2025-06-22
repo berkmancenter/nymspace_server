@@ -20,6 +20,7 @@ const allRoles = {
     'manageAccount',
     'getUser',
     'updateThread',
+    'exportOwnThread',
 
     // poll roles
     'createPoll',

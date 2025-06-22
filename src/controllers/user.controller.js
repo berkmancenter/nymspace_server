@@ -2,6 +2,7 @@ const httpStatus = require('http-status')
 const ApiError = require('../utils/ApiError')
 const catchAsync = require('../utils/catchAsync')
 const { userService } = require('../services')
+const ExportAudit = require('../models/exportAudit.model')
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body)
@@ -47,6 +48,46 @@ const activatePseudonym = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(user.pseudonyms.filter((x) => !x.isDeleted))
 })
 
+const updateDataExportPreference = catchAsync(async (req, res) => {
+  if (req.params.userId !== req.user.id) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Cannot update preferences for another user')
+  }
+
+  const user = await userService.getUserById(req.user.id)
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
+  }
+  user.dataExportOptOut = req.body.optOut
+  await user.save()
+  res.status(httpStatus.OK).send({ dataExportOptOut: user.dataExportOptOut })
+})
+
+const getDataExportPreference = catchAsync(async (req, res) => {
+  if (req.params.userId !== req.user.id) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Cannot get preferences for another user')
+  }
+
+  const user = await userService.getUserById(req.user.id)
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
+  }
+  res.status(httpStatus.OK).send({ dataExportOptOut: user.dataExportOptOut })
+})
+
+const getExportAuditLog = catchAsync(async (req, res) => {
+  if (req.params.userId !== req.user.id) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Cannot get audit log for another user')
+  }
+
+  const audits = await ExportAudit.find({
+    'affectedUsers.userId': req.user.id
+  })
+    .select('threadName exporterUsername format exportDate messageCount')
+    .sort({ exportDate: -1 })
+
+  res.status(httpStatus.OK).send({ audits })
+})
+
 module.exports = {
   createUser,
   updateUser,
@@ -54,5 +95,8 @@ module.exports = {
   addPseudonym,
   activatePseudonym,
   getPseudonyms,
-  deletePseudonym
+  deletePseudonym,
+  updateDataExportPreference,
+  getDataExportPreference,
+  getExportAuditLog
 }

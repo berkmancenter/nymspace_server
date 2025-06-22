@@ -44,6 +44,9 @@ const createUser = async (userBody) => {
     ]
   }
   if (userBody.email) user.email = userBody.email
+  if (typeof userBody.dataExportOptOut !== 'undefined') {
+    user.dataExportOptOut = userBody.dataExportOptOut
+  }
   user = await User.create(user)
   return user
 }
