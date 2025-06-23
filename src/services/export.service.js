@@ -74,10 +74,11 @@ const buildMessageHierarchy = (messages) => {
 const formatMessagesForDocx = (messages, level = 0) => {
   return messages
     .map((msg) => {
-      const indent = level * 720 // 0.5 inch per level
+      const indent = level * 720
+      const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       return [
         new Paragraph({
-          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString()}`,
+          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString()} (${serverTimezone})`,
           indent: { left: indent },
           spacing: { before: 240 },
           style: 'Heading3'
@@ -87,7 +88,6 @@ const formatMessagesForDocx = (messages, level = 0) => {
           indent: { left: indent },
           spacing: { after: 240 }
         }),
-        // Recursively format replies
         ...formatMessagesForDocx(msg.replies || [], level + 1)
       ]
     })
@@ -101,6 +101,7 @@ const formatMessagesForDocx = (messages, level = 0) => {
  * @returns {Promise<Buffer>} DOCX file buffer
  */
 const generateDocx = async (messages, metadata) => {
+  const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const doc = new Document({
     sections: [
       {
@@ -115,7 +116,7 @@ const generateDocx = async (messages, metadata) => {
             heading: HeadingLevel.HEADING_2
           }),
           new Paragraph({
-            text: `Exported on: ${new Date().toLocaleString()}`,
+            text: `Exported on: ${new Date().toLocaleString()} (${serverTimezone})`,
             heading: HeadingLevel.HEADING_2,
             spacing: { after: 480 }
           }),
@@ -144,7 +145,7 @@ const generateCsv = async (messages, metadata) => {
       messageId: msg._id,
       pseudonym: msg.pseudonym,
       body: msg.body,
-      createdAt: new Date(msg.createdAt).toISOString(),
+      createdAt: `${new Date(msg.createdAt).toISOString()} (UTC)`,
       parentMessageId: msg.parentMessage || 'root'
     }))
 
@@ -175,7 +176,7 @@ const generateCsv = async (messages, metadata) => {
       {
         threadName: metadata.threadName,
         topicName: metadata.topicName,
-        exportDate: new Date().toISOString(),
+        exportDate: `${new Date().toISOString()} (UTC)`,
         messageCount: messages.length
       }
     ])
