@@ -24,6 +24,24 @@ const hashPassword = async (password) => {
 }
 
 /**
+ * Get user by username
+ * @param {String} username
+ * @returns {Promise<User>}
+ */
+const getUserByUsername = async (username) => {
+  return User.findOne({ username })
+}
+
+/**
+ * Get user by email
+ * @param {String} email
+ * @returns {Promise<User>}
+ */
+const getUserByEmail = async (email) => {
+  return User.findOne({ email })
+}
+
+/**
  * Create a user
  * @param {Object} userBody
  * @returns {Promise<User>}
@@ -87,14 +105,17 @@ const updateUser = async (userBody) => {
  * @returns {Promise<User>}
  */
 const addPseudonym = async (requestBody, requestUser) => {
-  requestBody.active = true
+  const newPseudonym = { ...requestBody, active: true }
   const user = await User.findById(requestUser.id)
   const psuedos = user.pseudonyms.filter((p) => !p.isDeleted)
   if (psuedos.length >= 5) {
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms')
   }
-  user.pseudonyms.forEach((p) => (p.active = false))
-  user.pseudonyms.push(requestBody)
+  user.pseudonyms.forEach((p) => {
+    // eslint-disable-next-line no-param-reassign
+    p.active = false
+  })
+  user.pseudonyms.push(newPseudonym)
   await user.save()
   return user
 }
@@ -109,8 +130,10 @@ const activatePseudonym = async (requestBody, requestUser) => {
   const user = await User.findById(requestUser.id)
   let match = false
   user.pseudonyms.forEach((p) => {
+    // eslint-disable-next-line no-param-reassign
     p.active = false
     if (p.token === requestBody.token) {
+      // eslint-disable-next-line no-param-reassign
       p.active = true
       match = true
     }
@@ -181,24 +204,6 @@ const getUserByUsernamePassword = async (username, password) => {
 }
 
 /**
- * Get user by username
- * @param {String} username
- * @returns {Promise<User>}
- */
-const getUserByUsername = async (username) => {
-  return User.findOne({ username })
-}
-
-/**
- * Get user by email
- * @param {String} email
- * @returns {Promise<User>}
- */
-const getUserByEmail = async (email) => {
-  return User.findOne({ email })
-}
-
-/**
  * Update user by id
  * @param {ObjectId} userId
  * @param {Object} updateBody
@@ -254,8 +259,9 @@ const newPseudonym = async (recursionIndex) => {
   // const allPseudos = pseudonymAdjectives.flatMap(d => pseudonymNouns.map(v => d + v));
   // console.log(allPseudos.length);
 
+  let currentRecursionIndex = recursionIndex
   // If we reach the max number of possible pseudonyms, switch to random pseudonyms
-  if (recursionIndex === 163563) {
+  if (currentRecursionIndex === 163563) {
     logger.error('No more unique pseudonyms left to assign. Switching to truly random pseudonyms.')
     config.trulyRandomPseudonyms = 'true'
   }
@@ -281,8 +287,8 @@ const newPseudonym = async (recursionIndex) => {
   // generate a new one via recursion, to ensure uniqueness.
   const messages = await Message.find({ pseudonym: pseudo })
   if (messages.length > 0) {
-    recursionIndex++
-    return newPseudonym(recursionIndex)
+    currentRecursionIndex += 1
+    return newPseudonym(currentRecursionIndex)
   }
   return pseudo
 }

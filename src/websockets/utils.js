@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync')
 
 const checkAuth = catchAsync(async (event, args, next) => {
   const payload = jwt.verify(args.token, config.jwt.secret)
+  // eslint-disable-next-line no-param-reassign
   args.user = await User.findById(payload.sub)
 
   next()

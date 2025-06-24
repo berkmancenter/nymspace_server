@@ -74,10 +74,11 @@ const buildMessageHierarchy = (messages) => {
 const formatMessagesForDocx = (messages, level = 0) => {
   return messages
     .map((msg) => {
-      const indent = level * 720 // 0.5 inch per level
+      const indent = level * 720
+      const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       return [
         new Paragraph({
-          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString()}`,
+          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString()} (${serverTimezone})`,
           indent: { left: indent },
           spacing: { before: 240 },
           style: 'Heading3'
@@ -87,7 +88,6 @@ const formatMessagesForDocx = (messages, level = 0) => {
           indent: { left: indent },
           spacing: { after: 240 }
         }),
-        // Recursively format replies
         ...formatMessagesForDocx(msg.replies || [], level + 1)
       ]
     })
@@ -101,6 +101,7 @@ const formatMessagesForDocx = (messages, level = 0) => {
  * @returns {Promise<Buffer>} DOCX file buffer
  */
 const generateDocx = async (messages, metadata) => {
+  const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const doc = new Document({
     sections: [
       {
@@ -115,7 +116,7 @@ const generateDocx = async (messages, metadata) => {
             heading: HeadingLevel.HEADING_2
           }),
           new Paragraph({
-            text: `Exported on: ${new Date().toLocaleString()}`,
+            text: `Exported on: ${new Date().toLocaleString()} (${serverTimezone})`,
             heading: HeadingLevel.HEADING_2,
             spacing: { after: 480 }
           }),
@@ -125,10 +126,8 @@ const generateDocx = async (messages, metadata) => {
     ]
   })
 
-  return await Packer.toBuffer(doc)
+  return Packer.toBuffer(doc)
 }
-
-
 
 /**
  * Generate CSV files for messages
@@ -138,6 +137,7 @@ const generateDocx = async (messages, metadata) => {
  */
 const generateCsv = async (messages, metadata) => {
   const tempDir = path.join(os.tmpdir(), `export-${metadata.threadId}-${Date.now()}`)
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await fs.mkdir(tempDir, { recursive: true })
 
   try {
@@ -145,7 +145,7 @@ const generateCsv = async (messages, metadata) => {
       messageId: msg._id,
       pseudonym: msg.pseudonym,
       body: msg.body,
-      createdAt: new Date(msg.createdAt).toISOString(),
+      createdAt: `${new Date(msg.createdAt).toISOString()} (UTC)`,
       parentMessageId: msg.parentMessage || 'root'
     }))
 
@@ -176,14 +176,16 @@ const generateCsv = async (messages, metadata) => {
       {
         threadName: metadata.threadName,
         topicName: metadata.topicName,
-        exportDate: new Date().toISOString(),
+        exportDate: `${new Date().toISOString()} (UTC)`,
         messageCount: messages.length
       }
     ])
 
     const csvFilePath = path.join(tempDir, 'messages.csv')
     const metadataFilePath = path.join(tempDir, 'metadata.csv')
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const messagesContent = await fs.readFile(csvFilePath)
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const metadataContent = await fs.readFile(metadataFilePath)
     const archive = archiver('zip', { zlib: { level: 9 } })
     const chunks = []
@@ -223,12 +225,11 @@ const exportThread = async (threadId, format = 'docx', exportingUser) => {
 
   const messages = await getExportableMessages(threadId)
   const affectedUsersMap = new Map()
-  const allMessages = await Message.find({ thread: threadId })
-    .populate('owner', 'pseudonyms')
+  const allMessages = await Message.find({ thread: threadId }).populate('owner', 'pseudonyms')
 
-  allMessages.forEach(msg => {
+  allMessages.forEach((msg) => {
     if (msg.owner && !affectedUsersMap.has(msg.owner._id.toString())) {
-      const activePseudonym = msg.owner.pseudonyms?.find(p => p.active)
+      const activePseudonym = msg.owner.pseudonyms?.find((p) => p.active)
       affectedUsersMap.set(msg.owner._id.toString(), {
         userId: msg.owner._id,
         pseudonym: activePseudonym?.pseudonym || 'Anonymous'

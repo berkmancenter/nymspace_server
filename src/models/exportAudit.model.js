@@ -28,13 +28,15 @@ const exportAuditSchema = mongoose.Schema(
       enum: ['docx', 'csv'],
       required: true
     },
-    affectedUsers: [{
-      userId: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: 'BaseUser'
-      },
-      pseudonym: String
-    }],
+    affectedUsers: [
+      {
+        userId: {
+          type: mongoose.SchemaTypes.ObjectId,
+          ref: 'BaseUser'
+        },
+        pseudonym: String
+      }
+    ],
     messageCount: {
       type: Number,
       default: 0
