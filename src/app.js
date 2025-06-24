@@ -42,8 +42,11 @@ app.use(compression())
 app.use(cookieParser())
 
 // enable cors
-app.use(cors())
-app.options('*', cors())
+const corsOptions = {
+  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type']
+}
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 
 // jwt authentication
 app.use(passport.initialize())

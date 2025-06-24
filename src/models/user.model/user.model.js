@@ -46,6 +46,11 @@ const userSchema = mongoose.Schema(
       type: String,
       trim: true,
       validate: [validateEmail, 'Please fill a valid email address']
+    },
+    dataExportOptOut: {
+      type: Boolean,
+      default: false,
+      index: true
     }
   },
   {
