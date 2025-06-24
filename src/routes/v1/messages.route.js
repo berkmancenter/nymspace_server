@@ -2,7 +2,7 @@ const express = require('express')
 const messageController = require('../../controllers/message.controller')
 const messageValidation = require('../../validations/message.validation')
 const validate = require('../../middlewares/validate')
-const auth = require('../../middlewares/auth')
+const { auth, optionalAuth } = require('../../middlewares/auth')
 
 const router = express.Router()
 
@@ -34,7 +34,35 @@ router.post('/', auth('createMessage'), validate(messageValidation.createMessage
  *                 type: object
  *                 $ref: '#/components/schemas/Message'
  */
-router.route('/:threadId').get(messageController.threadMessages)
+router.route('/:threadId').get(optionalAuth, messageController.threadMessages)
+
+/**
+ * @swagger
+ * /messages/{messageId}/replies:
+ *   get:
+ *     description: Returns all replies to a message
+ *     tags: [Message]
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         description: Id of message to get replies for
+ *         schema:
+ *           type: string
+ *     produces:
+ *      - application/json
+ *     responses:
+ *       200:
+ *         description: Reply message array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 $ref: '#/components/schemas/Message'
+ */
+router.route('/:messageId/replies').get(optionalAuth, messageController.messageReplies)
 
 /**
  * @swagger

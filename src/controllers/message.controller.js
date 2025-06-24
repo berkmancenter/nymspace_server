@@ -9,8 +9,13 @@ const createMessage = catchAsync(async (req, res) => {
 })
 
 const threadMessages = catchAsync(async (req, res) => {
-  const messages = await messageService.threadMessages(req.params.threadId)
+  const messages = await messageService.threadMessages(req.params.threadId, req.user.id)
   res.status(httpStatus.OK).send(messages)
+})
+
+const messageReplies = catchAsync(async (req, res) => {
+  const replies = await messageService.getMessageReplies(req.params.messageId, req.user.id)
+  res.status(httpStatus.OK).send(replies)
 })
 
 const vote = catchAsync(async (req, res) => {
@@ -33,5 +38,6 @@ const vote = catchAsync(async (req, res) => {
 module.exports = {
   createMessage,
   threadMessages,
+  messageReplies,
   vote
 }

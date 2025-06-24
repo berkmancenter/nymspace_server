@@ -1,6 +1,6 @@
 const express = require('express')
 const topicController = require('../../controllers/topic.controller')
-const auth = require('../../middlewares/auth')
+const { auth } = require('../../middlewares/auth')
 const validate = require('../../middlewares/validate')
 const topicValidation = require('../../validations/topic.validation')
 

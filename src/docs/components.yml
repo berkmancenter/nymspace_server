@@ -1,6 +1,5 @@
 components:
   schemas:
-
     Vote:
       type: object
       properties:
@@ -127,8 +126,7 @@ components:
         archiveEmail:
           type: string
           required: true
-        owner:
-          type
+        owner: type
         createdAt:
           type: date
         updatedAt:
@@ -157,6 +155,8 @@ components:
           type: boolean
         messageCount:
           type: number
+        hitTheButton:
+          type: boolean
       example:
         id: 61b0ffca7d4eb20ee9dcfe8c
         name: my favorite dog is Rottweiler
@@ -208,7 +208,7 @@ components:
       example:
         id: 61b0ffca7d4eb20ee9dcfe8d
         title: 'Where should we go to lunch?'
-        description: "This is a poll to decide where we should go to lunch"
+        description: 'This is a poll to decide where we should go to lunch'
         slug: 'where-should-we-go-to-lunch'
         locked: false
         owner: 671935adec641ee43536bd7c
@@ -236,7 +236,7 @@ components:
           type: string
       example:
         id: 61b0ffca7d4eb20ee9dcfe8e
-        text: "Poll choice #1"
+        text: 'Poll choice #1'
         poll: 6750a665664156091cdf5a31
 
     PollResponse:

@@ -30,4 +30,19 @@ const auth =
       .catch((err) => next(err))
   }
 
-module.exports = auth
+const optionalAuth = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user) => {
+    if (err) {
+      return next(err)
+    }
+    if (user) {
+      req.user = user
+    }
+    next()
+  })(req, res, next)
+}
+
+module.exports = {
+  auth,
+  optionalAuth
+}

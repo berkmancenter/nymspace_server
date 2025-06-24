@@ -25,12 +25,32 @@ module.exports = (io, socket) => {
         )
 
         message.owner = data.user._id
-
-        io.in(message.thread._id.toString()).emit('message:new', {
-          ...message.toJSON(),
-          threadMessageCount: message.threadMessageCount,
-          request: data.request
-        })
+        if (message.hitTheButtonhidden) {
+          // Send redacted message to everyone else in the thread
+          const redactedMessage = {
+            ...message.toJSON(),
+            body: null,
+            pseudonym: null
+          }
+          socket.to(message.thread._id.toString()).emit('message:new', {
+            ...redactedMessage,
+            threadMessageCount: message.threadMessageCount,
+            request: data.request
+          })
+          // Send full message to the sender only
+          socket.emit('message:new', {
+            ...message.toJSON(),
+            threadMessageCount: message.threadMessageCount,
+            request: data.request
+          })
+        } else {
+          // Send full message to everyone in the thread
+          io.in(message.thread._id.toString()).emit('message:new', {
+            ...message.toJSON(),
+            threadMessageCount: message.threadMessageCount,
+            request: data.request
+          })
+        }
       }
     } catch (err) {
       logger.error('Error creating message', err)

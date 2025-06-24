@@ -35,7 +35,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ## Running locally
 
 1. Start by copying `.env.example` to `.env.local`.
-2. Install `mongodb`
+2. Install `mongodb` ([ubuntu 24 server](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/))
 3. Run MongoDB with `mongod`
 >💡 **Note:** Mac users who have used Homebrew to install MongoDB should use the command `brew services start mongodb-community` to run the MongoDB service instead.
 4. Install `node.js` and set to version specified in `package.json` file (Consider using [nvm](https://github.com/nvm-sh/nvm))

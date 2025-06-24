@@ -1,6 +1,6 @@
 const express = require('express')
 const config = require('../../../config/config')
-const auth = require('../../../middlewares/auth')
+const { auth } = require('../../../middlewares/auth')
 const pollsController = require('../../../controllers/poll.controller')
 const pollValidation = require('../../../validations/poll.validation')
 const validate = require('../../../middlewares/validate')
