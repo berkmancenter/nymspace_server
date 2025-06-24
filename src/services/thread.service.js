@@ -4,25 +4,7 @@ const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
-const returnFields = 'name slug locked owner createdAt'
-
-/**
- * Removed messages array property and replaces with messageCount
- * @param {Array} threads
- * @returns {Array}
- */
-const addMessageCount = (threads) => {
-  return threads.map((thread) => {
-    const t = thread.toObject()
-
-    t.messageCount = t.messages ? t.messages.reduce((count, msg) => count + (msg.visible ? 1 : 0), 0) : 0
-    delete t.messages
-    // Replace _id with id since toJSON plugin will not be applied
-    t.id = t._id.toString()
-    delete t._id
-    return t
-  })
-}
+const returnFields = 'name slug locked owner createdAt messageCount'
 
 /**
  * Create a thread
@@ -43,6 +25,7 @@ const createThread = async (threadBody, user) => {
     name: threadBody.name,
     owner: user,
     topic,
+    messageCount: 0,
     enableAgents: !!threadBody.agentTypes.length,
     agents: []
   })
@@ -95,7 +78,7 @@ const userThreads = async (user) => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id')
   const followedThreads = await Follower.find({ user }).select('thread').exec()
   const followedThreadsIds = followedThreads.map((el) => el.thread).filter((el) => el)
-  let threads = await Thread.find({
+  const threads = await Thread.find({
     $and: [
       { $or: [{ owner: user }, { _id: { $in: followedThreadsIds } }] },
       {
@@ -103,10 +86,9 @@ const userThreads = async (user) => {
       }
     ]
   })
-    .populate({ path: 'messages', select: 'id visible' })
     .select(returnFields)
     .exec()
-  threads = addMessageCount(threads)
+
   threads.forEach((thread) => {
     if (followedThreadsIds.map((f) => f.toString()).includes(thread.id)) {
       // eslint-disable-next-line
@@ -132,11 +114,8 @@ const findByIdFull = async (id, user) => {
 }
 
 const topicThreads = async (topicId) => {
-  const threads = await Thread.find({ topic: topicId })
-    .populate({ path: 'messages', select: 'id visible' })
-    .select(returnFields)
-    .exec()
-  return addMessageCount(threads)
+  const threads = await Thread.find({ topic: topicId }).select(returnFields).exec()
+  return threads
 }
 
 const follow = async (status, threadId, user) => {
@@ -160,9 +139,8 @@ const allPublic = async () => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id')
   const threads = await Thread.find({ topic: { $nin: deletedTopics } })
     .select(returnFields)
-    .populate({ path: 'messages', select: 'id visible' })
     .exec()
-  return addMessageCount(threads)
+  return threads
 }
 
 const deleteThread = async (id, user) => {

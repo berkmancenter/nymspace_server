@@ -9,7 +9,8 @@ const getConfig = catchAsync(async (req, res) => {
     maxMessageLength: config.maxMessageLength,
     enablePolls: config.enablePolls,
     enableAgents: config.enableAgents,
-    availableAgents: config.enableAgents ? agentTypes : []
+    availableAgents: config.enableAgents ? agentTypes : [],
+    enablePublicChannelCreation: config.enablePublicChannelCreation
   })
 })
 

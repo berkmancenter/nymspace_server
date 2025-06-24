@@ -25,11 +25,10 @@ module.exports = (io, socket) => {
         )
 
         message.owner = data.user._id
-        message.thread.messages = []
 
         io.in(message.thread._id.toString()).emit('message:new', {
           ...message.toJSON(),
-          count: message.count,
+          threadMessageCount: message.threadMessageCount,
           request: data.request
         })
       }
