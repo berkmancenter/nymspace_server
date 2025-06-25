@@ -7,7 +7,7 @@ const ApiError = require('../../utils/ApiError')
 const { WHEN_RESULTS_VISIBLE } = require('../../models/poll.model/constants')
 
 const createPoll = async (pollBody, user) => {
-  if (!pollBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
+  if (!pollBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'Channel ID must be passed in request body.')
 
   const topicId = mongoose.Types.ObjectId(pollBody.topicId)
   const topic = await Topic.findById(topicId)
@@ -101,11 +101,11 @@ const listPolls = async (query, sort, sortDir, user) => {
 // choice can be a choiceId or a new choice object
 const respondPoll = async (pollId, choiceData, user) => {
   if (!user) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Must be logged in to respond to a poll')
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please log in to participate in this poll.')
   }
 
   const poll = await Poll.findById(pollId)
-  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found')
 
   // cannot respond to an expired poll
   const nowTime = Date.now()
@@ -118,7 +118,7 @@ const respondPoll = async (pollId, choiceData, user) => {
     throw new ApiError(httpStatus.FORBIDDEN, 'Expiration date has been reached. No more responses are allowed.')
 
   const text = choiceData.text.trim()
-  if (!text) throw new ApiError(httpStatus.BAD_REQUEST, 'Provided choice is missing the required text field')
+  if (!text) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll choice is required')
 
   const escapeStringRegex = (await escapeStringRegexPromise).default
 
@@ -222,7 +222,7 @@ const getUserPollResponseView = (poll, pollResponse, user, userChoiceMap, allRes
 // this collects all visible poll responses, based on the poll options and user
 // returns both visible poll responses as well as visible poll counts when allowed by our poll logic
 const collectVisiblePollResponses = async (poll, user) => {
-  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found')
 
   const nowTime = Date.now()
   const myResponse = await PollResponse.findOne({ poll: poll._id, owner: user._id })
@@ -285,7 +285,7 @@ const getPollResponses = async (pollId, user) => {
   if (!pollId) throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide poll id')
 
   const poll = await Poll.findById(pollId)
-  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found')
 
   if (!poll.responsesVisible) throw new ApiError(httpStatus.FORBIDDEN, 'Responses are not visible for this poll')
 
@@ -304,7 +304,7 @@ const getPollResponseCounts = async (pollId, user) => {
   if (!pollId) throw new ApiError(httpStatus.BAD_REQUEST, 'Must provide poll id')
 
   const poll = await Poll.findById(pollId)
-  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'No such poll')
+  if (!poll) throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found')
 
   if (!poll.responseCountsVisible) throw new ApiError(httpStatus.FORBIDDEN, 'Response counts are not visible for this poll')
 

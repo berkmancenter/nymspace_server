@@ -12,13 +12,13 @@ const returnFields = 'name slug locked owner createdAt messageCount hitTheButton
  * @returns {Promise<Thread>}
  */
 const createThread = async (threadBody, user) => {
-  if (!threadBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'topic id must be passed in request body')
+  if (!threadBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'Channel ID must be passed in request body.')
 
   const topicId = mongoose.Types.ObjectId(threadBody.topicId)
   const topic = await Topic.findById(topicId)
 
   if (!topic.threadCreationAllowed && user._id.toString() !== topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed in this channel.')
   }
 
   const thread = await Thread.create({
@@ -66,7 +66,7 @@ const createThread = async (threadBody, user) => {
 const updateThread = async (threadBody, user) => {
   let threadDoc = await Thread.findById(threadBody.id).populate('topic')
   if (user._id.toString() !== threadDoc.owner.toString() && user._id.toString() !== threadDoc.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can update.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can update.')
   }
 
   threadDoc = updateDocument(threadBody, threadDoc)
@@ -78,7 +78,7 @@ const updateThread = async (threadBody, user) => {
 const revealHitTheButtonHiddenMessages = async (threadId, user) => {
   const thread = await Thread.findById(threadId)
   if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can reveal hidden messages.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can reveal hidden messages.')
   }
 
   // Set hitTheButtonhidden=false for all messages in this thread
@@ -160,7 +160,7 @@ const deleteThread = async (id, user) => {
   const thread = await Thread.findOne({ _id: id }).populate('topic').select('name slug owner topic').exec()
 
   if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can delete.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can delete.  ')
   }
 
   await Thread.deleteOne({ _id: id })

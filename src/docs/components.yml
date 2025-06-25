@@ -270,7 +270,7 @@ components:
             $ref: '#/components/schemas/Error'
           example:
             code: 401
-            message: Please authenticate
+            message: Please log in
     Forbidden:
       description: Forbidden
       content:

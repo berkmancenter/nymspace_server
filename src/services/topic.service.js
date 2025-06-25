@@ -171,7 +171,7 @@ const findById = async (id) => {
  */
 const deleteTopic = async (id) => {
   const topic = await Topic.findOne({ _id: id })
-  if (!topic) throw new ApiError(httpStatus.NOT_FOUND, 'Topic does not exist')
+  if (!topic) throw new ApiError(httpStatus.NOT_FOUND, 'Channel does not exist')
   topic.isDeleted = true
   await topic.save()
 }

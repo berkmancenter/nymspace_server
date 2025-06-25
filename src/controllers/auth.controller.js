@@ -5,7 +5,7 @@ const ApiError = require('../utils/ApiError')
 
 const register = catchAsync(async (req, res) => {
   if (userService.isTokenGeneratedByThreads(req.body.token) === false) {
-    throw new Error('Invalid token')
+    throw new Error('Invalid or expired login token. Please log in again.')
   }
   if (req.body.username) {
     const existingUser = await userService.getUserByUsername(req.body.username)
