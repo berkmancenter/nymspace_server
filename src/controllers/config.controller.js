@@ -10,7 +10,8 @@ const getConfig = catchAsync(async (req, res) => {
     enablePolls: config.enablePolls,
     enableAgents: config.enableAgents,
     availableAgents: config.enableAgents ? agentTypes : [],
-    enablePublicChannelCreation: config.enablePublicChannelCreation
+    enablePublicChannelCreation: config.enablePublicChannelCreation,
+    enableAutoDeletion: config.enableAutoDeletion
   })
 })
 
