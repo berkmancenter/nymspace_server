@@ -9,12 +9,14 @@ const createMessage = catchAsync(async (req, res) => {
 })
 
 const threadMessages = catchAsync(async (req, res) => {
-  const messages = await messageService.threadMessages(req.params.threadId, req.user.id)
+  const userId = req.user ? req.user.id : null
+  const messages = await messageService.threadMessages(req.params.threadId, userId)
   res.status(httpStatus.OK).send(messages)
 })
 
 const messageReplies = catchAsync(async (req, res) => {
-  const replies = await messageService.getMessageReplies(req.params.messageId, req.user.id)
+  const userId = req.user ? req.user.id : null
+  const replies = await messageService.getMessageReplies(req.params.messageId, userId)
   res.status(httpStatus.OK).send(replies)
 })
 

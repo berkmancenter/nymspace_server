@@ -9,6 +9,41 @@ const { AgentMessageActions } = require('../types/agent.types')
 const ApiError = require('../utils/ApiError')
 
 /**
+ * Apply hidden message redaction logic
+ * @param {Object} msg - Message object
+ * @param {String} userId - Current user ID
+ * @param {Boolean} isChannelOwner - Whether current user is channel owner
+ * @param {String} channelOwnerId - Channel owner ID
+ * @returns {Object} - Message object with redaction applied
+ */
+const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId) => {
+  const msgObj = msg.toObject ? msg.toObject() : msg
+
+  if (msg.hiddenMessageModeHidden === true) {
+    const isOwnMessage = userId && msg.owner.toString() === userId.toString()
+    const isMessageFromChannelOwner = msg.owner.toString() === channelOwnerId?.toString()
+
+    if (!isChannelOwner && !isOwnMessage && !isMessageFromChannelOwner) {
+      msgObj.body = null
+      msgObj.hiddenForUser = true
+      logger.info(`Message ${msg._id} body set to null for user ${userId || 'unauthenticated'}`)
+    }
+
+    if (isMessageFromChannelOwner) {
+      msgObj.visibilityLabel = 'Message from facilitator, visible to everyone'
+    } else if (isChannelOwner && !isOwnMessage) {
+      msgObj.visibilityLabel = 'Message from participant, visible to you and author'
+    } else if (isOwnMessage) {
+      msgObj.visibilityLabel = 'Message is hidden from everyone except the facilitator'
+    } else {
+      msgObj.visibilityLabel = 'Message hidden from everyone else except the facilitator.'
+    }
+  }
+
+  return msgObj
+}
+
+/**
  * Check if we can create a message and fetch thread
  * @param {Object} messageBody
  * @param {User} user
@@ -81,6 +116,10 @@ const createMessage = async (messageBody, user, thread) => {
 }
 
 const threadMessages = async (id, userId) => {
+  // Get thread with topic to check ownership
+  const thread = await Thread.findById(id).populate('topic').exec()
+  const isChannelOwner = userId && thread.topic && thread.topic.owner.toString() === userId.toString()
+
   const messages = await Message.find({
     thread: id,
     visible: true,
@@ -111,19 +150,19 @@ const threadMessages = async (id, userId) => {
     replyCountMap[item._id.toString()] = item.count
   })
 
-  // Redact body and pseudonym for hiddenMessageModeHidden messages not owned by the user
+  logger.info(`Total messages found: ${messages.length}`)
+  messages.forEach((msg) => {
+    logger.info(
+      `Message ${msg._id}: owner=${msg.owner}, hiddenMessageModeHidden=${
+        msg.hiddenMessageModeHidden
+      }, body=${msg.body?.substring(0, 10)}...`
+    )
+  })
+
+  // Apply new redaction logic
   const redactedMessages = messages.map((msg) => {
-    const msgObj = msg.toObject()
-
+    const msgObj = applyHiddenMessageRedaction(msg, userId, isChannelOwner, thread.topic?.owner?.toString())
     msgObj.replyCount = replyCountMap[msg._id.toString()] || 0
-
-    if (msg.hiddenMessageModeHidden === true && msg.owner.toString() !== userId.toString()) {
-      return {
-        ...msgObj,
-        body: null,
-        pseudonym: null
-      }
-    }
     return msgObj
   })
 
@@ -229,6 +268,11 @@ const newMessageHandler = async (message, user) => {
  * @returns {Promise<[Message]>}
  */
 const getMessageReplies = async (messageId, userId) => {
+  // Get the parent message to find the thread
+  const parentMessage = await Message.findById(messageId).exec()
+  const thread = await Thread.findById(parentMessage.thread).populate('topic').exec()
+  const isChannelOwner = userId && thread.topic && thread.topic.owner.toString() === userId.toString()
+
   const replies = await Message.find({
     parentMessage: messageId,
     visible: true
@@ -237,16 +281,9 @@ const getMessageReplies = async (messageId, userId) => {
     .sort({ createdAt: 1 })
     .exec()
 
-  // Redact body and pseudonym for hiddenMessageModeHidden messages not owned by the user
+  // Apply same redaction logic as threadMessages
   const redactedReplies = replies.map((msg) => {
-    if (msg.hiddenMessageModeHidden === true && msg.owner.toString() !== userId.toString()) {
-      return {
-        ...msg.toObject(),
-        body: null,
-        pseudonym: null
-      }
-    }
-    return msg
+    return applyHiddenMessageRedaction(msg, userId, isChannelOwner, thread.topic?.owner?.toString())
   })
 
   return redactedReplies

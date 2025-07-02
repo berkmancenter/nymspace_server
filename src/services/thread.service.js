@@ -66,7 +66,7 @@ const createThread = async (threadBody, user) => {
 const updateThread = async (threadBody, user) => {
   let threadDoc = await Thread.findById(threadBody.id).populate('topic')
   if (user._id.toString() !== threadDoc.owner.toString() && user._id.toString() !== threadDoc.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can update.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can update.')
   }
 
   threadDoc = updateDocument(threadBody, threadDoc)
@@ -78,7 +78,7 @@ const updateThread = async (threadBody, user) => {
 const revealHiddenMessageModeMessages = async (threadId, user) => {
   const thread = await Thread.findById(threadId).populate('topic')
   if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can reveal hidden messages.')
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can reveal hidden messages.')
   }
 
   await Message.updateMany({ thread: threadId, hiddenMessageModeHidden: true }, { $set: { hiddenMessageModeHidden: false } })
