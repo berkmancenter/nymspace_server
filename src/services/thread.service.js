@@ -28,7 +28,7 @@ const createThread = async (threadBody, user) => {
     messageCount: 0,
     enableAgents: !!threadBody.agentTypes.length,
     agents: [],
-    hiddenMessageMode: threadBody?.hiddenMessageMode ? threadBody?.hiddenMessageMode : false
+    hitTheButton: threadBody?.hitTheButton ? threadBody?.hitTheButton : false
   })
 
   // need to save to get id
@@ -76,13 +76,15 @@ const updateThread = async (threadBody, user) => {
 }
 
 const revealHiddenMessageModeMessages = async (threadId, user) => {
-  const thread = await Thread.findById(threadId)
+  const thread = await Thread.findById(threadId).populate('topic')
   if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can reveal hidden messages.')
   }
 
-  // Set hiddenMessageModeHidden=false for all messages in this thread
   await Message.updateMany({ thread: threadId, hiddenMessageModeHidden: true }, { $set: { hiddenMessageModeHidden: false } })
+
+  thread.hiddenMessageMode = false
+  await thread.save()
 
   return thread
 }
