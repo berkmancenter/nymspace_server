@@ -8,6 +8,7 @@ const Message = require('../models/message.model')
 const User = require('../models/user.model/user.model')
 const Thread = require('../models/thread.model')
 const ExportAudit = require('../models/exportAudit.model')
+const config = require('../config/config')
 
 /**
  * Get exportable messages for a thread (excluding opted-out users)
@@ -15,18 +16,18 @@ const ExportAudit = require('../models/exportAudit.model')
  * @returns {Promise<Array>} Array of messages
  */
 const getExportableMessages = async (threadId) => {
-  const optedOutUsers = await User.find({
-    dataExportOptOut: true
-  }).select('_id')
+  const queryFilter = { thread: threadId }
 
-  const optedOutUserIds = optedOutUsers.map((u) => u._id)
+  if (config.enableExportOptOut) {
+    const optedOutUsers = await User.find({
+      dataExportOptOut: true
+    }).select('_id')
 
-  const messages = await Message.find({
-    thread: threadId,
-    owner: { $nin: optedOutUserIds }
-  })
-    .populate('owner', 'pseudonyms')
-    .sort({ createdAt: 1 })
+    const optedOutUserIds = optedOutUsers.map((u) => u._id)
+    queryFilter.owner = { $nin: optedOutUserIds }
+  }
+
+  const messages = await Message.find(queryFilter).populate('owner', 'pseudonyms').sort({ createdAt: 1 })
 
   return messages.map((msg) => {
     const activePseudonym = msg.owner?.pseudonyms?.find((p) => p.active)
