@@ -4,7 +4,7 @@ const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 
-const returnFields = 'name slug locked owner createdAt messageCount hitTheButton'
+const returnFields = 'name slug locked owner createdAt messageCount hiddenMessageMode'
 
 /**
  * Create a thread
@@ -28,7 +28,7 @@ const createThread = async (threadBody, user) => {
     messageCount: 0,
     enableAgents: !!threadBody.agentTypes.length,
     agents: [],
-    hitTheButton: threadBody?.hitTheButton ? threadBody?.hitTheButton : false
+    hiddenMessageMode: threadBody?.hiddenMessageMode ? threadBody?.hiddenMessageMode : false
   })
 
   // need to save to get id
@@ -75,14 +75,14 @@ const updateThread = async (threadBody, user) => {
   return threadDoc
 }
 
-const revealHitTheButtonHiddenMessages = async (threadId, user) => {
+const revealHiddenMessageModeMessages = async (threadId, user) => {
   const thread = await Thread.findById(threadId)
   if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or topic owner can reveal hidden messages.')
   }
 
-  // Set hitTheButtonhidden=false for all messages in this thread
-  await Message.updateMany({ thread: threadId, hitTheButtonhidden: true }, { $set: { hitTheButtonhidden: false } })
+  // Set hiddenMessageModeHidden=false for all messages in this thread
+  await Message.updateMany({ thread: threadId, hiddenMessageModeHidden: true }, { $set: { hiddenMessageModeHidden: false } })
 
   return thread
 }
@@ -178,5 +178,5 @@ module.exports = {
   allPublic,
   deleteThread,
   updateThread,
-  revealHitTheButtonHiddenMessages
+  revealHiddenMessageModeMessages
 }

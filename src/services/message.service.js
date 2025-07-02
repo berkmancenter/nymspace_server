@@ -65,7 +65,7 @@ const createMessage = async (messageBody, user, thread) => {
     owner: user,
     pseudonym: activePseudo.pseudonym,
     pseudonymId: activePseudo._id,
-    hitTheButtonhidden: thread.hitTheButton
+    hiddenMessageModeHidden: thread.hiddenMessageMode
   }
 
   if (messageBody.parentMessage) {
@@ -86,7 +86,7 @@ const threadMessages = async (id, userId) => {
     visible: true,
     parentMessage: { $exists: false }
   })
-    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hitTheButtonhidden')
+    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hiddenMessageModeHidden')
     .sort({ createdAt: 1 })
     .exec()
 
@@ -111,13 +111,13 @@ const threadMessages = async (id, userId) => {
     replyCountMap[item._id.toString()] = item.count
   })
 
-  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
+  // Redact body and pseudonym for hiddenMessageModeHidden messages not owned by the user
   const redactedMessages = messages.map((msg) => {
     const msgObj = msg.toObject()
 
     msgObj.replyCount = replyCountMap[msg._id.toString()] || 0
 
-    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
+    if (msg.hiddenMessageModeHidden === true && msg.owner.toString() !== userId.toString()) {
       return {
         ...msgObj,
         body: null,
@@ -233,13 +233,13 @@ const getMessageReplies = async (messageId, userId) => {
     parentMessage: messageId,
     visible: true
   })
-    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hitTheButtonhidden')
+    .select('body owner upVotes downVotes pseudonym pseudonymId createdAt fromAgent hiddenMessageModeHidden')
     .sort({ createdAt: 1 })
     .exec()
 
-  // Redact body and pseudonym for hitTheButtonhidden messages not owned by the user
+  // Redact body and pseudonym for hiddenMessageModeHidden messages not owned by the user
   const redactedReplies = replies.map((msg) => {
-    if (msg.hitTheButtonhidden === true && msg.owner.toString() !== userId.toString()) {
+    if (msg.hiddenMessageModeHidden === true && msg.owner.toString() !== userId.toString()) {
       return {
         ...msg.toObject(),
         body: null,

@@ -25,7 +25,7 @@ module.exports = (io, socket) => {
         )
 
         message.owner = data.user._id
-        if (message.hitTheButtonhidden) {
+        if (message.hiddenMessageModeHidden) {
           // Send redacted message to everyone else in the thread
           const redactedMessage = {
             ...message.toJSON(),

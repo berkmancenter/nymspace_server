@@ -57,7 +57,7 @@ const messageSchema = mongoose.Schema(
       required: true,
       index: true
     },
-    hitTheButtonhidden: {
+    hiddenMessageModeHidden: {
       type: Boolean,
       default: false,
       required: true
