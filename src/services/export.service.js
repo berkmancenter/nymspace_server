@@ -70,16 +70,18 @@ const buildMessageHierarchy = (messages) => {
  * Format messages for DOCX with proper indentation
  * @param {Array} messages - Hierarchical messages
  * @param {number} level - Indentation level
+ * @param {string} timezone - Timezone for date formatting
  * @returns {Array} Array of Paragraph objects
  */
-const formatMessagesForDocx = (messages, level = 0) => {
+const formatMessagesForDocx = (messages, level = 0, timezone = 'UTC') => {
   return messages
     .map((msg) => {
       const indent = level * 720
-      const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       return [
         new Paragraph({
-          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString()} (${serverTimezone})`,
+          text: `${msg.pseudonym} - ${new Date(msg.createdAt).toLocaleString('en-US', {
+            timeZone: timezone
+          })}`,
           indent: { left: indent },
           spacing: { before: 240 },
           style: 'Heading3'
@@ -89,7 +91,7 @@ const formatMessagesForDocx = (messages, level = 0) => {
           indent: { left: indent },
           spacing: { after: 240 }
         }),
-        ...formatMessagesForDocx(msg.replies || [], level + 1)
+        ...formatMessagesForDocx(msg.replies || [], level + 1, timezone)
       ]
     })
     .flat()
@@ -99,10 +101,10 @@ const formatMessagesForDocx = (messages, level = 0) => {
  * Generate DOCX file from messages
  * @param {Array} messages - Hierarchical messages
  * @param {Object} metadata - Thread metadata
+ * @param {string} timezone - Timezone for date formatting
  * @returns {Promise<Buffer>} DOCX file buffer
  */
-const generateDocx = async (messages, metadata) => {
-  const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const generateDocx = async (messages, metadata, timezone = 'UTC') => {
   const doc = new Document({
     sections: [
       {
@@ -117,11 +119,14 @@ const generateDocx = async (messages, metadata) => {
             heading: HeadingLevel.HEADING_2
           }),
           new Paragraph({
-            text: `Exported on: ${new Date().toLocaleString()} (${serverTimezone})`,
+            text: `Exported on: ${new Date().toLocaleString('en-US', { timeZone: timezone })} (${timezone})`,
             heading: HeadingLevel.HEADING_2,
             spacing: { after: 480 }
           }),
-          ...formatMessagesForDocx(messages)
+          new Paragraph({
+            text: `Message timestamps shown in ${timezone}`
+          }),
+          ...formatMessagesForDocx(messages, 0, timezone)
         ]
       }
     ]
@@ -134,9 +139,10 @@ const generateDocx = async (messages, metadata) => {
  * Generate CSV files for messages
  * @param {Array} messages - Flat array of messages
  * @param {Object} metadata - Thread metadata
+ * @param {string} timezone - Timezone for date formatting
  * @returns {Promise<Buffer>} ZIP file buffer containing CSV files
  */
-const generateCsv = async (messages, metadata) => {
+const generateCsv = async (messages, metadata, timezone = 'UTC') => {
   const tempDir = path.join(os.tmpdir(), `export-${metadata.threadId}-${Date.now()}`)
   // eslint-disable-next-line security/detect-non-literal-fs-filename
   await fs.mkdir(tempDir, { recursive: true })
@@ -146,7 +152,7 @@ const generateCsv = async (messages, metadata) => {
       messageId: msg._id,
       pseudonym: msg.pseudonym,
       body: msg.body,
-      createdAt: `${new Date(msg.createdAt).toISOString()} (UTC)`,
+      createdAt: `${new Date(msg.createdAt).toLocaleString('en-US', { timeZone: timezone })} (${timezone})`,
       parentMessageId: msg.parentMessage || 'root'
     }))
 
@@ -177,7 +183,7 @@ const generateCsv = async (messages, metadata) => {
       {
         threadName: metadata.threadName,
         topicName: metadata.topicName,
-        exportDate: `${new Date().toISOString()} (UTC)`,
+        exportDate: `${new Date().toLocaleString('en-US', { timeZone: timezone })} (${timezone})`,
         messageCount: messages.length
       }
     ])
@@ -216,9 +222,10 @@ const generateCsv = async (messages, metadata) => {
  * @param {string} threadId - Thread ID
  * @param {string} format - Export format (docx or csv)
  * @param {Object} exportingUser - User performing the export
+ * @param {string} timezone - Timezone for date formatting (default: UTC)
  * @returns {Promise<Object>} Object with buffer and metadata
  */
-const exportThread = async (threadId, format = 'docx', exportingUser) => {
+const exportThread = async (threadId, format = 'docx', exportingUser, timezone = 'UTC') => {
   const thread = await Thread.findById(threadId).populate('topic', 'name')
   if (!thread) {
     throw new Error('Thread not found')
@@ -262,11 +269,11 @@ const exportThread = async (threadId, format = 'docx', exportingUser) => {
   const sanitizedThreadName = thread.slug.replace(/[^a-z0-9-_]/gi, '_')
 
   if (format === 'csv') {
-    buffer = await generateCsv(messages, metadata)
+    buffer = await generateCsv(messages, metadata, timezone)
     filename = `${sanitizedThreadName}-messages-${dateStr}.zip`
     contentType = 'application/zip'
   } else {
-    buffer = await generateDocx(hierarchicalMessages, metadata)
+    buffer = await generateDocx(hierarchicalMessages, metadata, timezone)
     filename = `${sanitizedThreadName}-thread-export-${dateStr}.docx`
     contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   }
