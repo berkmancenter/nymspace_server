@@ -3,6 +3,7 @@ const ApiError = require('../utils/ApiError')
 const catchAsync = require('../utils/catchAsync')
 const { userService } = require('../services')
 const ExportAudit = require('../models/exportAudit.model')
+const config = require('../config/config')
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body)
@@ -49,6 +50,10 @@ const activatePseudonym = catchAsync(async (req, res) => {
 })
 
 const updateDataExportPreference = catchAsync(async (req, res) => {
+  if (!config.enableExportOptOut) {
+    return res.status(httpStatus.FORBIDDEN).send({ message: 'Export opt-out feature is disabled' })
+  }
+
   if (req.params.userId !== req.user.id) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Cannot update preferences for another user')
   }
@@ -63,6 +68,10 @@ const updateDataExportPreference = catchAsync(async (req, res) => {
 })
 
 const getDataExportPreference = catchAsync(async (req, res) => {
+  if (!config.enableExportOptOut) {
+    return res.status(httpStatus.FORBIDDEN).send({ message: 'Export opt-out feature is disabled' })
+  }
+
   if (req.params.userId !== req.user.id) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Cannot get preferences for another user')
   }

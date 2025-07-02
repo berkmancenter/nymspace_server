@@ -11,7 +11,8 @@ const getConfig = catchAsync(async (req, res) => {
     enableAgents: config.enableAgents,
     availableAgents: config.enableAgents ? agentTypes : [],
     enablePublicChannelCreation: config.enablePublicChannelCreation,
-    enableAutoDeletion: config.enableAutoDeletion
+    enableAutoDeletion: config.enableAutoDeletion,
+    enableExportOptOut: config.enableExportOptOut
   })
 })
 

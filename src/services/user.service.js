@@ -63,7 +63,9 @@ const createUser = async (userBody) => {
   }
   if (userBody.email) user.email = userBody.email
   if (typeof userBody.dataExportOptOut !== 'undefined') {
-    user.dataExportOptOut = userBody.dataExportOptOut
+    if (config.enableExportOptOut) {
+      user.dataExportOptOut = userBody.dataExportOptOut
+    }
   }
   user = await User.create(user)
   return user
@@ -213,6 +215,12 @@ const updateUserById = async (userId, updateBody) => {
   const user = await getUserById(userId)
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
+  }
+  if (typeof updateBody.dataExportOptOut !== 'undefined') {
+    // Only allow setting dataExportOptOut if the feature is enabled
+    if (config.enableExportOptOut) {
+      user.dataExportOptOut = updateBody.dataExportOptOut
+    }
   }
   Object.assign(user, updateBody)
   await user.save()

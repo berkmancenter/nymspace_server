@@ -7,18 +7,22 @@ const logger = require('../config/logger')
 
 const exportThread = catchAsync(async (req, res) => {
   const { threadId } = req.params
-  const { format = 'docx' } = req.query
+  const { format = 'docx', timezone = 'UTC' } = req.query
 
   req.setTimeout(5 * 60 * 1000)
   res.setTimeout(5 * 60 * 1000)
 
-  const thread = await Thread.findById(threadId)
+  const thread = await Thread.findById(threadId).populate('topic')
   if (!thread) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Thread not found')
   }
 
-  if (thread.owner.toString() !== req.user.id) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread owner can export')
+  if (!thread.topic) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Channel not found')
+  }
+
+  if (thread.topic.owner.toString() !== req.user.id) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only channel owner can export threads')
   }
 
   if (!['docx', 'csv'].includes(format)) {
@@ -26,7 +30,7 @@ const exportThread = catchAsync(async (req, res) => {
   }
 
   try {
-    const { buffer, filename, contentType } = await exportService.exportThread(threadId, format, req.user)
+    const { buffer, filename, contentType } = await exportService.exportThread(threadId, format, req.user, timezone)
 
     res.setHeader('Content-Type', contentType)
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)

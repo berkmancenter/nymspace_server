@@ -16,6 +16,7 @@ const envVarsSchema = Joi.object()
     NYMSPACE_ENABLE_POLLS: Joi.boolean().default(false).description('Enable poll support'),
     NYMSPACE_ENABLE_PUBLIC_CHANNEL_CREATION: Joi.boolean().default(false).description('Enable channel creation'),
     NYMSPACE_ENABLE_AUTO_DELETION: Joi.boolean().default(true).description('Enable automatic deletion of inactive topics'),
+    NYMSPACE_ENABLE_EXPORT_OPT_OUT: Joi.boolean().default(true).description('Enable export opt-out functionality'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -87,6 +88,7 @@ module.exports = {
   enableAgents: envVars.NYMSPACE_ENABLE_AGENTS,
   enablePublicChannelCreation: envVars.NYMSPACE_ENABLE_PUBLIC_CHANNEL_CREATION,
   enableAutoDeletion: envVars.NYMSPACE_ENABLE_AUTO_DELETION,
+  enableExportOptOut: envVars.NYMSPACE_ENABLE_EXPORT_OPT_OUT,
 
   llms: {
     basePath: envVars.LANGCHAIN_API_BASE_PATH,

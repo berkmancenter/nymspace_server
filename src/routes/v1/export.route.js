@@ -31,6 +31,12 @@ const router = express.Router()
  *           type: string
  *           enum: [docx, csv]
  *           default: docx
+ *       - in: query
+ *         name: timezone
+ *         description: Timezone for date formatting (e.g., America/New_York, Europe/London)
+ *         schema:
+ *           type: string
+ *           default: UTC
  *     responses:
  *       200:
  *         description: File download
