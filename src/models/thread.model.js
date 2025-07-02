@@ -45,9 +45,9 @@ const threadSchema = mongoose.Schema(
     },
     followers: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Follower' }],
     agents: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Agent' }],
-    hitTheButton: {
+    hiddenMessageMode: {
       type: mongoose.SchemaTypes.Boolean,
-      ref: 'HitTheButton',
+      ref: 'HiddenMessageMode',
       default: false
     }
   },

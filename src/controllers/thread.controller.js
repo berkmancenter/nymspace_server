@@ -27,8 +27,8 @@ const updateThread = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(thread)
 })
 
-const revealHitTheButtonHiddenMessages = catchAsync(async (req, res) => {
-  const thread = await threadService.revealHitTheButtonHiddenMessages(req.body.threadId, req.user)
+const revealHiddenMessageModeMessages = catchAsync(async (req, res) => {
+  const thread = await threadService.revealHiddenMessageModeMessages(req.body.threadId, req.user)
   if (worker) {
     worker.send({
       thread: req.body.threadId,
@@ -81,5 +81,5 @@ module.exports = {
   follow,
   allPublic,
   deleteThread,
-  revealHitTheButtonHiddenMessages
+  revealHiddenMessageModeMessages
 }

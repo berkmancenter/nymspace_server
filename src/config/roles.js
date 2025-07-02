@@ -30,8 +30,8 @@ const allRoles = {
     'getPollResponses',
     'getPollResponseCounts',
 
-    // hit the button roles
-    'revealHitTheButtonHiddenMessages'
+    // hidden message mode roles
+    'revealHiddenMessageModeMessages'
   ],
   admin: ['getUsers', 'manageUsers']
 }

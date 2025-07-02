@@ -139,7 +139,7 @@ router.route('/').put(auth('updateThread'), validate(threadValidation.updateThre
  *               $ref: '#/components/schemas/Thread'
  *
  */
-router.route('/reveal').put(auth('revealHitTheButtonHiddenMessages'), threadsController.revealHitTheButtonHiddenMessages)
+router.route('/reveal').put(auth('revealHiddenMessageModeMessages'), threadsController.revealHiddenMessageModeMessages)
 
 /**
  * @swagger

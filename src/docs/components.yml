@@ -155,7 +155,7 @@ components:
           type: boolean
         messageCount:
           type: number
-        hitTheButton:
+        hiddenMessageMode:
           type: boolean
       example:
         id: 61b0ffca7d4eb20ee9dcfe8c

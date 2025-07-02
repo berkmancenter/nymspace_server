@@ -5,7 +5,7 @@ const updateThread = {
     id: Joi.string().required(),
     name: Joi.string(),
     locked: Joi.boolean(),
-    hitTheButton: Joi.boolean()
+    hiddenMessageMode: Joi.boolean().optional()
   })
 }
 
