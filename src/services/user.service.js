@@ -111,7 +111,7 @@ const addPseudonym = async (requestBody, requestUser) => {
   const user = await User.findById(requestUser.id)
   const psuedos = user.pseudonyms.filter((p) => !p.isDeleted)
   if (psuedos.length >= 5) {
-    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'User has max number of pseudonyms')
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'You have reached your pseudonym limit. Delete one to add another.')
   }
   user.pseudonyms.forEach((p) => {
     // eslint-disable-next-line no-param-reassign
@@ -312,7 +312,7 @@ const isTokenGeneratedByThreads = (password) => {
     decryptedParsed = JSON.parse(decrypted)
   } catch (err) {
     // Todo: log error?
-    throw new Error('Invalid token')
+    throw new Error('Invalid or expired login token. Please log in again.')
   }
 
   return typeof decryptedParsed.token !== 'undefined'

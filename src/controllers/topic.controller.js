@@ -41,7 +41,7 @@ const allTopics = catchAsync(async (req, res) => {
 
 const publicTopics = catchAsync(async (req, res) => {
   if (userService.isTokenGeneratedByThreads(req.params.token) === false) {
-    throw new Error('Invalid token')
+    throw new Error('Invalid or expired login token. Please log in again.')
   }
   const topics = await topicService.allPublicTopics()
   // Return top ten topics

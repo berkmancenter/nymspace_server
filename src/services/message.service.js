@@ -62,7 +62,7 @@ const fetchThread = async (messageBody, user) => {
 
   if (pseudoForThread && activePseudo._id.toString() !== pseudoForThread._id.toString()) {
     logger.error(`CANNOT POST - THREAD: ${pseudoForThread._id}, ACTIVE: ${activePseudo._id}`)
-    throw new ApiError(httpStatus.BAD_REQUEST, 'You cannot post in this thread with your active pseudonym.')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You can only post to this thread with the psuedonym you already used here.')
   }
 
   if (!pseudoForThread) {
@@ -90,9 +90,9 @@ const fetchThread = async (messageBody, user) => {
 const createMessage = async (messageBody, user, thread) => {
   const activePseudo = user.activePseudonym
 
-  if (!messageBody.body) throw new ApiError(httpStatus.BAD_REQUEST, 'Message body is required')
+  if (!messageBody.body) throw new ApiError(httpStatus.BAD_REQUEST, 'Message text is required')
   if (messageBody.body.length > config.maxMessageLength)
-    throw new ApiError(httpStatus.BAD_REQUEST, `Message must be no longer than ${config.maxMessageLength} characters`)
+    throw new ApiError(httpStatus.BAD_REQUEST, `Message cannot be longer than ${config.maxMessageLength} characters`)
 
   const messageData = {
     body: messageBody.body,
@@ -179,7 +179,7 @@ const vote = async (messageId, direction, status, requestUser) => {
   const user = await User.findById(requestUser.id)
   const message = await Message.findById(messageId)
   if (message.owner.toString() === user._id.toString()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Users cannot vote for their own messages.')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You cannot vote on your own message.')
   }
 
   const votes = message.upVotes.concat(message.downVotes)
@@ -187,7 +187,7 @@ const vote = async (messageId, direction, status, requestUser) => {
     if (votes && votes.length > 0) {
       const existingVote = votes.find((x) => x.owner.toString() === user._id.toString())
       if (existingVote) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'User has already voted for this message.')
+        throw new ApiError(httpStatus.BAD_REQUEST, 'You have already voted on this message.')
       }
     }
   }
