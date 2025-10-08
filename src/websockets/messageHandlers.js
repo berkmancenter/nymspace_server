@@ -49,7 +49,7 @@ module.exports = (io, socket) => {
             // Channel owner's messages are visible to everyone
             const messageWithLabel = {
               ...baseMessage,
-              visibilityLabel: 'Message from facilitator, visible to everyone'
+              visibilityLabel: 'Facilitator message. Visible to everyone.'
             }
             io.in(message.thread._id.toString()).emit('message:new', messageWithLabel)
           } else {
@@ -58,7 +58,7 @@ module.exports = (io, socket) => {
             // First, send full message to the sender themselves
             const senderMessage = {
               ...baseMessage,
-              visibilityLabel: 'Message is hidden from everyone except the facilitator'
+              visibilityLabel: 'Hidden message. Visible only to you and facilitators.'
             }
             socket.emit('message:new', senderMessage)
 
@@ -75,12 +75,12 @@ module.exports = (io, socket) => {
               // Check if recipient is the channel owner
               if (recipientUserId && recipientUserId === channelOwnerId) {
                 // Channel owner can see all messages
-                messageToSend.visibilityLabel = 'Message from participant, visible to you and author'
+                messageToSend.visibilityLabel = 'Hidden message. Visible only to facilitators and the author.'
               } else {
                 // Other participants and unauthenticated users can't see the message
                 messageToSend.body = null
                 messageToSend.hiddenForUser = true
-                messageToSend.visibilityLabel = 'Message hidden from everyone else except the facilitator.'
+                messageToSend.visibilityLabel = 'Hidden message. Visible only to facilitators and the author.'
               }
 
               recipientSocket.emit('message:new', messageToSend)

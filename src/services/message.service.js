@@ -30,13 +30,14 @@ const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId
     }
 
     if (isMessageFromChannelOwner) {
-      msgObj.visibilityLabel = 'Message from facilitator, visible to everyone'
+      msgObj.visibilityLabel = 'Facilitator message. Visible to everyone.'
     } else if (isChannelOwner && !isOwnMessage) {
-      msgObj.visibilityLabel = 'Message from participant, visible to you and author'
+      msgObj.visibilityLabel = 'Hidden message. Visible only to facilitators and the author.'
     } else if (isOwnMessage) {
-      msgObj.visibilityLabel = 'Message is hidden from everyone except the facilitator'
+      msgObj.visibilityLabel = 'Hidden message. Visible only to you and facilitators.'
     } else {
-      msgObj.visibilityLabel = 'Message hidden from everyone else except the facilitator.'
+      msgObj.visibilityLabel =
+        'Message hidden from everyone else except the Hidden message. Visible only to facilitators and the author.'
     }
   }
 
