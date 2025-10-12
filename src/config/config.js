@@ -37,7 +37,8 @@ const envVarsSchema = Joi.object()
     DAYS_FOR_GOOD_REPUTATION: Joi.number().default(1).description('the number of days it takes to get a good reputation'),
     OPENAI_API_KEY: Joi.string().default('INVALID_API_KEY').description('OpenAI key'),
     LANGCHAIN_API_BASE_PATH: Joi.string().description('LangChain API base path'),
-    PERSPECTIVE_API_KEY: Joi.string().description('Perspective API key')
+    PERSPECTIVE_API_KEY: Joi.string().description('Perspective API key'),
+    TRUST_PROXY: Joi.number().default(0).description('Number of proxies in between the client and server')
   })
   .unknown()
 
@@ -101,5 +102,6 @@ module.exports = {
   },
   appHost: envVars.APP_HOST,
   trulyRandomPseudonyms: envVars.TRULY_RANDOM_PSEUDONYMS,
-  DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION
+  DAYS_FOR_GOOD_REPUTATION: envVars.DAYS_FOR_GOOD_REPUTATION,
+  trustProxy: envVars.TRUST_PROXY
 }

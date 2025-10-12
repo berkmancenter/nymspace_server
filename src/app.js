@@ -23,6 +23,9 @@ if (config.env !== 'test') {
   app.use(morgan.errorHandler)
 }
 
+// set proxy
+app.set('trust proxy', config.trustProxy /* number of proxies between user and server */)
+
 // set security HTTP headers
 app.use(helmet())
 
