@@ -34,9 +34,11 @@ module.exports = (io, socket) => {
         message.owner = data.user._id
 
         if (message.hiddenMessageModeHidden === true) {
-          const thread = await Thread.findById(message.thread).populate('topic').exec()
+          const thread = await Thread.findById(message.thread).populate('topic', 'owner').exec()
           const channelOwnerId = thread.topic?.owner?.toString()
           const isMessageFromChannelOwner = data.user._id.toString() === channelOwnerId
+          const threadOwnerId = thread.owner?.toString()
+          const isMessageFromThreadOwner = data.user._id.toString() === threadOwnerId
 
           // Prepare base message
           const baseMessage = {
@@ -45,8 +47,8 @@ module.exports = (io, socket) => {
             request: data.request
           }
 
-          if (isMessageFromChannelOwner) {
-            // Channel owner's messages are visible to everyone
+          if (isMessageFromChannelOwner || isMessageFromThreadOwner) {
+            // Channel owner's messages and thread owner's messages are visible to everyone
             const messageWithLabel = {
               ...baseMessage,
               visibilityLabel: 'Facilitator message. Visible to everyone.'
@@ -72,9 +74,9 @@ module.exports = (io, socket) => {
               const recipientUserId = recipientSocket.data?.userId
               const messageToSend = { ...baseMessage }
 
-              // Check if recipient is the channel owner
-              if (recipientUserId && recipientUserId === channelOwnerId) {
-                // Channel owner can see all messages
+              // Check if recipient is the channel owner or thread owner
+              if (recipientUserId && (recipientUserId === channelOwnerId || recipientUserId === threadOwnerId)) {
+                // Channel owner and thread owner can see all messages
                 messageToSend.visibilityLabel = 'Hidden message. Visible only to facilitators and the author.'
               } else {
                 // Other participants and unauthenticated users can't see the message

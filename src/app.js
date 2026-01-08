@@ -23,6 +23,9 @@ if (config.env !== 'test') {
   app.use(morgan.errorHandler)
 }
 
+// set proxy
+app.set('trust proxy', config.trustProxy /* number of proxies between user and server */)
+
 // set security HTTP headers
 app.use(helmet())
 
@@ -75,6 +78,9 @@ app.use(errorHandler)
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
   res.setHeader('Access-Control-Allow-Origin', '*')
+
+  // Disallow content to be indexed by search engines
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow')
 
   next()
 })
