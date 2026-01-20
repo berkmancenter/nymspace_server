@@ -46,7 +46,7 @@ app.use(cookieParser())
 
 // enable cors
 const corsOptions = {
-  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type']
+  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type', 'X-Robots-Tag']
 }
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
