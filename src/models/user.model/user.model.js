@@ -68,7 +68,11 @@ userSchema.virtual('activePseudonym').get(function () {
 
 userSchema.pre('validate', function (next) {
   const user = this
-  user.role = 'user'
+  // Only force role = 'user' if no role is explicitly set
+  // This allows admin and site_admin roles to be created when explicitly specified
+  if (!user.role || (user.role !== 'admin' && user.role !== 'site_admin')) {
+    user.role = 'user'
+  }
   next()
 })
 

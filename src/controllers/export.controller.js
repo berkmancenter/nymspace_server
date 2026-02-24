@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catchAsync')
 const { exportService } = require('../services')
 const Thread = require('../models/thread.model')
 const logger = require('../config/logger')
+const { canActAsChannelOwner } = require('../config/roles')
 
 const exportThread = catchAsync(async (req, res) => {
   const { threadId } = req.params
@@ -21,7 +22,7 @@ const exportThread = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Channel not found')
   }
 
-  if (thread.topic.owner.toString() !== req.user.id) {
+  if (!canActAsChannelOwner(req.user, thread.topic)) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Only channel owner can export threads')
   }
 

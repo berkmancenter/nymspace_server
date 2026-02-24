@@ -7,6 +7,7 @@ const { Thread } = require('../models')
 const { User } = require('../models')
 const { AgentMessageActions } = require('../types/agent.types')
 const ApiError = require('../utils/ApiError')
+const { canActAsChannelOwner, isSiteAdmin } = require('../config/roles')
 
 /**
  * Apply hidden message redaction logic
@@ -15,10 +16,11 @@ const ApiError = require('../utils/ApiError')
  * @param {Boolean} isChannelOwner - Whether current user is channel owner
  * @param {String} channelOwnerId - Channel owner ID
  * @param {Boolean} isThreadOwner - Whether the current user is thread owner
- * @param {Boolean} threadOwnerId - Thread owner ID
+ * @param {String} threadOwnerId - Thread owner ID
+ * @param {Boolean} isSiteAdministrator - Whether current user is site admin
  * @returns {Object} - Message object with redaction applied
  */
-const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId, isThreadOwner, threadOwnerId) => {
+const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId, isThreadOwner, threadOwnerId, isSiteAdministrator = false) => {
   const msgObj = msg.toObject ? msg.toObject() : msg
 
   if (msg.hiddenMessageModeHidden === true) {
@@ -26,7 +28,8 @@ const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId
     const isMessageFromChannelOwner = msg.owner.toString() === channelOwnerId?.toString()
     const isMessageFromThreadOwner = msg.owner.toString() === threadOwnerId?.toString()
 
-    if (!isChannelOwner && !isThreadOwner && !isOwnMessage && !isMessageFromChannelOwner && !isMessageFromThreadOwner) {
+    // Site admins can see all hidden messages
+    if (!isChannelOwner && !isThreadOwner && !isSiteAdministrator && !isOwnMessage && !isMessageFromChannelOwner && !isMessageFromThreadOwner) {
       msgObj.body = null
       msgObj.hiddenForUser = true
       logger.info(`Message ${msg._id} body set to null for user ${userId || 'unauthenticated'}`)
@@ -34,7 +37,7 @@ const applyHiddenMessageRedaction = (msg, userId, isChannelOwner, channelOwnerId
 
     if (isMessageFromChannelOwner || isMessageFromThreadOwner) {
       msgObj.visibilityLabel = 'Facilitator message. Visible to everyone.'
-    } else if ((isChannelOwner || isThreadOwner) && !isOwnMessage) {
+    } else if ((isChannelOwner || isThreadOwner || isSiteAdministrator) && !isOwnMessage) {
       msgObj.visibilityLabel = 'Hidden message. Visible only to facilitators and the author.'
     } else if (isOwnMessage) {
       msgObj.visibilityLabel = 'Hidden message. Visible only to you and facilitators.'
@@ -124,6 +127,13 @@ const threadMessages = async (id, userId) => {
   const isChannelOwner = userId && thread.topic && thread.topic.owner.toString() === userId.toString()
   const isThreadOwner = userId && thread.owner.toString() === userId.toString()
 
+  // Check if user is site admin
+  let isSiteAdministrator = false
+  if (userId) {
+    const user = await User.findById(userId).select('role')
+    isSiteAdministrator = user && isSiteAdmin(user.role)
+  }
+
   const messages = await Message.find({
     thread: id,
     visible: true,
@@ -165,7 +175,15 @@ const threadMessages = async (id, userId) => {
 
   // Apply new redaction logic
   const redactedMessages = messages.map((msg) => {
-    const msgObj = applyHiddenMessageRedaction(msg, userId, isChannelOwner, thread.topic?.owner?.toString(), isThreadOwner, thread.owner?.toString())
+    const msgObj = applyHiddenMessageRedaction(
+      msg, 
+      userId, 
+      isChannelOwner, 
+      thread.topic?.owner?.toString(), 
+      isThreadOwner, 
+      thread.owner?.toString(), 
+      isSiteAdministrator
+    )
     msgObj.replyCount = replyCountMap[msg._id.toString()] || 0
     return msgObj
   })
@@ -278,6 +296,13 @@ const getMessageReplies = async (messageId, userId) => {
   const isChannelOwner = userId && thread.topic && thread.topic.owner.toString() === userId.toString()
   const isThreadOwner = userId && thread.owner.toString() === userId.toString()
   
+  // Check if user is site admin
+  let isSiteAdministrator = false
+  if (userId) {
+    const user = await User.findById(userId).select('role')
+    isSiteAdministrator = user && isSiteAdmin(user.role)
+  }
+  
   const replies = await Message.find({
     parentMessage: messageId,
     visible: true
@@ -288,7 +313,15 @@ const getMessageReplies = async (messageId, userId) => {
 
   // Apply same redaction logic as threadMessages
   const redactedReplies = replies.map((msg) => {
-    return applyHiddenMessageRedaction(msg, userId, isChannelOwner, thread.topic?.owner?.toString(), isThreadOwner, thread.owner?.toString())
+    return applyHiddenMessageRedaction(
+      msg, 
+      userId, 
+      isChannelOwner, 
+      thread.topic?.owner?.toString(), 
+      isThreadOwner, 
+      thread.owner?.toString(), 
+      isSiteAdministrator
+    )
   })
 
   return redactedReplies

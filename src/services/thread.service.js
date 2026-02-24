@@ -3,6 +3,7 @@ const httpStatus = require('http-status')
 const { Thread, Topic, Follower, Message } = require('../models')
 const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
+const { canActAsChannelOwner, isSiteAdmin } = require('../config/roles')
 
 const returnFields = 'name slug locked owner createdAt messageCount hiddenMessageMode'
 
@@ -17,7 +18,7 @@ const createThread = async (threadBody, user) => {
   const topicId = mongoose.Types.ObjectId(threadBody.topicId)
   const topic = await Topic.findById(topicId)
 
-  if (!topic.threadCreationAllowed && user._id.toString() !== topic.owner.toString()) {
+  if (!topic.threadCreationAllowed && !canActAsChannelOwner(user, topic)) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Thread creation not allowed in this channel.')
   }
 
@@ -65,8 +66,11 @@ const createThread = async (threadBody, user) => {
  */
 const updateThread = async (threadBody, user) => {
   let threadDoc = await Thread.findById(threadBody.id).populate('topic')
-  if (user._id.toString() !== threadDoc.owner.toString() && user._id.toString() !== threadDoc.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can update.')
+  const isThreadOwner = user._id.toString() === threadDoc.owner.toString()
+  const canManageAsChannelOwner = canActAsChannelOwner(user, threadDoc.topic)
+  
+  if (!isThreadOwner && !canManageAsChannelOwner) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread owner, channel owner, or site admin can update.')
   }
 
   threadDoc = updateDocument(threadBody, threadDoc)
@@ -77,8 +81,11 @@ const updateThread = async (threadBody, user) => {
 
 const revealHiddenMessageModeMessages = async (threadId, user) => {
   const thread = await Thread.findById(threadId).populate('topic')
-  if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can reveal hidden messages.')
+  const isThreadOwner = user._id.toString() === thread.owner.toString()
+  const canManageAsChannelOwner = canActAsChannelOwner(user, thread.topic)
+  
+  if (!isThreadOwner && !canManageAsChannelOwner) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread owner, channel owner, or site admin can reveal hidden messages.')
   }
 
   await Message.updateMany({ thread: threadId, hiddenMessageModeHidden: true }, { $set: { hiddenMessageModeHidden: false } })
@@ -161,8 +168,11 @@ const allPublic = async () => {
 const deleteThread = async (id, user) => {
   const thread = await Thread.findOne({ _id: id }).populate('topic').select('name slug owner topic').exec()
 
-  if (user._id.toString() !== thread.owner.toString() && user._id.toString() !== thread.topic.owner.toString()) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread or channel owner can delete.  ')
+  const isThreadOwner = user._id.toString() === thread.owner.toString()
+  const canManageAsChannelOwner = canActAsChannelOwner(user, thread.topic)
+  
+  if (!isThreadOwner && !canManageAsChannelOwner) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only thread owner, channel owner, or site admin can delete.')
   }
 
   await Thread.deleteOne({ _id: id })
