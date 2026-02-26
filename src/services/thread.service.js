@@ -100,15 +100,27 @@ const userThreads = async (user) => {
   const deletedTopics = await Topic.find({ isDeleted: true }).select('_id')
   const followedThreads = await Follower.find({ user }).select('thread').exec()
   const followedThreadsIds = followedThreads.map((el) => el.thread).filter((el) => el)
-  const threads = await Thread.find({
-    $and: [
-      { $or: [{ owner: user }, { _id: { $in: followedThreadsIds } }] },
-      {
-        topic: { $nin: deletedTopics }
-      }
-    ]
-  })
+  
+  // Site admins should see all threads, not just ones they own/follow
+  let threadQuery
+  if (isSiteAdmin(user)) {
+    threadQuery = {
+      topic: { $nin: deletedTopics }
+    }
+  } else {
+    threadQuery = {
+      $and: [
+        { $or: [{ owner: user }, { _id: { $in: followedThreadsIds } }] },
+        {
+          topic: { $nin: deletedTopics }
+        }
+      ]
+    }
+  }
+  
+  const threads = await Thread.find(threadQuery)
     .select(returnFields)
+    .populate('topic', 'owner') // Populate topic to check channel ownership
     .exec()
 
   threads.forEach((thread) => {
@@ -116,6 +128,21 @@ const userThreads = async (user) => {
       // eslint-disable-next-line
       thread.followed = true
     }
+    
+    // Add permission flags for frontend
+    const isThreadOwner = user._id?.toString() === thread.owner?.toString()
+    const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
+    const isSiteAdministrator = isSiteAdmin(user)
+    
+    // Convert to plain object to add properties
+    const threadObj = thread.toObject()
+    threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
+    threadObj.canDelete = isThreadOwner || isChannelOwner || isSiteAdministrator
+    threadObj.canExport = isChannelOwner || isSiteAdministrator
+    threadObj.canRevealHidden = isThreadOwner || isChannelOwner || isSiteAdministrator
+    
+    // Replace the thread object in the array
+    threads[threads.indexOf(thread)] = threadObj
   })
   return threads
 }
@@ -135,8 +162,29 @@ const findByIdFull = async (id, user) => {
   return threadPojo
 }
 
-const topicThreads = async (topicId) => {
-  const threads = await Thread.find({ topic: topicId }).select(returnFields).exec()
+const topicThreads = async (topicId, user = null) => {
+  const threads = await Thread.find({ topic: topicId })
+    .select(returnFields)
+    .populate('topic', 'owner') // Populate topic to check channel ownership
+    .exec()
+    
+  // Add permission flags if user is provided
+  if (user) {
+    return threads.map(thread => {
+      const isThreadOwner = user._id?.toString() === thread.owner?.toString()
+      const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
+      const isSiteAdministrator = isSiteAdmin(user)
+      
+      const threadObj = thread.toObject()
+      threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
+      threadObj.canDelete = isThreadOwner || isChannelOwner || isSiteAdministrator
+      threadObj.canExport = isChannelOwner || isSiteAdministrator
+      threadObj.canRevealHidden = isThreadOwner || isChannelOwner || isSiteAdministrator
+      
+      return threadObj
+    })
+  }
+  
   return threads
 }
 

@@ -12,9 +12,10 @@ const { isSiteAdmin, canActAsChannelOwner } = require('../config/roles')
 /**
  * Query topics and add sorting properties
  * @param {Object} topicQuery
+ * @param {Object} user - Current user for permission checking
  * @returns {Promise<Array>}
  */
-const topicsWithSortData = async (topicQuery) => {
+const topicsWithSortData = async (topicQuery, user = null) => {
   const dbtopics = await Topic.find(topicQuery)
     // Populate threads and messages for calculation of sorting properties
     .populate({
@@ -50,6 +51,17 @@ const topicsWithSortData = async (topicQuery) => {
     topic.threadCreationAllowed = t.threadCreationAllowed
     topic.owner = t.owner
     topic.archiveEmail = t.archiveEmail
+    
+    // Add permission flags for frontend
+    if (user) {
+      const isOwner = user._id?.toString() === t.owner?.toString()
+      const isSiteAdministrator = isSiteAdmin(user)
+      topic.canEdit = isOwner || isSiteAdministrator
+      topic.canDelete = isOwner || isSiteAdministrator 
+      topic.canManageThreads = isOwner || isSiteAdministrator
+      topic.canExport = isOwner || isSiteAdministrator
+    }
+    
     // Sort the most recent messages for all threads, to determine the
     // most recent message for the topic/channel.
     threadMsgTimes.sort((a, b) => {
@@ -129,14 +141,21 @@ const updateTopic = async (topicBody, user) => {
 const userTopics = async (user) => {
   const followedTopics = await Follower.find({ user }).select('topic').exec()
   const followedTopicIds = followedTopics.map((el) => el.topic).filter((el) => el)
-  const topics = await topicsWithSortData({
-    $and: [
-      { $or: [{ owner: user }, { _id: { $in: followedTopicIds } }] },
-      {
-        isDeleted: false
-      }
-    ]
-  })
+  
+  // Site admins should see all topics, not just ones they own/follow
+  let topicQuery
+  if (isSiteAdmin(user)) {
+    topicQuery = { isDeleted: false }
+  } else {
+    topicQuery = {
+      $and: [
+        { $or: [{ owner: user }, { _id: { $in: followedTopicIds } }] },
+        { isDeleted: false }
+      ]
+    }
+  }
+  
+  const topics = await topicsWithSortData(topicQuery, user)
   topics.forEach((topic) => {
     if (followedTopicIds.map((f) => f.toString()).includes(topic.id)) {
       // eslint-disable-next-line
@@ -154,7 +173,7 @@ const allPublicTopics = async () => {
 const allTopicsByUser = async (user) => {
   // Site admins can see all channels, including private ones owned by others
   if (isSiteAdmin(user)) {
-    const topics = await topicsWithSortData({ isDeleted: false })
+    const topics = await topicsWithSortData({ isDeleted: false }, user)
     return topics
   }
 
@@ -167,7 +186,7 @@ const allTopicsByUser = async (user) => {
   //   },
   const topics = await topicsWithSortData({
     $and: [{ isDeleted: false }, { _id: { $nin: otherPrivateTopics.map((x) => x._id) } }]
-  })
+  }, user)
   return topics
 }
 

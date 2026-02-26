@@ -53,7 +53,7 @@ const getThread = catchAsync(async (req, res) => {
 })
 
 const getTopicThreads = catchAsync(async (req, res) => {
-  const threads = await threadService.topicThreads(req.params.topicId)
+  const threads = await threadService.topicThreads(req.params.topicId, req.user)
   res.status(httpStatus.OK).send(threads)
 })
 
