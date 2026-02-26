@@ -123,10 +123,13 @@ const userThreads = async (user) => {
     .populate('topic', 'owner') // Populate topic to check channel ownership
     .exec()
 
-  threads.forEach((thread) => {
+  // Map to new array with permission flags
+  return threads.map((thread) => {
+    const threadObj = thread.toObject()
+    
+    // Add followed status
     if (followedThreadsIds.map((f) => f.toString()).includes(thread.id)) {
-      // eslint-disable-next-line
-      thread.followed = true
+      threadObj.followed = true
     }
     
     // Add permission flags for frontend
@@ -134,17 +137,13 @@ const userThreads = async (user) => {
     const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
     const isSiteAdministrator = isSiteAdmin(user)
     
-    // Convert to plain object to add properties
-    const threadObj = thread.toObject()
     threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
     threadObj.canDelete = isThreadOwner || isChannelOwner || isSiteAdministrator
     threadObj.canExport = isChannelOwner || isSiteAdministrator
     threadObj.canRevealHidden = isThreadOwner || isChannelOwner || isSiteAdministrator
     
-    // Replace the thread object in the array
-    threads[threads.indexOf(thread)] = threadObj
+    return threadObj
   })
-  return threads
 }
 
 const findById = async (id) => {
@@ -171,11 +170,12 @@ const topicThreads = async (topicId, user = null) => {
   // Add permission flags if user is provided
   if (user) {
     return threads.map(thread => {
+      const threadObj = thread.toObject()
+      
       const isThreadOwner = user._id?.toString() === thread.owner?.toString()
       const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
       const isSiteAdministrator = isSiteAdmin(user)
       
-      const threadObj = thread.toObject()
       threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
       threadObj.canDelete = isThreadOwner || isChannelOwner || isSiteAdministrator
       threadObj.canExport = isChannelOwner || isSiteAdministrator
