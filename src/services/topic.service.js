@@ -7,6 +7,7 @@ const ApiError = require('../utils/ApiError')
 const updateDocument = require('../utils/updateDocument')
 const User = require('../models/user.model/user.model')
 const config = require('../config/config')
+const { isSiteAdmin } = require('../config/roles')
 
 /**
  * Query topics and add sorting properties
@@ -144,6 +145,13 @@ const allPublicTopics = async () => {
 }
 
 const allTopicsByUser = async (user) => {
+  // Site admins can see all channels, including private ones owned by others
+  if (isSiteAdmin(user)) {
+    const topics = await topicsWithSortData({ isDeleted: false })
+    return topics
+  }
+
+  // For regular users, exclude private topics they don't own
   const otherPrivateTopics = await Topic.find({ $and: [{ private: true }, { owner: { $ne: user } }] })
   // $and: [
   //   { $or: [{ owner: user }, { _id: { $in: followedThreads.map((el) => el.thread) } }] },
