@@ -5,7 +5,7 @@ const updateDocument = require('../utils/updateDocument')
 const ApiError = require('../utils/ApiError')
 const { canActAsChannelOwner, isSiteAdmin } = require('../config/roles')
 
-const returnFields = 'name slug locked owner createdAt messageCount hiddenMessageMode'
+const returnFields = 'name slug locked owner createdAt messageCount hiddenMessageMode topic'
 
 /**
  * Create a thread
@@ -123,18 +123,19 @@ const userThreads = async (user) => {
     .populate('topic', 'owner') // Populate topic to check channel ownership
     .exec()
 
-  // Map to new array with permission flags
-  return threads.map((thread) => {
+  // Add permission flags to threads
+  const threadsWithPermissions = threads.map((thread) => {
+    // Start with the mongoose document as a plain object
     const threadObj = thread.toObject()
     
     // Add followed status
-    if (followedThreadsIds.map((f) => f.toString()).includes(thread.id)) {
+    if (followedThreadsIds.map((f) => f.toString()).includes(threadObj._id.toString())) {
       threadObj.followed = true
     }
     
     // Add permission flags for frontend
-    const isThreadOwner = user._id?.toString() === thread.owner?.toString()
-    const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
+    const isThreadOwner = user._id?.toString() === threadObj.owner?.toString()
+    const isChannelOwner = user._id?.toString() === threadObj.topic?.owner?.toString() 
     const isSiteAdministrator = isSiteAdmin(user)
     
     threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
@@ -144,6 +145,8 @@ const userThreads = async (user) => {
     
     return threadObj
   })
+  
+  return threadsWithPermissions
 }
 
 const findById = async (id) => {
@@ -152,12 +155,32 @@ const findById = async (id) => {
 }
 
 const findByIdFull = async (id, user) => {
-  const thread = await Thread.findOne({ _id: id }).select(returnFields).exec()
+  const thread = await Thread.findOne({ _id: id })
+    .select(returnFields)
+    .populate('topic', 'owner') // Populate topic to check channel ownership
+    .exec()
+    
+  if (!thread) {
+    return null
+  }
+    
   const threadPojo = thread.toObject()
   threadPojo.followed = await Follower.findOne({ thread, user }).select('_id').exec()
 
+  // Add permission flags if user is provided
+  if (user) {
+    const isThreadOwner = user._id?.toString() === threadPojo.owner?.toString()
+    const isChannelOwner = user._id?.toString() === threadPojo.topic?.owner?.toString() 
+    const isSiteAdministrator = isSiteAdmin(user)
+    
+    threadPojo.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
+    threadPojo.canDelete = isThreadOwner || isChannelOwner || isSiteAdministrator
+    threadPojo.canExport = isChannelOwner || isSiteAdministrator
+    threadPojo.canRevealHidden = isThreadOwner || isChannelOwner || isSiteAdministrator
+  }
+
+  // Keep both id formats for compatibility
   threadPojo.id = threadPojo._id.toString()
-  delete threadPojo._id
   return threadPojo
 }
 
@@ -172,8 +195,8 @@ const topicThreads = async (topicId, user = null) => {
     return threads.map(thread => {
       const threadObj = thread.toObject()
       
-      const isThreadOwner = user._id?.toString() === thread.owner?.toString()
-      const isChannelOwner = user._id?.toString() === thread.topic?.owner?.toString() 
+      const isThreadOwner = user._id?.toString() === threadObj.owner?.toString()
+      const isChannelOwner = user._id?.toString() === threadObj.topic?.owner?.toString() 
       const isSiteAdministrator = isSiteAdmin(user)
       
       threadObj.canEdit = isThreadOwner || isChannelOwner || isSiteAdministrator
