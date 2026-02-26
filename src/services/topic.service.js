@@ -7,7 +7,7 @@ const ApiError = require('../utils/ApiError')
 const updateDocument = require('../utils/updateDocument')
 const User = require('../models/user.model/user.model')
 const config = require('../config/config')
-const { isSiteAdmin } = require('../config/roles')
+const { isSiteAdmin, canActAsChannelOwner } = require('../config/roles')
 
 /**
  * Query topics and add sorting properties
@@ -110,10 +110,17 @@ const createTopic = async (topicBody, user) => {
 /**
  * Update a topic
  * @param {Object} topicBody
+ * @param {Object} user
  * @returns {Promise<Topic>}
  */
-const updateTopic = async (topicBody) => {
+const updateTopic = async (topicBody, user) => {
   let topicDoc = await Topic.findById(topicBody.id)
+  if (!topicDoc) throw new ApiError(httpStatus.NOT_FOUND, 'Channel does not exist')
+  
+  if (!canActAsChannelOwner(user, topicDoc)) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only channel owner or site admin can update this channel')
+  }
+  
   topicDoc = updateDocument(topicBody, topicDoc)
   await topicDoc.save()
   return topicDoc
@@ -174,12 +181,18 @@ const findById = async (id) => {
 
 /**
  * Soft delete a topic
- * @param {Object} topicBody
+ * @param {String} id
+ * @param {Object} user
  * @returns {Promise}
  */
-const deleteTopic = async (id) => {
+const deleteTopic = async (id, user) => {
   const topic = await Topic.findOne({ _id: id })
   if (!topic) throw new ApiError(httpStatus.NOT_FOUND, 'Channel does not exist')
+  
+  if (!canActAsChannelOwner(user, topic)) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Only channel owner or site admin can delete this channel')
+  }
+  
   topic.isDeleted = true
   await topic.save()
 }

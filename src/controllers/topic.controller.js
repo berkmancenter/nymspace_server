@@ -10,7 +10,7 @@ const createTopic = catchAsync(async (req, res) => {
 })
 
 const updateTopic = catchAsync(async (req, res) => {
-  const topic = await topicService.updateTopic(req.body)
+  const topic = await topicService.updateTopic(req.body, req.user)
   res.status(httpStatus.OK).send(topic)
 })
 
@@ -30,7 +30,7 @@ const getTopic = catchAsync(async (req, res) => {
 })
 
 const deleteTopic = catchAsync(async (req, res) => {
-  await topicService.deleteTopic(req.params.topicId)
+  await topicService.deleteTopic(req.params.topicId, req.user)
   res.status(httpStatus.OK).send()
 })
 

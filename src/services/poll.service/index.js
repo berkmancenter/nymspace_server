@@ -5,6 +5,7 @@ const logger = require('../../config/logger')
 const { Topic, Poll, PollChoice, PollResponse } = require('../../models')
 const ApiError = require('../../utils/ApiError')
 const { WHEN_RESULTS_VISIBLE } = require('../../models/poll.model/constants')
+const { canActAsChannelOwner } = require('../../config/roles')
 
 const createPoll = async (pollBody, user) => {
   if (!pollBody.topicId) throw new ApiError(httpStatus.BAD_REQUEST, 'Channel ID must be passed in request body.')
@@ -15,7 +16,7 @@ const createPoll = async (pollBody, user) => {
   // TODO: Confirm if we want to separately allow control of thread and poll creation or not
   // For this MVP we are using threadCreationAllowed, but it should probably be renamed
   // spaceCreationAllowed or separated into two options for clarity
-  if (!topic.threadCreationAllowed && user._id.toString() !== topic.owner.toString()) {
+  if (!topic.threadCreationAllowed && !canActAsChannelOwner(user, topic)) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Poll creation not allowed.')
   }
 
